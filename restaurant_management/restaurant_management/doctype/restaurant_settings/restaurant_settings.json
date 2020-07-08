@@ -1,0 +1,137 @@
+{
+ "actions": [],
+ "creation": "2020-06-07 20:39:44.010918",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "for_tables_section",
+  "restricted_to_user_table",
+  "column_break_3",
+  "lock_to_open",
+  "column_break_5",
+  "color_table",
+  "for_orders_section",
+  "restricted_to_user_order",
+  "column_break_8",
+  "color_order",
+  "section_break_11",
+  "restaurant_permissions_info",
+  "restaurant_permissions"
+ ],
+ "fields": [
+  {
+   "fieldname": "for_tables_section",
+   "fieldtype": "Section Break",
+   "label": "For Tables",
+   "show_days": 1,
+   "show_seconds": 1
+  },
+  {
+   "fieldname": "column_break_3",
+   "fieldtype": "Column Break",
+   "show_days": 1,
+   "show_seconds": 1
+  },
+  {
+   "fieldname": "for_orders_section",
+   "fieldtype": "Section Break",
+   "label": "For Orders",
+   "show_days": 1,
+   "show_seconds": 1
+  },
+  {
+   "fieldname": "column_break_8",
+   "fieldtype": "Column Break",
+   "show_days": 1,
+   "show_seconds": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "restricted_to_user_table",
+   "fieldtype": "Check",
+   "label": "Restricted to User",
+   "show_days": 1,
+   "show_seconds": 1
+  },
+  {
+   "fieldname": "color_table",
+   "fieldtype": "Color",
+   "label": "Color",
+   "show_days": 1,
+   "show_seconds": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "restricted_to_user_order",
+   "fieldtype": "Check",
+   "label": "Restricted to User",
+   "show_days": 1,
+   "show_seconds": 1
+  },
+  {
+   "fieldname": "color_order",
+   "fieldtype": "Color",
+   "label": "Color",
+   "show_days": 1,
+   "show_seconds": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "lock_to_open",
+   "fieldtype": "Check",
+   "label": "Lock to Open",
+   "show_days": 1,
+   "show_seconds": 1
+  },
+  {
+   "fieldname": "column_break_5",
+   "fieldtype": "Column Break",
+   "show_days": 1,
+   "show_seconds": 1
+  },
+  {
+   "fieldname": "section_break_11",
+   "fieldtype": "Section Break",
+   "show_days": 1,
+   "show_seconds": 1
+  },
+  {
+   "fieldname": "restaurant_permissions",
+   "fieldtype": "Table",
+   "label": "Restaurant Permissions",
+   "options": "Restaurant Permissions",
+   "show_days": 1,
+   "show_seconds": 1
+  },
+  {
+   "fieldname": "restaurant_permissions_info",
+   "fieldtype": "HTML",
+   "show_days": 1,
+   "show_seconds": 1
+  }
+ ],
+ "issingle": 1,
+ "links": [],
+ "modified": "2020-06-11 21:22:19.538114",
+ "modified_by": "Administrator",
+ "module": "Restaurant Management",
+ "name": "Restaurant Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}
