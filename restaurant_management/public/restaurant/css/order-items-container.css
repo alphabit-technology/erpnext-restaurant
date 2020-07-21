@@ -1,0 +1,18 @@
+.container-order-items {
+    background-color: lightgray;
+    width: 400px;
+    min-width: 400px !important;
+    max-width: 400px !important;
+}
+
+.container-order-items .panel-order-items {
+    top: 0;
+    height: calc(100% - 334px);
+    overflow-y: auto;
+    background-color: white;
+}
+
+.container-order-items .panel-order-edit {
+    height: 65px;
+    background-color: #d3d3d3;
+}

@@ -1,0 +1,90 @@
+.panel-order-items ul.products-list {
+    /*height: 330px;*/
+    width: 100%;
+    padding-left: 0;
+}
+
+.panel-order-items ul.products-list li:nth-child(odd) {
+    /*background-color: #f3f3eb;*/
+
+}
+
+.panel-order-items ul.products-list li {
+    margin: 0;
+    padding: 3px 5px;
+    cursor: pointer;
+    border-bottom: #ccced5 solid 1px;
+}
+
+.panel-order-items ul.products-list li.selected {
+    background-color: #dadfe7 !important;
+    /*background-color: #d5d4d4;*/
+}
+
+.panel-order-items ul.products-list li.selected .edit-note {
+    display: block !important;
+}
+
+.panel-order-items .media-body {
+    -ms-flex: 1;
+    flex: 1;
+}
+
+.panel-order-items .media .profile_thumb {
+    border: 1px solid;
+    width: 50px;
+    height: 50px;
+    margin: 5px 10px 5px 0;
+    border-radius: 50%;
+    padding: 9px 12px;
+}
+
+.panel-order-items .media .profile_thumb i {
+    font-size: 30px;
+    text-align: center !important;
+}
+
+.panel-order-items .event .media-body a.title {
+    font-weight: bold;
+}
+
+.panel-order-items .event .media-body p {
+    margin-bottom: 0;
+}
+
+.panel-order-items a:not([href]):not([tabindex]) {
+    color: inherit;
+    text-decoration: none;
+}
+
+.panel-order-items .fa {
+    display: inline-block;
+    font: normal normal normal 14px/1 FontAwesome;
+    font-size: inherit;
+    text-rendering: auto;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.panel-order-items a {
+    color: #5A738E;
+    text-decoration: none;
+    background-color: transparent;
+}
+
+.panel-order-items p {
+    margin-top: 0;
+    margin-bottom: 1rem;
+}
+
+.panel-order-items .notes {
+    color: orangered;
+}
+
+.panel-order-items b, strong {
+    font-weight: bolder;
+}
+
+.panel-order-items .border-aero {
+    border-color: #9CC2CB !important;
+}

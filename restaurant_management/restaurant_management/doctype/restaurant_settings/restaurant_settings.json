@@ -6,15 +6,11 @@
  "engine": "InnoDB",
  "field_order": [
   "for_tables_section",
-  "restricted_to_user_table",
-  "column_break_3",
-  "lock_to_open",
-  "column_break_5",
-  "color_table",
+  "restricted_to_owner_table",
   "for_orders_section",
-  "restricted_to_user_order",
+  "restricted_to_owner_order",
   "column_break_8",
-  "color_order",
+  "color",
   "section_break_11",
   "restaurant_permissions_info",
   "restaurant_permissions"
@@ -23,20 +19,13 @@
   {
    "fieldname": "for_tables_section",
    "fieldtype": "Section Break",
-   "label": "For Tables",
-   "show_days": 1,
-   "show_seconds": 1
-  },
-  {
-   "fieldname": "column_break_3",
-   "fieldtype": "Column Break",
+   "label": "Restrictions",
    "show_days": 1,
    "show_seconds": 1
   },
   {
    "fieldname": "for_orders_section",
-   "fieldtype": "Section Break",
-   "label": "For Orders",
+   "fieldtype": "Column Break",
    "show_days": 1,
    "show_seconds": 1
   },
@@ -47,52 +36,9 @@
    "show_seconds": 1
   },
   {
-   "default": "0",
-   "fieldname": "restricted_to_user_table",
-   "fieldtype": "Check",
-   "label": "Restricted to User",
-   "show_days": 1,
-   "show_seconds": 1
-  },
-  {
-   "fieldname": "color_table",
-   "fieldtype": "Color",
-   "label": "Color",
-   "show_days": 1,
-   "show_seconds": 1
-  },
-  {
-   "default": "0",
-   "fieldname": "restricted_to_user_order",
-   "fieldtype": "Check",
-   "label": "Restricted to User",
-   "show_days": 1,
-   "show_seconds": 1
-  },
-  {
-   "fieldname": "color_order",
-   "fieldtype": "Color",
-   "label": "Color",
-   "show_days": 1,
-   "show_seconds": 1
-  },
-  {
-   "default": "0",
-   "fieldname": "lock_to_open",
-   "fieldtype": "Check",
-   "label": "Lock to Open",
-   "show_days": 1,
-   "show_seconds": 1
-  },
-  {
-   "fieldname": "column_break_5",
-   "fieldtype": "Column Break",
-   "show_days": 1,
-   "show_seconds": 1
-  },
-  {
    "fieldname": "section_break_11",
    "fieldtype": "Section Break",
+   "label": "Exceptions",
    "show_days": 1,
    "show_seconds": 1
   },
@@ -109,11 +55,34 @@
    "fieldtype": "HTML",
    "show_days": 1,
    "show_seconds": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "restricted_to_owner_table",
+   "fieldtype": "Check",
+   "label": "Restrict tables by owner",
+   "show_days": 1,
+   "show_seconds": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "restricted_to_owner_order",
+   "fieldtype": "Check",
+   "label": "Restrict order by owner",
+   "show_days": 1,
+   "show_seconds": 1
+  },
+  {
+   "fieldname": "color",
+   "fieldtype": "Color",
+   "label": "Color",
+   "show_days": 1,
+   "show_seconds": 1
   }
  ],
  "issingle": 1,
  "links": [],
- "modified": "2020-06-11 21:22:19.538114",
+ "modified": "2020-07-16 18:26:48.376244",
  "modified_by": "Administrator",
  "module": "Restaurant Management",
  "name": "Restaurant Settings",

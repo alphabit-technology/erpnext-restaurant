@@ -1,0 +1,123 @@
+{
+ "actions": [],
+ "creation": "2020-04-12 01:14:42.191962",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "item_code",
+  "item_group",
+  "item_name",
+  "status",
+  "notes",
+  "item_invoice",
+  "qty",
+  "rate",
+  "amount",
+  "price_list_rate",
+  "discount_percentage",
+  "identifier",
+  "item_tax_template",
+  "item_tax_rate"
+ ],
+ "fields": [
+  {
+   "fetch_from": "item_code.item_group",
+   "fieldname": "item_group",
+   "fieldtype": "Read Only",
+   "label": "Item Group"
+  },
+  {
+   "default": "Attending",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_global_search": 1,
+   "in_list_view": 1,
+   "in_preview": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "options": "Attending\nSent\nProcessing\nCompleted\nDelivering\nDelivered\nInvoiced",
+   "reqd": 1
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Text",
+   "label": "Notes"
+  },
+  {
+   "fieldname": "item_code",
+   "fieldtype": "Link",
+   "in_global_search": 1,
+   "in_list_view": 1,
+   "in_preview": 1,
+   "in_standard_filter": 1,
+   "label": "Item Code",
+   "options": "Item",
+   "reqd": 1
+  },
+  {
+   "fieldname": "item_invoice",
+   "fieldtype": "Read Only",
+   "label": "item_invoice"
+  },
+  {
+   "fieldname": "qty",
+   "fieldtype": "Float",
+   "label": "Qty"
+  },
+  {
+   "fieldname": "rate",
+   "fieldtype": "Currency",
+   "label": "Rate"
+  },
+  {
+   "fieldname": "discount_percentage",
+   "fieldtype": "Float",
+   "label": "Discount Percentage"
+  },
+  {
+   "fieldname": "identifier",
+   "fieldtype": "Read Only",
+   "label": "Identifier"
+  },
+  {
+   "fetch_from": "item_code.item_name",
+   "fieldname": "item_name",
+   "fieldtype": "Read Only",
+   "label": "Item Name"
+  },
+  {
+   "fieldname": "price_list_rate",
+   "fieldtype": "Currency",
+   "label": "Price List Rate"
+  },
+  {
+   "fieldname": "amount",
+   "fieldtype": "Currency",
+   "label": "Amount"
+  },
+  {
+   "fieldname": "item_tax_template",
+   "fieldtype": "Link",
+   "label": "Item Tax Template",
+   "options": "Item Tax Template"
+  },
+  {
+   "fieldname": "item_tax_rate",
+   "fieldtype": "Data",
+   "label": "Item Tax Rate"
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2020-06-01 00:16:47.124365",
+ "modified_by": "Administrator",
+ "module": "Restaurant Management",
+ "name": "Order Entry Item",
+ "owner": "Administrator",
+ "permissions": [],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

@@ -1,0 +1,167 @@
+.restaurant-manage{
+    position: fixed;
+    line-height: 0;
+    z-index: 200 !important;
+    left: 0;
+    top: 40px;
+    width: 100%;
+    height: calc(100% - 65px);
+    background-color: #394552;
+}
+
+.flor-map-container{
+    position: initial;
+    overflow-y: auto;
+    width: 100%;
+}
+
+.sidebar-footer {
+    bottom: 0;
+    clear: both;
+    display: block;
+    left: 0;
+    padding-left: 2px;
+    position: fixed;
+    z-index: 9999999999999 !important;
+    width: 100%;
+    height: 25px;
+    background: #313030;
+}
+
+.sidebar-footer .restaurant-manage-status{
+    color: #a8a6a6;
+    font-size: 14px;
+    padding: 0;
+}
+
+.restaurant-manage .floor-selector {
+    line-height: 48px;
+    font-size: 18px;
+    display: -webkit-flex;
+    display: flex;
+    text-align: center;
+    width: 100%;
+}
+
+.restaurant-manage .floor-map-editor{
+    position: absolute;
+    width: auto;
+    padding-right: 40px;
+    top: 50px;
+    left: 0;
+    text-align: left;
+    z-index: 500;
+}
+
+.restaurant-manage .floor-map-editor .edit-bar {
+    top: 15px;
+    left: 0;
+    padding: 4px 8px 3px 3px;
+    font-size: 20px;
+    text-align: right;
+}
+
+.floor-map-editor .edit-button {
+    position: relative;
+    width: 100px;
+    height: 35px;
+    line-height: 30px;
+    padding: 5px 5px 2px 2px;
+    margin: -2px;
+    cursor: pointer;
+    border-radius: 0;
+    transition: all 150ms linear;
+    background: rgba(80, 95, 106, 0.93);
+    border: solid 1px lightslategray;
+    color: #9CC2CB;
+}
+
+.floor-map-editor .edit-button:hover {
+    background-color: #5A738E;
+    color: white !important;
+}
+
+.floor-map-editor .edit-button small {
+    font-size: 14px;
+    color: white;
+}
+
+.floor-map-editor .editing {
+    color: gray;
+    text-align: center;
+    border-radius: 5px;
+    cursor: pointer;
+    border: solid 1px rgba(0,0,0,0.2);
+}
+
+.floor-map-editor .editing.active {
+    background: #5a6b79;
+    border-color: transparent;
+    color: white;
+}
+
+.floor-map-editor .edit-button.editing.active {
+    background: lightslategray;
+    border-color: transparent;
+    color: white;
+}
+
+.restaurant-manage .bg-yellow{
+    background-color: #f39c12 !important;
+}
+
+.restaurant-manage .bg-none{
+    background-color: rgba(130, 130, 129, 0.44) !important;
+    color: #7f82ac;
+}
+
+.restaurant-manage .fa {
+    display: inline-block;
+    font: normal normal normal 14px/1 FontAwesome;
+    font-size: inherit;
+    text-rendering: auto;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.non-selectable {
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.btn-flat{
+    border-radius: 2px !important;
+}
+
+.navbar.navbar-default.navbar-fixed-top {
+    max-height: 20px !important;
+}
+
+/****BUTTONS***/
+
+
+
+/*.fields {
+    display: flex;
+}
+
+.search-field {
+    width: 60%;
+}
+
+.form-group {
+    margin-bottom: 7px;
+}
+.form-group {
+    margin-bottom: 15px;
+}
+
+.frappe-control {
+    margin-bottom: 15px;
+}
+
+.frappe-control .control-value {
+    overflow-wrap: break-word;
+}*/

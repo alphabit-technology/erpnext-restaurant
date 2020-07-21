@@ -21,6 +21,7 @@ RestaurantObject = class RestaurantObject{
 
     listener(){
 		frappe.realtime.on(this.data.name, (data) => {
+			console.log(data);
 			if(data.action === "Notifications"){
 				this.update_notifications(data);
 			}
@@ -54,9 +55,12 @@ RestaurantObject = class RestaurantObject{
 							}, 100)
 						}
 					}else{
+						window[order_manage].make_orders(data.orders, data.order.name, true);
 						if(RM.client === data.client) {
-							window[order_manage].make_orders(data.orders, data.order.name, true);
+							//window[order_manage].make_orders(data.orders, data.order.name, true);
 							window[order_manage].init();
+						}else{
+							//window[order_manage].make_orders(data.orders, data.order.name, true);
 						}
 					}
 				}
@@ -150,7 +154,6 @@ RestaurantObject = class RestaurantObject{
 
 		RM.tables_container.append(this.this.html());
 
-
 		setTimeout(() => {
 			this.no_of_seats.hide();
 			if(this.data.type === "Table"){
@@ -174,11 +177,13 @@ RestaurantObject = class RestaurantObject{
 		}[prop];
 	};
 
-
 	template(){
+		const block_class = !RM.can_open_order_manage(this) && this.data.type === "Table" ? " block" : "";
+		const hide_class = this.data.orders_count <= 0 ? " hide" : "";
+
 		this.indicator = new JSHtml({
 			tag: "span",
-			properties: {class: `order-count ${(this.data.orders_count > 0 ? '' : 'hide')}`},
+			properties: {class: `order-count ${hide_class} ${block_class}`},
 			content: '<span class="fa fa-cutlery" style="font-size: 12px"/> {{text}}',
 			text: this.data.orders_count
 		})
@@ -279,6 +284,10 @@ RestaurantObject = class RestaurantObject{
 
 	open_modal(){
 		if(this.data.type === "Table"){
+			if(!RM.can_open_order_manage(this)){
+				RM.notification("red", __("The table is assigned to another user, you can not open"));
+				return;
+			}
 			let open = () => {
 				let order_manage = `order_manage_${this.data.name}`;
 				setTimeout(() => {
@@ -391,7 +400,7 @@ RestaurantObject = class RestaurantObject{
 
 	reset_data(data){
 		this.data = data;
-		this.this.self.setAttribute("style", this.data.css_style);
+		this.this.self.setAttribute("style", data.css_style);
 		this.description.val(this.data.description);
 		this.no_of_seats.val(this.data.no_of_seats);
 	}
@@ -401,6 +410,14 @@ RestaurantObject = class RestaurantObject{
 
 		if(this.data.orders_count > 0) {
 			this.indicator.remove_class("hide");
+
+			if(this.data.type === "Table") {
+				if (!RM.can_open_order_manage(this)) {
+					this.indicator.add_class("block");// css("background-color", RM.restrictions.color_table);
+				} else {
+					this.indicator.remove_class("block");
+				}
+			}
 		}else {
 			this.indicator.add_class("hide");
 		}

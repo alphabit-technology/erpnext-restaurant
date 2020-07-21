@@ -1,0 +1,88 @@
+.order-manage-control-buttons{
+    position: relative;
+    width: 100%;
+    height: 265px;
+}
+
+/*.pad-container .pad-btn {
+    border: 2px solid #ddd;
+    border-radius: 4px;
+}*/
+
+/*.pad-container .pad-col {
+    width: 100%;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-box-shadow: none;
+    text-align: center;
+    cursor: pointer;
+    margin-bottom: 0;
+    font-weight: 400;
+    white-space: nowrap;
+    vertical-align: middle;
+    -ms-touch-action: manipulation;
+    touch-action: manipulation;
+    background-image: none;
+    padding: 6px 12px;
+    font-size: 14px;
+    line-height: 1.42857143;
+    box-shadow: none;
+}
+
+.pad-container .pad-col.disabled {
+    pointer-events: none;
+    background-color: #e3e3e3;
+    color: #a9a9a9 !important;
+}
+
+.pad-container .pad-head {
+    color: #5A738E !important;
+}
+
+.pad-container .pad-row {
+    height: 20%;
+}
+
+.pad-container .pad-col.sm {
+    width: 15%;
+}
+
+.pad-container .pad-col.md {
+    width: 20%;
+}
+
+.pad-container .pad-col.lg {
+    text-align: left;
+    width: 35%;
+}
+
+.pad-container .pad-col.text-lg {
+    font-size: 25px;
+}
+
+.pad-container .pad-col span {
+    font-size: 20px;
+    color: lightslategray;
+}
+
+.pad-container .pad-col.btn-primary span {
+    color: white;
+}
+
+.pad-container .pad-col.btn-success span {
+    color: white;
+}
+
+.pad-container .pad-label {
+    background-color: transparent;
+    text-align: right !important;
+    padding: 0 10px 0 0;
+    color: #5A738E;
+    cursor: default;
+}
+
+.pad-container .pad-label.label-lg {
+    font-size: 25px !important;
+}*/

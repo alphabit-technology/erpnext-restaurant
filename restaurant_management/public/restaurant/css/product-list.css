@@ -1,0 +1,80 @@
+.content-container {
+    /*overflow-y: auto;*/
+    border-right: 1px solid #4c6161;
+}
+
+.erp-items .product-list {
+    padding: 0 10px 10px 10px;
+    text-align: left;
+    -webkit-transform: translate3d(0, 0, 0);
+}
+
+.erp-items .product {
+    position: relative;
+    vertical-align: top;
+    display: inline-block;
+    line-height: 100px;
+    font-size: 11px;
+    margin: 8px !important;
+    width: 122px;
+    height: 115px;
+    background: #fff;
+    border: 1px solid #e2e2e2;
+    border-radius: 3px;
+    border-bottom-width: 3px;
+    overflow: hidden;
+    cursor: pointer;
+}
+
+article {
+    display: block;
+}
+
+.erp-items .product .product-img {
+    position: relative;
+    width: 120px;
+    height: 100px;
+    background: white;
+    text-align: center;
+}
+
+div {
+    display: block;
+}
+
+.erp-items .product .product-name {
+    position: absolute;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -ms-box-sizing: border-box;
+    box-sizing: border-box;
+    bottom: 0;
+    top: auto;
+    line-height: 14px;
+    width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    background: -webkit-linear-gradient(-90deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 1), rgba(255, 255, 255, 1));
+    background: -moz-linear-gradient(-90deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 1), rgba(255, 255, 255, 1));
+    background: -ms-linear-gradient(-90deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 1), rgba(255, 255, 255, 1));
+    padding: 15px 3px 3px;
+}
+
+.erp-items .product .price-tag {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    vertical-align: top;
+    color: white;
+    font-size: 16px;
+    line-height: 13px;
+    background: #7f82ac;
+    padding: 2px 5px;
+    border-radius: 2px;
+}
+
+.erp-items .product .no-image {
+    font-size: 6em;
+    padding-top: 25px;
+    color: #b0bac2
+}

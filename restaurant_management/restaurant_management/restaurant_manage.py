@@ -1,18 +1,35 @@
 from __future__ import unicode_literals
-import frappe, json
+import frappe
 from frappe import _
 
 
-def check_exceptions(model, action, data, error_message):
-    profile = frappe.db.get_value("User", frappe.session.user, "role_profile_name")
-    restaurant_settings = frappe.get_single("Restaurant Settings")
+def check_exceptions(model, error_message):
+    if frappe.session.user == "Administrator":
+        return True
 
-    for item in restaurant_settings.restaurant_permissions:
-        if item.role_profile == profile:
-            if model == "Order":
-                if action == "update":
-                    if data.owner != frappe.session.user:
-                        if item.update_order == 0:
-                            frappe.throw(_(error_message))
+    if frappe.has_permission(model["name"], model["action"]):
+        has_permission = True
+        if model["data"].owner != frappe.session.user:
+            exceptions = frappe.get_single("Restaurant Settings")
+
+            profile = frappe.db.get_value("User", frappe.session.user, "role_profile_name")
+
+            permissions = frappe.db.get_list("Restaurant Permissions", fields=(
+                "order_write", "order_delete", "order_manage"
+            ), filters={
+                "role_profile": profile
+            })
+
+            for permission in permissions:
+                if model["short_name"] == "order" and exceptions.restricted_to_owner_order:
+                    has_permission = permission[f'{model["short_name"]}_{model["action"]}']
+
+                if model["short_name"] == "table" and exceptions.restricted_to_owner_table:
+                    has_permission = permission[f'{model["short_name"]}_{model["action"]}']
+
+        if not has_permission:
+            frappe.throw(_(error_message))
+    else:
+        frappe.throw(_("You do not have permissions to update order"))
+
     return True
-

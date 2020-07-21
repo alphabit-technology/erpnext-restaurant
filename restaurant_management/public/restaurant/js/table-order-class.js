@@ -66,12 +66,17 @@ TableOrder = class TableOrder{
 	make(){
 		setTimeout(() => {
 			if(this.button != null) this.button.remove();
+			let backgroundcolor = "";
+
+			if(!RM.check_permissions("order", this, "write")){
+				backgroundcolor = `color: ${RM.restrictions.color};`;
+			}
 
 			this.button = new JSHtml({
 				tag: "button",
 				properties: {
 					class: "btn btn-app btn-lg btn-order",
-					style: "width: 100%; border-radius: 0; margin-bottom: 2px"
+					style: `width: 100%; border-radius: 0; margin-bottom: 2px; ${backgroundcolor};`
 				},
 				content: `<span class='badge'>{{text}}</span>${this.data.short_name}`,
 				text: this.data.items_count

@@ -111,6 +111,7 @@ RestaurantManage = class RestaurantManage {
 
 					this.permissions = r.permissions;
 					this.exceptions = r.exceptions;
+					this.restrictions = r.restrictions;
 
 					if(r.pos.has_pos){
 						this.pos_profile = r.pos.pos;
@@ -473,7 +474,7 @@ RestaurantManage = class RestaurantManage {
 
 	uuid() {
 		let id = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-			var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+			var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
 			return v.toString(16);
 		});
 
@@ -481,6 +482,8 @@ RestaurantManage = class RestaurantManage {
 	}
 
 	check_permissions(model=null, data=null, action){
+		if(frappe.session.user === "Administrator") return true;
+
 		let r = false;
 
 		if(model != null){
@@ -489,14 +492,29 @@ RestaurantManage = class RestaurantManage {
 				r = this.permissions[model][action];
 			}
 
-			if(data != null && data.data.owner !== frappe.session.user){
+			let exception = () => {
 				r = false;
-				this.exceptions.map(data => {
-					r = data[model + "_" + action] === 1;
+				this.exceptions.map(e => {
+					r = e[model + "_" + action] === 1;
 				})
 			}
 
-			if(model === 'pos'){
+			if (data == null) {
+				if(r === false){
+					exception();
+				}
+			} else {
+				if (data.data.owner !== frappe.session.user) {
+					if(model === "order" && this.restrictions.restricted_to_owner_order) {
+						exception();
+					}
+					if(model === "table" && this.restrictions.restricted_to_owner_table) {
+						exception();
+					}
+				}
+			}
+
+			if (model === 'pos') {
 				if (r) r = this.pos_profile["allow_" + action] === 1;
 			}
 		}
@@ -506,6 +524,17 @@ RestaurantManage = class RestaurantManage {
 
 	can_pay(){
 		return this.check_permissions("invoice", null, "create");
+	}
+
+	can_open_order_manage(table){
+		if(frappe.session.user === "Administrator" || this.can_pay()) return true;
+
+		if(table.data.current_user !== frappe.session.user && table.data.orders_count > 0){
+			if(this.restrictions.restricted_to_owner_table){
+				return this.check_permissions("order", null, "manage");
+			}
+		}
+		return true;
 	}
 }
 

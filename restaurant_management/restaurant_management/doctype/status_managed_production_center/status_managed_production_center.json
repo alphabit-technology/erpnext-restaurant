@@ -1,0 +1,41 @@
+{
+ "actions": [],
+ "creation": "2020-04-07 23:01:38.448531",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "status_managed",
+  "next_status"
+ ],
+ "fields": [
+  {
+   "fieldname": "next_status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Next Status",
+   "options": "Sent\nProcessing\nCompleted\nDelivering\nDelivered",
+   "reqd": 1
+  },
+  {
+   "fieldname": "status_managed",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status Managed",
+   "options": "Sent\nProcessing\nCompleted\nDelivering\nDelivered",
+   "reqd": 1
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2020-04-10 16:21:24.753187",
+ "modified_by": "Administrator",
+ "module": "Restaurant Management",
+ "name": "Status Managed Production Center",
+ "owner": "Administrator",
+ "permissions": [],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

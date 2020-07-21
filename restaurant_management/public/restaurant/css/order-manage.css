@@ -1,0 +1,92 @@
+.order-manage .erp-items {
+    background-color: #eaeaea;
+}
+
+.order-manage {
+    overflow: hidden;
+    position: relative;
+    width: 100%;
+    left: 0;
+    top: 0;
+    height: calc(100% - 25px);
+}
+
+.order-manage .layout-table {
+    border: none;
+    width: 100%;
+    height: 100% !important;
+}
+
+.order-manage .header-row {
+    border: none;
+    width: 100%;
+    height: 0;
+}
+
+.order-manage .header-cell {
+    border: none;
+    width: 100%;
+    height: 0;
+}
+
+.order-manage .order-manage-buttons {
+    padding: 0;
+    border-bottom: 1px solid #c7c7c7;
+    background: #d3d3d3;
+    text-align: center;
+}
+
+.order-manage .content-row {
+    #width: 100%;
+    height: 100%;
+}
+
+.order-manage .content-container {
+    height: 100%;
+    top: 0;
+}
+
+.order-manage .order-container{
+    padding: 3px;
+    background-color: #cfd1d4;
+    width: auto;
+    min-width: 100px;
+    height: calc(100% - 0px);
+    vertical-align: top;
+    overflow-y: auto;
+}
+
+.order-manage .order-container .btn-app {
+    border-radius: 3px;
+    position: relative;
+    min-width: 80px;
+    text-align: center;
+    vertical-align: center;
+    color: #666;
+    border: 1px solid #ddd;
+    background-color: #f4f4f4;
+    font-size: 18px;
+    margin-bottom: 3px !important;
+    border-top-right-radius: 10px !important;
+}
+.order-manage .order-container .btn-app>.badge {
+    position: absolute;
+    top: -2px;
+    right: -3px;
+    display: inline-block;
+    min-width: 10px;
+    padding: 3px 7px;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1;
+    color: #fff;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: middle;
+    border-radius: 10px;
+    background-color: orange;
+}
+
+.order-manage .order-container .btn-app.btn-order.selected {
+    background-color: lightsteelblue !important;
+}

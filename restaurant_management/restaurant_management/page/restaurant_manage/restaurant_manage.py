@@ -123,7 +123,10 @@ def get_config():
             order=frappe.permissions.get_doc_permissions(frappe.new_doc("Table Order")),
             restaurant_object=frappe.permissions.get_doc_permissions(frappe.new_doc("Restaurant Object")),
         ),
-        exceptions=[item for item in restaurant_settings.restaurant_permissions if item.role_profile == profile]
+        restrictions=frappe.get_single("Restaurant Settings"),
+        exceptions=[item for item in restaurant_settings.restaurant_permissions if item.role_profile == profile],
+        geo_data=frappe.session,
+        test_data=frappe.get_doc("User", frappe.session.user)
     )
 
 

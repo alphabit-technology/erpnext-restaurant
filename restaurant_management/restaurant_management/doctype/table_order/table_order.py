@@ -143,16 +143,20 @@ class TableOrder(Document):
         new_table = frappe.get_doc("Restaurant Object", table)
 
         #last_table.validate_user()
-        new_table.validate_user()
+        new_table.validate_user(self.owner)
 
         self.table = table
         self.save()
+
+        new_table._on_update()
 
         data = self.data()
         frappe.publish_realtime(self.name, dict(
             action="Transfer",
             table=self.table
         ))
+
+        new_table.send_notifications(client)
 
         frappe.publish_realtime(table, dict(
             action="Transfer Order",
@@ -162,7 +166,8 @@ class TableOrder(Document):
             client=client
         ))
 
-        self._table.send_notifications(client)
+        #self._table.send_notifications(client)
+
         last_table.send_notifications(client)
 
     def set_invoice_values(self, invoice):
@@ -230,7 +235,10 @@ class TableOrder(Document):
 
     def set_queue_items(self, all_items):
         from restaurant_management.restaurant_management.restaurant_manage import check_exceptions
-        check_exceptions("Order", "update", self, "You cannot modify an order from another User")
+        check_exceptions(
+            dict(name="Table Order", short_name="order", action="write", data=self),
+            "You cannot modify an order from another User"
+        )
 
         entry_items = {
             item["identifier"]: item for item in all_items

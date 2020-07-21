@@ -1,0 +1,137 @@
+.process-manage{
+}
+
+.process-manage .food-command {
+    position: relative;
+    vertical-align: top;
+    display: inline-block;
+    line-height: 100px;
+    font-size: 11px;
+    margin: 8px !important;
+    width: 260px;
+    height: 250px;
+    background: #fff;
+    border: 1px solid #e2e2e2;
+    border-radius: 3px;
+    border-bottom-width: 3px;
+    overflow: hidden;
+}
+
+article {
+    display: block;
+}
+
+.process-manage .food-command .product-img {
+    position: relative;
+    width: 260px;
+    height: 220px;
+    background: white;
+    text-align: center;
+}
+
+.process-manage .food-command .btn-food-command {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    top: auto;
+    line-height: 14px;
+    vertical-align: center !important;
+    padding-bottom: 10px;
+    padding-top: 10px;
+    font-size: 16px;
+}
+
+.process-manage .food-command .btn-food-command.status-label {
+    cursor: default !important;
+}
+
+.process-manage .food-command .btn-food-command.left {
+    left: 0;
+    width: calc(50% - 1px);
+}
+
+.process-manage .food-command .btn-food-command.right {
+    left: 50%;
+    width: calc(50% - 1px);
+}
+
+.process-manage .food-command .command-content .detail {
+    font-size: 14px;
+}
+
+.process-manage .food-command .product-name {
+    font-size: 25px;
+    position: absolute;
+    bottom: 85px;
+    text-align: center;
+    top: auto;
+    line-height: 14px;
+    width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 15px 3px 3px;
+    height: 50px;
+}
+
+.process-manage .food-command .product-date {
+    font-size: 14px;
+    position: absolute;
+    bottom: 65px;
+    text-align: center;
+    top: auto;
+    line-height: 14px;
+    width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding-top: 4px;
+    padding-bottom: 4px;
+    height: 25px;
+    background-color: floralwhite;
+}
+
+.process-manage .food-command .product-notes {
+    font-size: 14px;
+    position: absolute;
+    bottom: 40px;
+    text-align: center;
+    top: auto;
+    line-height: 14px;
+    width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding-top: 4px;
+    padding-bottom: 4px;
+    height: 25px;
+    background-color: orange;
+    color: black;
+}
+
+.process-manage .food-command .product-notes.empty {
+    display: none;
+}
+
+.process-manage .food-command .price-tag {
+    position: absolute;
+    top: 0;
+    right: 2px;
+    vertical-align: top;
+    color: white;
+    font-size: 18px;
+    line-height: 13px;
+    background: #7f82ac;
+    padding-top: 4px;
+    border-radius: 2px;
+    width: 100%;
+    height: 25px;
+}
+
+.process-manage .food-command .product-img .command-content {
+    position: absolute;
+    padding-top: 200px !important;
+}
+
+.process-manage .food-command .no-image {
+    font-size: 6em;
+    padding-top: 25px;
+    color: #b0bac2
+}

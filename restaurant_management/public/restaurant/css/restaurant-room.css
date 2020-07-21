@@ -1,0 +1,108 @@
+/**ROOMS**/
+.restaurant-manage .floor-selector .general-editor-button{
+    max-width: 50px !important;
+    background-color: rgba(90, 115, 142, 0.45) !important;
+    color: #818c9e;
+    border: none !important;
+}
+
+.restaurant-manage .floor-selector .general-editor-button.active{
+    background-color: rgba(120, 144, 170, 0.45) !important;
+    color: lightsteelblue !important;
+    border-left: solid 1px lightslategray !important;
+}
+
+.restaurant-manage .floor-selector .general-editor-button.active:hover{
+    background-color: rgba(110, 137, 165, 0.45) !important;
+    color: white !important;
+    border-left: solid 1px lightsteelblue !important;
+}
+
+.restaurant-manage .floor-selector .button {
+    position: relative;
+    cursor: pointer;
+    border-left: solid 1px rgb(196,196,196);
+    -webkit-flex: 1;
+    flex: 1;
+    -moz-user-select: none;
+   -webkit-user-select: none;
+   -ms-user-select: none;
+   user-select: none;
+}
+
+.restaurant-manage .floor-selector .button.active {
+    background: rgb(79, 114, 114);
+    color: white;
+}
+
+.restaurant-manage .floor-selector .button a{
+    margin-right: -3px;
+}
+
+.restaurant-manage .floor-selector .button .badge{
+    position: absolute;
+    top: 0;
+    right: 0;
+    display: inline-block;
+    min-width: 10px;
+    padding: 3px 7px;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1;
+    color: #fff;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: middle;
+    border-top-left-radius: 0 !important;
+    border-top-right-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+    border-bottom-left-radius: 10px;
+}
+
+.restaurant-manage .floor-selector.active .button .badge{
+    display: none;
+}
+
+.restaurant-manage .floor-selector .button .edit-bar-room{
+    display: none;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    min-width: 100%;
+    font-weight: 700;
+    height: 100%;
+    line-height: 1;
+    color: #fff;
+    text-align: right;
+    white-space: nowrap;
+    vertical-align: middle;
+    border-top-left-radius: 0 !important;
+    border-top-right-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+    border-bottom-left-radius: 10px;
+}
+
+.restaurant-manage .floor-selector.active .button .edit-bar-room{
+    display: inline-block !important;
+}
+
+
+/*.restaurant-manage .floor-selector.active .button .edit-bar-room{
+    display: inline-block !important;
+}*/
+
+.restaurant-manage .floor-selector.active .button .edit-bar-room .btn-room{
+    display: none !important;
+}
+
+.restaurant-manage .floor-selector.active .button.active .btn-room{
+    display: inline-block !important;
+}
+
+.restaurant-manage .floor-selector .edit-bar-room .btn-room{
+    border-radius: 0 !important;
+    font-size: 14px !important;
+    width: 30px !important;
+    height: 100% !important;
+}
+/***ROOMS***/

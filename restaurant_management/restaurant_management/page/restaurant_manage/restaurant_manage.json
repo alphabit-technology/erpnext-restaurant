@@ -1,0 +1,37 @@
+{
+ "content": null,
+ "creation": "2020-04-03 22:00:20.706491",
+ "docstatus": 0,
+ "doctype": "Page",
+ "icon": "fa fa-th",
+ "idx": 0,
+ "modified": "2020-06-03 20:47:53.829706",
+ "modified_by": "Administrator",
+ "module": "Restaurant Management",
+ "name": "restaurant-manage",
+ "owner": "Administrator",
+ "page_name": "Restaurant Manage",
+ "restrict_to_domain": "Hospitality",
+ "roles": [
+  {
+   "role": "Sales User"
+  },
+  {
+   "role": "Purchase User"
+  },
+  {
+   "role": "Accounts User"
+  },
+  {
+   "role": "System Manager"
+  },
+  {
+   "role": "Restaurant User"
+  }
+ ],
+ "script": null,
+ "standard": "Yes",
+ "style": null,
+ "system_page": 0,
+ "title": "Restaurant Manage"
+}
