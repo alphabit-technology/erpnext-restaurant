@@ -154,8 +154,8 @@ class RestaurantRoom{
 	}
 
 	get_tables(){
-		RM.working("Loading Rooms");
-		window.location.href = "/desk#restaurant-manage?restaurant_room=" + this.data.name;
+		RM.working("Loading Objects");
+		window.location.href = `/desk#restaurant-manage?restaurant_room=${this.data.name}`;
 		CETI.api.call({
 			model: "Restaurant Object",
 			name: this.data.name,

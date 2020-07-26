@@ -19,6 +19,8 @@ doc_events = {
     },
 }
 
+after_install = "restaurant_management.setup.install.after_install"
+
 # Includes in <head>
 # ------------------
 

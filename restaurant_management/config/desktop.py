@@ -13,7 +13,7 @@ def get_data():
             "color": "#3498db",
             "icon": "octicon octicon-repo",
             "type": "module",
-            "description": "Accounts, billing, payments, cost center and budgeting."
+            "description": "Restaurant Management."
         },
     ]
 

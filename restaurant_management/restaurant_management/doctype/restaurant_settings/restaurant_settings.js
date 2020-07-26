@@ -9,7 +9,13 @@ frappe.ui.form.on('Restaurant Settings', {
 	        ${__(text)}
 	    `)
 
-		console.log(frm.fields_dict);
-        //console.log(frm);
+		frm.add_custom_button(__('Reinstall'), () => {
+	        frappe.call({
+				method: "restaurant_management.restaurant_management.doctype.restaurant_settings.restaurant_settings.reinstall",
+				always: function(r) {
+					frappe.msgprint(__("Completed"));
+				}
+			});
+		});
 	}
 });
