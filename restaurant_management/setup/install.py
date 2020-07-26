@@ -1,77 +1,37 @@
 from __future__ import unicode_literals
 import frappe
-from frappe import _
 from erpnext.setup.utils import insert_record
 
 
+def to_route(txt):
+    return txt.replace(' ', '-').replace('_', '-').lower()
+
+
 def after_install():
-    forms = [
-        dict(
-            doctype='CETI Form',
-            title='Restaurant Room',
-            route='restaurant-room',
-            doc_type='Restaurant Object',
-            module='Restaurant Management',
-            is_standar=1,
-        ),
-        dict(
-            doctype='CETI Form',
-            title='Restaurant Table',
-            route='restaurant-table',
-            doc_type='Restaurant Object',
-            module='Restaurant Management',
-            is_standar=1,
-        ),
-        dict(
-            doctype='CETI Form',
-            title='Restaurant Production Center',
-            route='restaurant-production-center',
-            doc_type='Restaurant Object',
-            module='Restaurant Management',
-            is_standar=1,
-        ),
-        dict(
-            doctype='CETI Form',
-            title='Restaurant Order',
-            route='restaurant-order',
-            doc_type='Table Order',
-            module='Restaurant Management',
-            is_standar=1,
-        ),
-        dict(
-            doctype='CETI Form',
-            title='Order Item Note',
-            route='order-item-note',
-            doc_type='Order Entry Item',
-            module='Restaurant Management',
-            is_standar=1,
-        ),
-        dict(
-            doctype='CETI Form',
-            title='Customer Edit',
-            route='customer-edit',
-            doc_type='Customer',
-            module='Restaurant Management',
-            is_standar=1,
-        ),
-        dict(
-            doctype='CETI Form',
-            title='Payment Order',
-            route='payment-order',
-            doc_type='Table Order',
-            module='Restaurant Management',
-            is_standar=1,
-        ),
-    ]
+    forms = {
+        "Restaurant Room": dict(doc_type='Restaurant Object'),
+        "Restaurant Table": dict(doc_type='Restaurant Object'),
+        "Restaurant Production Center": dict(doc_type='Restaurant Object'),
+        "Restaurant Order": dict(doc_type='Table Order'),
+        "Order Item Note": dict(doc_type='Order Entry Item'),
+        "Customer Edit": dict(doc_type='Customer'),
+        "Payment Order": dict(doc_type='Table Order'),
+    }
 
     for form in forms:
-        if frappe.get_value("CETI Form", {
-            "route": form["route"]
-        }) is None:
-            insert_record([form])
-
-    docs = ["restaurant-room", "restaurant-table", "restaurant-production-center",
-            "restaurant-order", "order-item-note", "customer-edit", "payment-order"]
+        if frappe.db.count("CETI Form", {
+            "route": to_route(form)
+        }) == 0:
+            insert_record([dict(
+                doctype="CETI Form",
+                doc_type=forms[form]["doc_type"],
+                title=form,
+                route=to_route(form),
+                is_standard=1,
+                published=1,
+                login_required=1,
+                allow_edit=1,
+            )])
 
     fields = [
         {"name": "\"10f8717de4\"", "creation": "2020-07-26 02:20:22.059834", "modified": "2020-07-26 02:20:22.059834",
@@ -387,14 +347,14 @@ def after_install():
          "default": None}
     ]
 
-    for doc in docs:
+    for form in forms:
         cf = frappe.get_doc("CETI Form", {
-            "route": doc
+            "route": to_route(form)
         })
         cf.ceti_form_fields = []
         for f in fields:
             field = f
-            if field["parent"] == doc:
+            if field["parent"] == to_route(form):
                 cf.append("ceti_form_fields", dict(
                     idx=field["idx"],
                     fieldname=field["fieldname"],

@@ -386,7 +386,7 @@ RestaurantObject = class RestaurantObject{
 				call_back: ()=> {
 					this.edit_form.hide();
 				},
-				title: __("Update Table"),
+				title: __(`Update ${this.data.type}`),
 				//close_only_button: true,
 				field_properties: {
 					type: {read_only: true},
