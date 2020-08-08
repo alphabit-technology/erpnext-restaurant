@@ -34,6 +34,14 @@
     padding: 0;
 }
 
+.sidebar-footer .pos-profile{
+    float: right;
+    color: #ff6600;
+    font-size: 14px;
+    font-weight: bold;
+    padding: 0 5px 0 0;
+}
+
 .restaurant-manage .floor-selector {
     line-height: 48px;
     font-size: 18px;
@@ -139,6 +147,9 @@
     max-height: 20px !important;
 }
 
+.navbar-default .navbar-brand.navbar-home {
+    display: block !important;
+}
 /****BUTTONS***/
 
 

@@ -1,0 +1,37 @@
+{
+ "add_total_row": 1,
+ "creation": "2020-07-23 23:54:31.089254",
+ "disable_prepared_report": 0,
+ "disabled": 0,
+ "docstatus": 0,
+ "doctype": "Report",
+ "idx": 0,
+ "is_standard": "Yes",
+ "json": "{}",
+ "modified": "2020-07-23 23:54:49.631440",
+ "modified_by": "Administrator",
+ "module": "Restaurant Management",
+ "name": "Restaurant Order Analytics",
+ "owner": "Administrator",
+ "prepared_report": 0,
+ "ref_doctype": "Table Order",
+ "report_name": "Restaurant Order Analytics",
+ "report_type": "Report Builder",
+ "roles": [
+  {
+   "role": "Stock User"
+  },
+  {
+   "role": "Accounts User"
+  },
+  {
+   "role": "Sales Manager"
+  },
+  {
+   "role": "Restaurant Manager"
+  },
+  {
+   "role": "Restaurant User"
+  }
+ ]
+}

@@ -1,4 +1,3 @@
-
 /**RestaurantManagement**/
 var RM = null;
 
@@ -115,6 +114,7 @@ RestaurantManage = class RestaurantManage {
 
 					if(r.pos.has_pos){
 						this.pos_profile = r.pos.pos;
+						this.wrapper.find(".pos-profile").empty().append(this.pos_profile.name);
 					}else{
 						this.pos_profile = null;
 						this.raise_exception_for_pos_profile();
@@ -187,8 +187,9 @@ RestaurantManage = class RestaurantManage {
 				</div>
 			</div>
 			<div class="sidebar-footer">
-				<div class="restaurant-manage-status non-selectable">
-					${__("Ready")}
+				<div class="non-selectable">
+					<span class="restaurant-manage-status">${__("Ready")}</span>
+					<span class="pos-profile">${__("POS Profile")}</span>
 				</div>
 			</div>
 			<div id="customize-alert-message"></div>
@@ -481,7 +482,7 @@ RestaurantManage = class RestaurantManage {
 		return "obj-" + id;
 	}
 
-	check_permissions(model=null, data=null, action){
+	check_permissions(model=null, record=null, action){
 		if(frappe.session.user === "Administrator") return true;
 
 		let r = false;
@@ -499,12 +500,12 @@ RestaurantManage = class RestaurantManage {
 				})
 			}
 
-			if (data == null) {
+			if (record == null) {
 				if(r === false){
 					exception();
 				}
 			} else {
-				if (data.data.owner !== frappe.session.user) {
+				if (record.data.owner !== frappe.session.user) {
 					if(model === "order" && this.restrictions.restricted_to_owner_order) {
 						exception();
 					}
@@ -537,80 +538,3 @@ RestaurantManage = class RestaurantManage {
 		return true;
 	}
 }
-
-args:
-	[{
-		"amount": 14,
-		"discount_percentage": 0,
-		"entry_name": "2cbc546a2c",
-		"identifier": "entry_obj-4e2356d3-b005-467e-84e1-1448129f924a",
-		"item_code": "agua",
-		"item_name": "Agua",
-		"item_tax_rate": "{\"VAT - DEV\": 15.0}",
-		"item_tax_template": "HNL 15%",
-		"notes": null,
-		"price_list_rate": 14,
-		"qty": 1,
-		"rate": 14,
-		"status": "Attending",
-		"status_color": "orange",
-		"status_icon": "fa fa-cart-arrow-down"
-	}, {
-		"item_code": "cerveza",
-		"item_name": "Cerveza",
-		"description": "Cerveza",
-		"image": "",
-		"warehouse": "Stores - DEV",
-		"income_account": "Sales - DEV",
-		"expense_account": "Cost of Goods Sold - DEV",
-		"cost_center": "Main - DEV",
-		"has_serial_no": 0,
-		"has_batch_no": 0,
-		"batch_no": null,
-		"uom": "Nos",
-		"min_order_qty": "",
-		"qty": 1,
-		"stock_qty": 1,
-		"price_list_rate": 0,
-		"base_price_list_rate": 0,
-		"rate": 0,
-		"base_rate": 0,
-		"amount": 0,
-		"base_amount": 0,
-		"net_rate": 0,
-		"net_amount": 0,
-		"discount_percentage": 0,
-		"supplier": null,
-		"update_stock": null,
-		"delivered_by_supplier": 0,
-		"is_fixed_asset": 0,
-		"weight_per_unit": 0,
-		"weight_uom": null,
-		"last_purchase_rate": 0,
-		"transaction_date": null,
-		"against_blanket_order": null,
-		"conversion_factor": 1,
-		"item_group": "Bebidas",
-		"barcodes": [],
-		"brand": null,
-		"stock_uom": "Nos",
-		"manufacturer": null,
-		"manufacturer_part_no": null,
-		"item_tax_template": "HNL 18%",
-		"item_tax_rate": "{\"ISV 18% - DEV\": 18.0}",
-		"valuation_rate": 25,
-		"projected_qty": 57,
-		"actual_qty": 57,
-		"reserved_qty": 0,
-		"doctype": "Sales Invoice",
-		"name": null,
-		"parent": null,
-		"parenttype": null,
-		"child_docname": null,
-		"discount_percentage_on_rate": [],
-		"discount_amount_on_rate": [],
-		"gross_profit": -25,
-		"identifier": "entry_obj-cdb65e05-51ff-4da9-bfe4-5026ad7bc9be",
-		"status": "Pending",
-		"notes": null
-	}]
