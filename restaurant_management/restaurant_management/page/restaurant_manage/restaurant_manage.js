@@ -2,7 +2,7 @@
 var RM = null;
 
 frappe.pages['restaurant-manage'].on_page_load = function(wrapper) {
-	var page = frappe.ui.make_app_page({
+	frappe.ui.make_app_page({
 		parent: wrapper,
 		title: 'Restaurant Manage',
 		single_column: true

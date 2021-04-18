@@ -221,8 +221,9 @@ class RestaurantObject(Document):
             "room": self.name, "type": t
         })
 
-    def set_status_command(self, identifier, status, last_status):
-        # status = "Confirm" if status in ["Pending", "", None] else status,
+    def set_status_command(self, identifier):
+        last_status = frappe.db.get_value("Order Entry Item", {"identifier": identifier}, "status")
+        status = self.next_status(last_status)
 
         frappe.db.set_value("Order Entry Item", {"identifier": identifier}, "status", status)
         item = self.commands_food(identifier)
@@ -250,11 +251,11 @@ class RestaurantObject(Document):
 
         items = []
         for entry in frappe.get_all("Order Entry Item", "*", filters=filters, order_by="creation"):
-            items.append(self.get_command_data(entry, status_managed))
+            items.append(self.get_command_data(entry))
 
         return items
 
-    def get_command_data(self, entry, status_managed):
+    def get_command_data(self, entry):
         return dict(
             identifier=entry.identifier,
             item_group=entry.item_group,
@@ -269,7 +270,6 @@ class RestaurantObject(Document):
             notes=entry.notes,
             creation=frappe.format_value(entry.creation, {"fieldtype": "Datetime"}),
             process_status_data=dict(
-                next_action=self.next_action(entry.status, status_managed),
                 next_action_message=self._status(entry.status)["action_message"],
                 color=self._status(entry.status)["color"],
                 icon=self._status(entry.status)["icon"],
@@ -277,10 +277,11 @@ class RestaurantObject(Document):
             )
         )
 
-    def next_action(self, status, actions):
-        for _status in actions:
-            if status == _status.status_managed:
-                return _status.next_status
+    def next_status(self, last_status):
+        status_managed = self.status_managed
+        for status in status_managed:
+            if last_status == status.status_managed:
+                return status.next_status
 
         return "Processing"
 

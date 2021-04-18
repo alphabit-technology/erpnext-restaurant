@@ -82,9 +82,7 @@ class FoodCommand{
 			name: this.process_manage.table.data.name,
 			method: "set_status_command",
 			args: {
-				identifier: this.data.identifier,
-				status: this.data.process_status_data.next_action,
-				last_status: this.data.status
+				identifier: this.data.identifier
 			},
 			always: () => {
 				RM.ready(false, "success");

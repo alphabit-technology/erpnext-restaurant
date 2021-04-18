@@ -207,10 +207,18 @@ class TableOrder(Document):
                     # conversion_factor=1,
                 ))
 
+                for payment in frappe.get_list("POS Payment Method", {
+                    "parenttype": "POS Profile",
+                    "parent": self.pos_profile
+                }):
+                    invoice.append('payments', dict(
+                        mode_of_payment=payment.mode_of_payment,
+                        amount=0
+                    ))
+
                 if "item_tax_rate" in item:
                     if not item["item_tax_rate"] in taxes:
                         taxes[item["item_tax_rate"]] = item["item_tax_rate"]
-
 
         if invoice.taxes_and_charges:
             from erpnext.accounts.doctype.sales_invoice.pos import update_tax_table
@@ -340,7 +348,7 @@ class TableOrder(Document):
     @property
     def send(self):
         table = self._table
-        status_managed = table._status_managed
+        #status_managed = table._status_managed
 
         items_to_return = []
         data_to_send = []
@@ -352,7 +360,7 @@ class TableOrder(Document):
                 item.status = "Sent"
                 item.save()
 
-                data_to_send.append(table.get_command_data(item, status_managed))
+                data_to_send.append(table.get_command_data(item))
 
         if len(data_to_send):
             table.notify_to_check_command(["Sent"], data_to_send)

@@ -9,7 +9,7 @@ ProcessManage = class ProcessManage {
 			busy: false,
 			url_base: "restaurant_management.restaurant_management.doctype.restaurant_object.restaurant_object."
 		});
-		this.command_container_name = this.table.name + "-command_container"
+		this.command_container_name = this.table.data.name + "-command_container"
 
 		this.initialize();
 	}
@@ -19,6 +19,7 @@ ProcessManage = class ProcessManage {
 	}
 
 	initialize(){
+		console.log(this.table.data);
 		if(typeof this.modal == "undefined"){
 			this.modal = new CETIModal({
 				"full_page": true,

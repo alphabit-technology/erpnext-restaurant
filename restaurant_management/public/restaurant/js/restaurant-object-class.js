@@ -335,20 +335,23 @@ RestaurantObject = class RestaurantObject{
 					<strong>${__("Do you want to cancel the transfer?")}</strong>`,
 					() => {
 						RM.transfer_order = undefined;
+						RM.ready();
 						this.open_modal();
 					}
 				)
 				return;
 			}
 
-			let process_manage = `process_manage_${this.data.name}`;
+			const process_manage = `process_manage_${this.data.name}`;
 			setTimeout(() => {
 				if (typeof window[process_manage] == "undefined"){
+					console.log('init new process manage');
 					window[process_manage] = new ProcessManage({
 						name: this.data.name,
 						table: this
 					})
 				}else{
+					console.log('init existent process manage');
 					window[process_manage].init();
 					window[process_manage].reload();
 				}
