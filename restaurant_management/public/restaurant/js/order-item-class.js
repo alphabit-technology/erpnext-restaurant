@@ -72,7 +72,7 @@ class OrderItem {
 
     edit_notes() {
         if (this.edit_form == null) {
-            this.edit_form = new CETIForm({
+            this.edit_form = new DeskForm({
                 doctype: "Order Entry Item",
                 docname: this.data.name,
                 form_name: "order-item-note",
@@ -87,7 +87,7 @@ class OrderItem {
                             this.data.notes = notes;
                             this.notes.val(notes);
                             window.saving = true;
-                            CETI.api.call({
+                            frappeHelper.api.call({
                                 model: "Table Order",
                                 name: this.order.data.name,
                                 method: "set_item_note",
@@ -118,7 +118,7 @@ class OrderItem {
         if (!server) return;
         RM.working("Update Item", false);
         window.saving = true;
-        CETI.api.call({
+        frappeHelper.api.call({
             model: "Table Order",
             name: this.order.data.name,
             method: this.data.qty > 0 ? "push_item" : "delete_item",

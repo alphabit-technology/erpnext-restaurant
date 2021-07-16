@@ -4,11 +4,11 @@ from . import __version__ as app_version
 
 app_name = "restaurant_management"
 app_title = "Restaurant"
-app_publisher = "CETI Systems"
+app_publisher = "Quantum Bit Core"
 app_description = "Restaurant"
 app_icon = "octicon octicon-file-directory"
 app_color = "grey"
-app_email = "info@ceti.systems"
+app_email = "qubitcore.io@gmail.com"
 app_license = "MIT"
 source_link = "https://github.com/joepa37/restaurant_management"
 

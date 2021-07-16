@@ -26,7 +26,7 @@ PayForm = class PayForm {
 
     initialize() {
         if (this.form == null) {
-            this.form = new CETIForm({
+            this.form = new DeskForm({
                 doctype: "Table Order",
                 docname: this.order.data.name,
                 form_name: "payment-order",
@@ -173,7 +173,7 @@ PayForm = class PayForm {
 
         RM.working("Generating Invoice");
         this.order.data.dinners = this.dinners.val();
-        CETI.api.call({
+        frappeHelper.api.call({
             model: "Table Order",
             name: this.order.data.name,
             method: "make_invoice",

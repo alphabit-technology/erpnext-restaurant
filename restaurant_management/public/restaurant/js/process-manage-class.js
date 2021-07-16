@@ -57,7 +57,7 @@ ProcessManage = class ProcessManage {
 
     get_commands_food() {
         RM.working("Load commands food")
-        CETI.api.call({
+        frappeHelper.api.call({
             model: "Restaurant Object",
             name: this.table.data.name,
             method: "commands_food",

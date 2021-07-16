@@ -256,7 +256,7 @@ TableOrder = class TableOrder {
 
     get_items() {
         RM.working(__("Loading items in") + ": " + this.data.name);
-        CETI.api.call({
+        frappeHelper.api.call({
             model: "Table Order",
             name: this.data.name,
             method: "get_items",
@@ -277,7 +277,7 @@ TableOrder = class TableOrder {
         }
 
         RM.working("Deleting Order");
-        CETI.api.call({
+        frappeHelper.api.call({
             model: "Table Order",
             name: this.data.name,
             method: "_delete",
@@ -293,7 +293,7 @@ TableOrder = class TableOrder {
 
     divide() {
         if (this.divide_account_modal == null) {
-            this.divide_account_modal = new CETIModal({
+            this.divide_account_modal = new DeskModal({
                 model: "Table Order",
                 model_name: this.data.name,
                 action: "divide_template",
@@ -444,7 +444,7 @@ TableOrder = class TableOrder {
 
         if (Object.keys(update_data).length) {
             RM.working("Dividing Account");
-            CETI.api.call({
+            frappeHelper.api.call({
                 model: "Table Order",
                 name: this.data.name,
                 method: "divide",
@@ -468,7 +468,7 @@ TableOrder = class TableOrder {
 
         RM.working("Send order to Prepare");
 
-        CETI.api.call({
+        frappeHelper.api.call({
             model: "Table Order",
             name: this.data.name,
             method: "send",
@@ -517,7 +517,7 @@ TableOrder = class TableOrder {
         }
 
         if (this.edit_form == null) {
-            this.edit_form = new CETIForm({
+            this.edit_form = new DeskForm({
                 doctype: "Table Order",
                 docname: this.data.name,
                 form_name: "restaurant-order",

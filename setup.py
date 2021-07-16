@@ -11,7 +11,7 @@ setup(
 	name='restaurant_management',
 	version=version,
 	description='Restaurant',
-	author='CETI Systems',
+	author='Quantum Bit Core',
 	author_email='info@ceti.systems',
 	packages=find_packages(),
 	zip_safe=False,

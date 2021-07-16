@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2020, CETI Systems and Contributors
+# Copyright (c) 2021, Quantum Bit Core and Contributors
 # See license.txt
 from __future__ import unicode_literals
 

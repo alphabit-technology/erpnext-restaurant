@@ -595,7 +595,7 @@ OrderManage = class OrderManage {
 
     add_order() {
         RM.working("Adding Order");
-        CETI.api.call({
+        frappeHelper.api.call({
             model: "Restaurant Object",
             name: this.table.data.name,
             method: "add_order",
@@ -612,7 +612,7 @@ OrderManage = class OrderManage {
     get_orders(current = null, via_socket = false) {
         RM.working(__("Loading Orders in") + ": " + this.title);
         if (current == null) current = this.current_order_identifier;
-        CETI.api.call({
+        frappeHelper.api.call({
             model: "Restaurant Object",
             name: this.table.data.name,
             method: "orders_list",

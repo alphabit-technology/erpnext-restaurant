@@ -77,7 +77,7 @@ class FoodCommand {
         }
         RM.working(this.data.next_action_message, false);
 
-        CETI.api.call({
+        frappeHelper.api.call({
             model: "Restaurant Object",
             name: this.process_manage.table.data.name,
             method: "set_status_command",

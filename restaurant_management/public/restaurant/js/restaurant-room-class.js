@@ -127,7 +127,7 @@ class RestaurantRoom {
 
     edit() {
         if (this.edit_form == null) {
-            this.edit_form = new CETIForm({
+            this.edit_form = new DeskForm({
                 doctype: "Restaurant Object",
                 docname: this.data.name,
                 form_name: "restaurant-room",
@@ -150,7 +150,7 @@ class RestaurantRoom {
             return;
         }
         RM.working("Deleting Room");
-        CETI.api.call({
+        frappeHelper.api.call({
             model: "Restaurant Object",
             name: this.data.name,
             method: "_delete",
@@ -170,7 +170,7 @@ class RestaurantRoom {
     get_tables() {
         RM.working("Loading Objects");
         frappe.set_route(`/restaurant-manage?restaurant_room=${this.data.name}`)
-        CETI.api.call({
+        frappeHelper.api.call({
             model: "Restaurant Object",
             name: this.data.name,
             method: "get_objects",
@@ -201,7 +201,7 @@ class RestaurantRoom {
 
     add_object(t) {
         RM.working("Adding Table");
-        CETI.api.call({
+        frappeHelper.api.call({
             model: "Restaurant Object",
             name: this.data.name,
             method: "add_object",

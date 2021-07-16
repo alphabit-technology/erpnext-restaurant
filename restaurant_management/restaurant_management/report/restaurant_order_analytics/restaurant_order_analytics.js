@@ -1,4 +1,4 @@
-// Copyright (c) 2016, CETI Systems and contributors
+// Copyright (c) 2021, Quantum Bit Core and contributors
 // For license information, please see license.txt
 /* eslint-disable */
 

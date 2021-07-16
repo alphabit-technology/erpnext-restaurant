@@ -65,7 +65,7 @@ RestaurantObject = class RestaurantObject {
         if (shape && this.data.type === 'Production Center') return;
         if (window.saving) return;
 
-        CETI.api.call({
+        frappeHelper.api.call({
             model: "Restaurant Object",
             name: this.data.name,
             method: "set_style",
@@ -378,7 +378,7 @@ RestaurantObject = class RestaurantObject {
             if (RM.transfer_order != null
                 && RM.transfer_order.order_manage.table_name !== this.data.name
             ) {
-                CETI.api.call({
+                frappeHelper.api.call({
                     model: "Table Order",
                     name: RM.transfer_order.data.name,
                     method: "transfer",
@@ -440,7 +440,7 @@ RestaurantObject = class RestaurantObject {
 
     delete() {
         RM.working("Deleting Object");
-        CETI.api.call({
+        frappeHelper.api.call({
             model: "Restaurant Object",
             name: this.data.name,
             method: "_delete",
@@ -453,7 +453,7 @@ RestaurantObject = class RestaurantObject {
 
     edit() {
         if (this.edit_form == null) {
-            this.edit_form = new CETIForm({
+            this.edit_form = new DeskForm({
                 doctype: "Restaurant Object",
                 docname: this.data.name,
                 form_name: this.data.type === "Table" ? "restaurant-table" : "restaurant-production-center",

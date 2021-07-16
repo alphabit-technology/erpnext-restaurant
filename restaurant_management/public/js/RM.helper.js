@@ -59,7 +59,7 @@ class RMHelperClass {
     }
 
     default_full_modal(title, f) {
-        return new CETIModal({
+        return new DeskModal({
             "full_page": true,
             "customize": true,
             "adjust_height": 25,
