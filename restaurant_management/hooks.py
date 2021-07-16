@@ -26,7 +26,11 @@ after_install = "restaurant_management.setup.install.after_install"
 
 # include js, css files in header of desk.html
 # app_include_css = "/assets/{app_name}/css/{app_name}.css"
-# app_include_js = "/assets/{app_name}/js/{app_name}.js"
+app_include_js = [
+    '/assets/restaurant_management/js/interact.min.js',
+    '/assets/restaurant_management/js/drag.js',
+    '/assets/restaurant_management/js/RM.helper.js',
+]
 
 # include js, css files in header of web template
 # web_include_css = "/assets/{app_name}/css/{app_name}.css"
@@ -37,7 +41,7 @@ after_install = "restaurant_management.setup.install.after_install"
 # webform_include_css = {"doctype": "public/css/doctype.css"}
 
 # include js in page
-# page_js = {{"page" : "public/js/file.js"}}
+# page_js = {"page" : "public/js/file.js"}
 
 # include js in doctype views
 # doctype_js = {{"doctype" : "public/js/doctype.js"}}

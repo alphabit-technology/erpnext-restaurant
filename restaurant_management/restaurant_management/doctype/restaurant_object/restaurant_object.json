@@ -18,46 +18,35 @@
   "column_break_8",
   "color",
   "section_break_10",
-  "style",
+  "data_style",
   "section_break_14",
   "status_managed",
   "section_break_12",
   "production_center_group",
   "restaurant",
   "_restaurant",
-  "current_user"
+  "current_user",
+  "room_description",
+  "shape"
  ],
  "fields": [
   {
    "fieldname": "no_of_seats",
    "fieldtype": "Int",
-   "in_list_view": 1,
-   "label": "No of Seats",
-   "show_days": 1,
-   "show_seconds": 1
+   "label": "No of Seats"
   },
   {
    "default": "1",
    "fieldname": "minimum_seating",
    "fieldtype": "Int",
    "in_list_view": 1,
-   "label": "Minimum Seating",
-   "show_days": 1,
-   "show_seconds": 1
+   "label": "Minimum Seating"
   },
   {
    "fieldname": "description",
    "fieldtype": "Data",
-   "label": "Description",
-   "show_days": 1,
-   "show_seconds": 1
-  },
-  {
-   "fieldname": "style",
-   "fieldtype": "Data",
-   "label": "Style",
-   "show_days": 1,
-   "show_seconds": 1
+   "in_list_view": 1,
+   "label": "Description"
   },
   {
    "fieldname": "type",
@@ -67,116 +56,102 @@
    "in_standard_filter": 1,
    "label": "Type",
    "options": "Room\nTable\nProduction Center",
-   "reqd": 1,
-   "show_days": 1,
-   "show_seconds": 1
+   "reqd": 1
   },
   {
    "fieldname": "section_break_2",
-   "fieldtype": "Section Break",
-   "show_days": 1,
-   "show_seconds": 1
+   "fieldtype": "Section Break"
   },
   {
    "fieldname": "column_break_4",
-   "fieldtype": "Column Break",
-   "show_days": 1,
-   "show_seconds": 1
+   "fieldtype": "Column Break"
   },
   {
    "fieldname": "section_break_6",
-   "fieldtype": "Section Break",
-   "show_days": 1,
-   "show_seconds": 1
+   "fieldtype": "Section Break"
   },
   {
    "fieldname": "column_break_8",
-   "fieldtype": "Column Break",
-   "show_days": 1,
-   "show_seconds": 1
+   "fieldtype": "Column Break"
   },
   {
    "fieldname": "color",
    "fieldtype": "Color",
-   "label": "Color",
-   "show_days": 1,
-   "show_seconds": 1
+   "label": "Color"
   },
   {
    "fieldname": "section_break_10",
-   "fieldtype": "Section Break",
-   "show_days": 1,
-   "show_seconds": 1
+   "fieldtype": "Section Break"
   },
   {
    "fieldname": "section_break_12",
-   "fieldtype": "Section Break",
-   "show_days": 1,
-   "show_seconds": 1
+   "fieldtype": "Section Break"
   },
   {
    "fieldname": "column_break_2",
-   "fieldtype": "Column Break",
-   "show_days": 1,
-   "show_seconds": 1
+   "fieldtype": "Column Break"
   },
   {
    "fieldname": "room",
    "fieldtype": "Link",
    "label": "Room",
-   "options": "Restaurant Object",
-   "show_days": 1,
-   "show_seconds": 1
+   "options": "Restaurant Object"
   },
   {
    "fieldname": "section_break_14",
-   "fieldtype": "Section Break",
-   "show_days": 1,
-   "show_seconds": 1
+   "fieldtype": "Section Break"
   },
   {
    "fieldname": "status_managed",
    "fieldtype": "Table",
    "label": "Status Managed",
-   "options": "Status Managed Production Center",
-   "show_days": 1,
-   "show_seconds": 1
+   "options": "Status Managed Production Center"
   },
   {
    "fieldname": "production_center_group",
    "fieldtype": "Table",
    "label": "Item Group",
-   "options": "Production Center Group",
-   "show_days": 1,
-   "show_seconds": 1
+   "options": "Production Center Group"
   },
   {
    "fieldname": "restaurant",
    "fieldtype": "Link",
    "label": "Restaurant",
-   "options": "Restaurant",
-   "show_days": 1,
-   "show_seconds": 1
+   "options": "Restaurant"
   },
   {
    "fetch_from": "room.restaurant",
    "fieldname": "_restaurant",
    "fieldtype": "Read Only",
-   "label": "Restaurant",
-   "show_days": 1,
-   "show_seconds": 1
+   "label": "Restaurant"
   },
   {
    "fieldname": "current_user",
    "fieldtype": "Link",
    "label": "Current User",
-   "options": "User",
-   "show_days": 1,
-   "show_seconds": 1
+   "options": "User"
+  },
+  {
+   "fieldname": "data_style",
+   "fieldtype": "Code",
+   "label": "Data Style"
+  },
+  {
+   "fetch_from": "room.description",
+   "fieldname": "room_description",
+   "fieldtype": "Read Only",
+   "label": "Room Description"
+  },
+  {
+   "fieldname": "shape",
+   "fieldtype": "Select",
+   "label": "Shape",
+   "options": "Square\nRound"
   }
  ],
+ "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2020-06-03 20:54:50.742828",
+ "modified": "2021-07-14 19:22:28.039068",
  "modified_by": "Administrator",
  "module": "Restaurant Management",
  "name": "Restaurant Object",
@@ -219,6 +194,7 @@
  ],
  "quick_entry": 1,
  "restrict_to_domain": "Services",
+ "search_fields": "description,type",
  "sort_field": "modified",
  "sort_order": "DESC",
  "track_changes": 1

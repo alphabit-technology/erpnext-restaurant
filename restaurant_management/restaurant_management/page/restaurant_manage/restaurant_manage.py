@@ -1,9 +1,19 @@
 from __future__ import unicode_literals
-import frappe, json
-from frappe import _
+import frappe
 
 
 class RestaurantManage:
+    @staticmethod
+    def production_center_notify(status):
+        object_in_status = frappe.get_list("Status Managed Production Center", "parent", filters={
+            "parentType": "Restaurant Object",
+            "status_managed": ("in", status)
+        })
+
+        for item in object_in_status:
+            obj = frappe.get_doc("Restaurant Object", item.parent)
+            obj.send_notifications()
+
     @staticmethod
     def get_rooms():
         rooms = frappe.get_list("Restaurant Object", "name, description", filters={
@@ -22,6 +32,7 @@ class RestaurantManage:
         room.type = "Room"
         room.description = f"Room {(RestaurantManage().count_roms() + 1)}"
         room.save()
+
         return room
 
     @staticmethod
@@ -87,11 +98,16 @@ def get_rooms():
 
 
 @frappe.whitelist()
-def add_room():
-    return {
-        "current_room": RestaurantManage().add_room().name,
-        "rooms": RestaurantManage().get_rooms()
-    }
+def add_room(client=None):
+    frappe.publish_realtime("check_rooms", dict(
+        client=client,
+        current_room=RestaurantManage().add_room().name,
+        rooms=RestaurantManage().get_rooms()
+    ))
+    #return {
+    #    "current_room": RestaurantManage().add_room().name,
+    #    "rooms": RestaurantManage().get_rooms()
+    #}
 
 
 @frappe.whitelist(allow_guest=True)
@@ -108,37 +124,28 @@ def get_work_station():
 def listeners(args):
     import json
     return RestaurantManage().listener(json.loads(args))
-    # return json.loads(args)
 
 
 @frappe.whitelist()
-def get_config():
-    profile = frappe.db.get_value("User", frappe.session.user, "role_profile_name")
+def get_settings_data():
     restaurant_settings = frappe.get_single("Restaurant Settings")
-    return dict(
-        pos=pos_profile_data(),
-        permissions=dict(
-            # pay=frappe.has_permission("Sales Invoice", 'create'),
-            invoice=frappe.permissions.get_doc_permissions(frappe.new_doc("Sales Invoice")),
-            order=frappe.permissions.get_doc_permissions(frappe.new_doc("Table Order")),
-            restaurant_object=frappe.permissions.get_doc_permissions(frappe.new_doc("Restaurant Object")),
-        ),
-        restrictions=frappe.get_single("Restaurant Settings"),
-        exceptions=[item for item in restaurant_settings.restaurant_permissions if item.role_profile == profile],
-        geo_data=frappe.session,
-        test_data=frappe.get_doc("User", frappe.session.user)
-    )
+    return restaurant_settings.settings_data()
 
 
 def pos_profile_data():
-    from erpnext.stock.get_item_details import get_pos_profile
-    pos_profile = get_pos_profile(frappe.defaults.get_user_default('company'))
-
-    return dict(
-        has_pos=pos_profile is not None,
-        pos=None if pos_profile is None else frappe.get_doc("POS Profile", pos_profile.name)
-    )
+    restaurant_settings = frappe.get_single("Restaurant Settings")
+    return restaurant_settings.pos_profile_data()
 
 
 def set_pos_profile(doc, method=None):
     frappe.publish_realtime("pos_profile_update", pos_profile_data())
+
+
+def notify_to_check_command(command_foods):
+    frappe.publish_realtime("notify_to_check_order_data", dict(
+        commands_foods=command_foods
+    ))
+
+
+def debug_data(data):
+    frappe.publish_realtime("debug_data", data)

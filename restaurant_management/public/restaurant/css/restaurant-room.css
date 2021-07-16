@@ -1,38 +1,34 @@
 /**ROOMS**/
-.restaurant-manage .floor-selector .general-editor-button{
-    max-width: 50px !important;
-    background-color: rgba(90, 115, 142, 0.45) !important;
-    color: #818c9e;
-    border: none !important;
-}
-
-.restaurant-manage .floor-selector .general-editor-button.active{
-    background-color: rgba(120, 144, 170, 0.45) !important;
-    color: lightsteelblue !important;
-    border-left: solid 1px lightslategray !important;
-}
-
-.restaurant-manage .floor-selector .general-editor-button.active:hover{
-    background-color: rgba(110, 137, 165, 0.45) !important;
-    color: white !important;
-    border-left: solid 1px lightsteelblue !important;
-}
-
 .restaurant-manage .floor-selector .button {
     position: relative;
     cursor: pointer;
-    border-left: solid 1px rgb(196,196,196);
+    background-color: var(--fill_color);
     -webkit-flex: 1;
     flex: 1;
     -moz-user-select: none;
-   -webkit-user-select: none;
-   -ms-user-select: none;
-   user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    color: var(--text-color);
+    border: var(--default_line)
+}
+
+.restaurant-manage .floor-map .table-container {
+    height: 100%;
+    width: 100%;
+    position: relative;
+    display: none;
+}
+
+.restaurant-manage .table-container.active{
+    display: block;
 }
 
 .restaurant-manage .floor-selector .button.active {
-    background: rgb(79, 114, 114);
-    color: white;
+    background: var(--selected_color);
+    color: var(--text-color);
+    border: 1px solid !important;
+    border-color: var(--selected_color) !important;
 }
 
 .restaurant-manage .floor-selector .button a{
@@ -49,7 +45,6 @@
     font-size: 12px;
     font-weight: 700;
     line-height: 1;
-    color: #fff;
     text-align: center;
     white-space: nowrap;
     vertical-align: middle;
@@ -59,44 +54,8 @@
     border-bottom-left-radius: 10px;
 }
 
-.restaurant-manage .floor-selector.active .button .badge{
+.restaurant-manage.editing .button .badge{
     display: none;
-}
-
-.restaurant-manage .floor-selector .button .edit-bar-room{
-    display: none;
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    min-width: 100%;
-    font-weight: 700;
-    height: 100%;
-    line-height: 1;
-    color: #fff;
-    text-align: right;
-    white-space: nowrap;
-    vertical-align: middle;
-    border-top-left-radius: 0 !important;
-    border-top-right-radius: 0 !important;
-    border-bottom-right-radius: 0 !important;
-    border-bottom-left-radius: 10px;
-}
-
-.restaurant-manage .floor-selector.active .button .edit-bar-room{
-    display: inline-block !important;
-}
-
-
-/*.restaurant-manage .floor-selector.active .button .edit-bar-room{
-    display: inline-block !important;
-}*/
-
-.restaurant-manage .floor-selector.active .button .edit-bar-room .btn-room{
-    display: none !important;
-}
-
-.restaurant-manage .floor-selector.active .button.active .btn-room{
-    display: inline-block !important;
 }
 
 .restaurant-manage .floor-selector .edit-bar-room .btn-room{

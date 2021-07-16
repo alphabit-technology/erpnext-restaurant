@@ -6,6 +6,10 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 from frappe.model.document import Document
+import json
+from six import string_types, iteritems
+
+from restaurant_management.restaurant_management.page.restaurant_manage.restaurant_manage import RestaurantManage
 
 status_attending = "Attending"
 
@@ -57,51 +61,107 @@ class TableOrder(Document):
 
     def divide(self, items, client):
         new_order = frappe.new_doc("Table Order")
+        self.transfer_general_data(new_order)
+        status = []
 
         for item in self.entry_items:
             divide_item = items[item.identifier] if item.identifier in items else None
 
             if divide_item is not None:
                 rest = (int(item.qty) - int(divide_item["qty"]))
+                current_item = self.items_list(item.identifier)[0]
+                current_item["qty"] = rest
+                self.update_item(current_item)
 
-                frappe.db.set_value("Order Entry Item", {"identifier": item.identifier}, "qty", rest)
+                new_order.update_item(dict(
+                    item_code=item.item_code,
+                    qty=divide_item["qty"],
+                    rate=item.rate,
+                    price_list_rate=item.price_list_rate,
+                    item_tax_template=item.item_tax_template,
+                    item_tax_rate=item.item_tax_rate,
+                    discount_percentage=item.discount_percentage,
+                    status=item.status,
+                    identifier=item.identifier if rest == 0 else divide_item["identifier"],
+                    notes=item.notes,
+                    creation=item.creation,
+                    table_description=f'{self.room_description} ({self.table_description})'
+                ))
+
+                """frappe.db.set_value("Order Entry Item", {"identifier": item.identifier}, "qty", rest)
                 new_order.append('entry_items', dict(
                     item_code=item.item_code,
                     qty=divide_item["qty"],
                     rate=item.rate,
                     price_list_rate=item.price_list_rate,
-                    item_tax_template=item["item_tax_template"],
+                    item_tax_template=item.item_tax_template,
+                    item_tax_rate=item.item_tax_rate,
                     discount_percentage=item.discount_percentage,
                     status=item.status,
                     identifier=item.identifier if rest == 0 else divide_item["identifier"],
                     notes=item.notes,
-                    creation=item.creation
-                ))
+                    creation=item.creation,
+                    table_description=f'{self.room_description} ({self.table_description})'
+                ))"""
+            status.append(item.status)
 
-        table = self._table
-        new_order.table = table.name
+        self.db_commit()
+        new_order.aggregate()
+        #self.reload()
+        new_order.table = self.table
         new_order.save()
 
-        table.send_notifications(client, new_order.name)
+        #self.calculate_order(self.items_list())
+        #new_order.calculate_order(new_order.items_list())
+
+        new_order.send_notifications(dict(action="Add", client=client))
+        self.send_notifications(dict(action="Split", client=client, status=status))
+
 
         return True
-        """return {
-            "current_items": self.items_list(),
-            "order": new_order.data(),
-            "orders": table.orders_list()
-        }"""
+
+    @staticmethod
+    def debug_data(data):
+        frappe.publish_realtime("debug_data", data)
+
+    @staticmethod
+    def options_param(options, param):
+        return None if options is None else (options[param] if param in options else None)
+
+    def send_notifications(self, options=None):
+        action = self.options_param(options, "action") or "Update"
+        items = self.options_param(options, "items")
+        last_table = self.options_param(options, "last_table")
+        status = self.options_param(options, "status")
+
+        frappe.publish_realtime("notify_to_check_order_data", dict(
+            action=action,
+            data=[] if action is None else self.data(items, last_table),
+            client=self.options_param(options, "client")
+        ))
+
+        self._table.send_notifications()
+
+        if status is not None:
+            RestaurantManage.production_center_notify(status)
 
     def make_invoice(self, mode_of_payment, customer=None, dinners=0):
         if self.link_invoice:
             return frappe.throw(_("The order has been invoiced"))
 
-        self.customer = customer
-        self.dinners = dinners
-        self.save()
+        if customer is not None:
+            frappe.db.set_value("Table Order", self.name, "customer", customer)
+
+        if dinners > 0:
+            frappe.db.set_value("Table Order", self.name, "dinners", dinners)
+
+        if customer is not None or dinners > 0:
+            frappe.db.commit()
+            self.reload()
 
         if customer is None or len(customer) == 0 or dinners == 0:
-            none_customer = "Please set a Customer<br>" if customer is None or len(customer) == 0 else ""
-            none_dinners = "Please set a Dinners" if dinners == 0 else ""
+            none_customer = _("Please set a Customer") + "<br>" if customer is None or len(customer) == 0 else ""
+            none_dinners = _("Please set a Dinners") if dinners == 0 else ""
 
             frappe.throw(none_customer + none_dinners)
 
@@ -114,6 +174,7 @@ class TableOrder(Document):
 
         invoice = self.get_invoice(entry_items, True)
 
+        invoice.payments = []
         for mp in mode_of_payment:
             invoice.append('payments', dict(
                 mode_of_payment=mp,
@@ -121,17 +182,24 @@ class TableOrder(Document):
             ))
 
         invoice.save()
+        invoice.submit()
 
         self.status = "Invoiced"
         self.link_invoice = invoice.name
         self.save()
-        self.submit()
-        invoice.submit()
+        frappe.db.set_value("Table Order", self.name, "docstatus", 1)
+        # self.reload()
 
         frappe.msgprint(_('Invoice Created'), indicator='green', alert=True)
 
-        table = self._table
-        table.send_notifications()
+        #table = self._table
+        #table.send_notifications()
+
+        #frappe.publish_realtime(self.name, dict(
+        #    action="Invoiced"
+        #))
+
+        self.send_notifications(dict(action="Invoiced", status=["Invoiced"]))
 
         return dict(
             status=True,
@@ -142,33 +210,49 @@ class TableOrder(Document):
         last_table = self._table
         new_table = frappe.get_doc("Restaurant Object", table)
 
-        #last_table.validate_user()
-        new_table.validate_user(self.owner)
+        # last_table.validate_user()
+        last_table_name = self.table
+        new_table.validate_transaction(self.owner)
 
         self.table = table
+
         self.save()
 
-        new_table._on_update()
+        for i in self.entry_items:
+            table_description = f'{self.room_description} ({self.table_description})'
+            frappe.db.set_value("Order Entry Item", {"identifier": i.identifier}, "table_description",
+                                table_description)
+            # frappe.publish_realtime(i.identifier + "_update_table", table_description)
 
-        data = self.data()
-        frappe.publish_realtime(self.name, dict(
-            action="Transfer",
-            table=self.table
-        ))
+        self.reload()
 
-        new_table.send_notifications(client)
+        # new_table._on_update()
 
-        frappe.publish_realtime(table, dict(
-            action="Transfer Order",
-            orders=self._table.orders_list(),
-            order=data["data"],
-            items=data["items"],
-            client=client
-        ))
+        # data = self.data()
+        # frappe.publish_realtime(self.name, dict(
+        #    action="Transfer",
+        #    table=self.table
+        # ))
 
-        #self._table.send_notifications(client)
+        self.send_notifications(dict(action="Transfer", client=client, last_table=last_table_name))
 
-        last_table.send_notifications(client)
+        # new_table.send_notifications(client)
+        last_table.send_notifications()
+        return True
+
+        # frappe.publish_realtime(table, dict(
+        #    action="Transfer Order",
+        #    orders=self._table.orders_list(),
+        #    order=data["data"],
+        #    items=data["items"],
+        #    client=client
+        # ))
+
+        # frappe.publish_realtime("change_command_food_titles", dict(
+        #    items=data["items"]
+        # ))
+
+        # self._table.send_notifications(client)
 
     def set_invoice_values(self, invoice):
         invoice.company = self.company
@@ -179,11 +263,22 @@ class TableOrder(Document):
         invoice.selling_price_list = self.selling_price_list
         invoice.pos_profile = self.pos_profile
 
+    def transfer_general_data(self, new_order):
+        new_order.company = self.company
+        new_order.is_pos = 1
+        new_order.customer = self.customer
+        new_order.title = self.customer
+        new_order.taxes_and_charges = self.taxes_and_charges
+        new_order.selling_price_list = self.selling_price_list
+        new_order.pos_profile = self.pos_profile
+
     def get_invoice(self, entry_items=None, make=False):
         invoice = frappe.new_doc("Sales Invoice")
         self.set_invoice_values(invoice)
 
         invoice.items = []
+        invoice.taxes = []
+        invoice.payments = []
         taxes = {}
         for i in entry_items:
             item = entry_items[i]
@@ -207,34 +302,30 @@ class TableOrder(Document):
                     # conversion_factor=1,
                 ))
 
-                for payment in frappe.get_list("POS Payment Method", {
-                    "parenttype": "POS Profile",
-                    "parent": self.pos_profile
-                }):
-                    invoice.append('payments', dict(
-                        mode_of_payment=payment.mode_of_payment,
-                        amount=0
-                    ))
+                # for payment in frappe.get_list("POS Payment Method", {
+                #    "parenttype": "POS Profile",
+                #    "parent": self.pos_profile
+                # }):
+                #    invoice.append('payments', dict(
+                #        mode_of_payment=payment.mode_of_payment,
+                #        amount=0
+                #    ))
 
                 if "item_tax_rate" in item:
                     if not item["item_tax_rate"] in taxes:
                         taxes[item["item_tax_rate"]] = item["item_tax_rate"]
 
-        if invoice.taxes_and_charges:
-            from erpnext.accounts.doctype.sales_invoice.pos import update_tax_table
-            update_tax_table(invoice)
-        else:
-            in_invoice_taxes = [t for t in invoice.get("taxes")]
+        in_invoice_taxes = [t for t in invoice.get("taxes")]
 
-            import json
-            for tax in taxes:
+        for tax in taxes:
+            if tax is not None:
                 for t in json.loads(tax):
                     in_invoice_taxes.append(t)
 
-            for t in set(in_invoice_taxes):
-                invoice.append('taxes', {
-                    "charge_type": "On Net Total", "account_head": t, "rate": 0, "description": t
-                })
+        for t in set(in_invoice_taxes):
+            invoice.append('taxes', {
+                "charge_type": "On Net Total", "account_head": t, "rate": 0, "description": t
+            })
 
         invoice.run_method("set_missing_values")
         invoice.run_method("calculate_taxes_and_totals")
@@ -247,11 +338,127 @@ class TableOrder(Document):
             dict(name="Table Order", short_name="order", action="write", data=self),
             "You cannot modify an order from another User"
         )
+        self.calculate_order(all_items)
+        self.send_notifications(dict(action="queue"))
 
-        entry_items = {
-            item["identifier"]: item for item in all_items
-        }
+    def push_item(self, item):
+        from restaurant_management.restaurant_management.restaurant_manage import check_exceptions
+        check_exceptions(
+            dict(name="Table Order", short_name="order", action="write", data=self),
+            "You cannot modify an order from another User"
+        )
+        action = self.update_item(item)
+        if action == "db_commit":
+            self.db_commit()
+        else:
+            self.aggregate()
+        #getattr(self, self.update_item(item))
 
+        #self.update_order(item)
+        self.send_notifications(dict(item=item["identifier"]))
+
+    def delete_item(self, item):
+        from restaurant_management.restaurant_management.restaurant_manage import check_exceptions
+        check_exceptions(
+            dict(name="Table Order", short_name="order", action="write", data=self),
+            "You cannot modify an order from another User"
+        )
+        frappe.db.delete('Order Entry Item', {'identifier': item})
+        self.db_commit()
+        self.send_notifications(dict(action='queue'))
+
+    def db_commit(self):
+        frappe.db.commit()
+        self.reload()
+        self.aggregate()
+
+    def aggregate(self):
+        tax = 0
+        amount = 0
+        for item in self.entry_items:
+            tax += item.tax_amount
+            amount += item.amount
+
+        self.tax = tax
+        self.amount = amount
+        self.save()
+
+    def update_order(self, entry):
+        if entry["qty"] == 0:
+            self.delete_item(entry["identifier"])
+        else:
+            entry_items = {entry["identifier"]: entry}
+            invoice = self.get_invoice(entry_items)
+
+            item = invoice.items[0]
+
+            data = dict(
+                item_code=item.item_code,
+                qty=item.qty,
+                rate=item.rate,
+                price_list_rate=item.price_list_rate,
+                item_tax_template=item.item_tax_template,
+                item_tax_rate=item.item_tax_rate,
+                tax_amount=invoice.base_total_taxes_and_charges,
+                amount=invoice.grand_total,
+                discount_percentage=item.discount_percentage,
+                discount_amount=invoice.base_discount_amount,
+                status="Attending" if entry["status"] in ["Pending", "", None] else entry["status"],
+                identifier=entry["identifier"],
+                notes=entry["notes"],
+                table_description=f'{self.room_description} ({self.table_description})'
+            )
+
+            if frappe.db.count("Order Entry Item", {"identifier": entry["identifier"]}) == 0:
+                self.append('entry_items', data)
+                self.aggregate()
+            else:
+                _data = ','.join('='.join((f"`{key}`", f"'{'' if val is None else val}'")) for (key, val) in data.items())
+                frappe.db.sql("""UPDATE `tabOrder Entry Item` set {data} WHERE `identifier` = '{identifier}'""".format(
+                    identifier=entry["identifier"], data=_data)
+                )
+                self.db_commit()
+
+    def update_item(self, entry):
+        if entry["qty"] == 0:
+            self.delete_item(entry["identifier"])
+            return "db_commit"
+        else:
+            entry_item = {entry["identifier"]: entry}
+            invoice = self.get_invoice(entry_item)
+
+            item = invoice.items[0]
+            data = dict(
+                item_code=item.item_code,
+                qty=item.qty,
+                rate=item.rate,
+                price_list_rate=item.price_list_rate,
+                item_tax_template=item.item_tax_template,
+                item_tax_rate=item.item_tax_rate,
+                tax_amount=invoice.base_total_taxes_and_charges,
+                amount=invoice.grand_total,
+                discount_percentage=item.discount_percentage,
+                discount_amount=invoice.base_discount_amount,
+                status="Attending" if entry["status"] in ["Pending", "", None] else entry["status"],
+                identifier=entry["identifier"],
+                notes=entry["notes"],
+                table_description=f'{self.room_description} ({self.table_description})'
+            )
+
+            if frappe.db.count("Order Entry Item", {"identifier": entry["identifier"]}) == 0:
+                self.append('entry_items', data)
+                return "aggregate"
+                #self.aggregate()
+            else:
+                _data = ','.join('='.join((f"`{key}`", f"'{'' if val is None else val}'")) for (key, val) in data.items())
+                frappe.db.sql("""UPDATE `tabOrder Entry Item` set {data} WHERE `identifier` = '{identifier}'""".format(
+                    identifier=entry["identifier"], data=_data)
+                )
+                return "db_commit"
+                #self.db_commit()
+
+    def calculate_order(self, items):
+        entry_items = {item["identifier"]: item for item in items}
         invoice = self.get_invoice(entry_items)
 
         self.entry_items = []
@@ -269,7 +476,8 @@ class TableOrder(Document):
                 discount_percentage=item.discount_percentage,
                 status="Attending" if entry_item["status"] in ["Pending", "", None] else entry_item["status"],
                 identifier=entry_item["identifier"],
-                notes=entry_item["notes"]
+                notes=entry_item["notes"],
+                table_description=f'{self.room_description} ({self.table_description})'
             ))
             item.serial_no = None
 
@@ -278,29 +486,20 @@ class TableOrder(Document):
         self.amount = invoice.grand_total
         self.save()
 
-        data = self.data()
-
-        frappe.publish_realtime(self.name, dict(
-            action="Update",
-            data=data["data"],
-            items=data["items"]
-        ))
-
-        return data, invoice
-
     @property
     def identifier(self):
-        return self.name  # f'{self.table}_{self.name}'
+        return self.name
 
-    def data(self):
+    def data(self, items=None, last_table=None):
         return dict(
-            data=self.short_data()["data"],
-            items=self.items_list()
+            order=self.short_data(last_table),
+            items=self.items_list() if items is None else items
         )
 
-    def short_data(self):
+    def short_data(self, last_table=None):
         return dict(
             data=dict(
+                last_table=last_table,
                 table=self.table,
                 customer=self.customer,
                 name=self.name,
@@ -311,45 +510,47 @@ class TableOrder(Document):
                 products_not_ordered=self.products_not_ordered_count,
                 tax=self.tax,
                 amount=self.amount,
-                owner=self.owner
+                owner=self.owner,
+                dinners=self.dinners
             )
         )
 
-    def items_list(self):
+    def items_list(self, from_item=None):
         table = self._table
         items = []
         for item in self.entry_items:
-            if item.qty > 0:
+            if item.qty > 0 and (from_item is None or from_item == item.identifier):
                 _item = item.as_dict()
 
                 row = {col: _item[col] for col in [
                     "identifier",
+                    "item_group",
+                    "item_code",
+                    "item_name",
                     "qty",
                     "rate",
                     "amount",
                     "discount_percentage",
-                    "item_code",
-                    "item_name",
-                    "notes",
-                    "status",
                     "price_list_rate",
                     "item_tax_template",
-                    "item_tax_rate"
+                    "item_tax_rate",
+                    "table_description",
+                    "status",
+                    "notes",
+                    "creation"
                 ]}
 
-                row["status_color"] = table._status(item.status)["color"]
-                row["status_icon"] = table._status(item.status)["icon"]
+                row["order_name"] = item.parent
                 row["entry_name"] = item.name
+                row["short_name"] = table.order_short_name(item.parent)
+                row["process_status_data"] = table.process_status_data(item)
 
                 items.append(row)
-
         return items
 
     @property
     def send(self):
         table = self._table
-        #status_managed = table._status_managed
-
         items_to_return = []
         data_to_send = []
         for i in self.entry_items:
@@ -362,12 +563,16 @@ class TableOrder(Document):
 
                 data_to_send.append(table.get_command_data(item))
 
-        if len(data_to_send):
-            table.notify_to_check_command(["Sent"], data_to_send)
-
         self.reload()
+        self.send_notifications(dict(status=["Sent"]))
 
         return self.data()
+
+    def set_item_note(self, item, notes):
+        frappe.db.set_value("Order Entry Item", {"identifier": item}, "notes", notes)
+        self.reload()
+        item = self.items_list(item)
+        self.send_notifications(dict(items=item))
 
     @property
     def get_items(self):
@@ -401,10 +606,13 @@ class TableOrder(Document):
         self.save()
 
     def after_delete(self):
-        self._table.send_notifications()
+        self.send_notifications(dict(action="Delete", status=["Deleted"]))
+        #self._table.send_notifications()
+        # self.send_notifications()
 
-        if frappe.db.count("Table Order", self.name) == 0:
-            frappe.publish_realtime(self.name, dict(
-                action="Delete",
-                order=self.name
-            ))
+        #if frappe.db.count("Table Order", self.name) == 0:
+        #    self.send_notifications()
+            #frappe.publish_realtime(self.name, dict(
+            #    action="Delete",
+            #    order=self.name
+            #))

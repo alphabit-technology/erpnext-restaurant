@@ -19,70 +19,53 @@
   {
    "fieldname": "for_tables_section",
    "fieldtype": "Section Break",
-   "label": "Restrictions",
-   "show_days": 1,
-   "show_seconds": 1
+   "label": "Restrictions"
   },
   {
    "fieldname": "for_orders_section",
-   "fieldtype": "Column Break",
-   "show_days": 1,
-   "show_seconds": 1
+   "fieldtype": "Column Break"
   },
   {
    "fieldname": "column_break_8",
-   "fieldtype": "Column Break",
-   "show_days": 1,
-   "show_seconds": 1
+   "fieldtype": "Column Break"
   },
   {
    "fieldname": "section_break_11",
    "fieldtype": "Section Break",
-   "label": "Exceptions",
-   "show_days": 1,
-   "show_seconds": 1
+   "label": "Exceptions"
   },
   {
    "fieldname": "restaurant_permissions",
    "fieldtype": "Table",
    "label": "Restaurant Permissions",
-   "options": "Restaurant Permissions",
-   "show_days": 1,
-   "show_seconds": 1
+   "options": "Restaurant Permissions"
   },
   {
    "fieldname": "restaurant_permissions_info",
-   "fieldtype": "HTML",
-   "show_days": 1,
-   "show_seconds": 1
+   "fieldtype": "HTML"
   },
   {
    "default": "0",
    "fieldname": "restricted_to_owner_table",
    "fieldtype": "Check",
-   "label": "Restrict tables by owner",
-   "show_days": 1,
-   "show_seconds": 1
+   "label": "Restrict tables by owner"
   },
   {
    "default": "0",
    "fieldname": "restricted_to_owner_order",
    "fieldtype": "Check",
-   "label": "Restrict order by owner",
-   "show_days": 1,
-   "show_seconds": 1
+   "label": "Restrict order by owner"
   },
   {
    "fieldname": "color",
    "fieldtype": "Color",
-   "label": "Color",
-   "show_days": 1,
-   "show_seconds": 1
+   "label": "Color"
   }
  ],
+ "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2020-07-16 18:26:48.376244",
+ "modified": "2021-05-11 08:29:43.133338",
  "modified_by": "Administrator",
  "module": "Restaurant Management",
  "name": "Restaurant Settings",

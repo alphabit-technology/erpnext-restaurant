@@ -1,176 +1,213 @@
-class OrderItem{
-	constructor(options) {
-		Object.assign(this, options, {
-			rendered: false,
-			edit_form: false
-		});
-		this.row=null;
-		this.icon=null;
-		this.notes=null
-		this.edit_note_button="";
-		this.attending_status = this.order.data.attending_status;
-		this.listeners();
+class OrderItem {
+    constructor(options) {
+        Object.assign(this, options);
+        this.edit_form = null;
+        this.attending_status = this.order.data.attending_status;
+        this.status_enabled_for_edit = [this.attending_status, "Pending", null, undefined, ""];
+        this.render();
+        this.listeners();
     }
 
-    listeners(){
+    listeners() {
         frappe.realtime.on("pos_profile_update", () => {
-        	setTimeout(() => {
-				this.active_editor();
-			}, 0)
-		})
+            setTimeout(() => {
+                this.active_editor();
+            }, 0)
+        });
     }
 
-    update_to_edit(){
-		return (this.data.status === this.attending_status || this.data.status === "Pending") &&
-			RM.check_permissions("order", this.order, "write")
-			//this.order.data.owner === frappe.session.user;
-	}
+    hide() {
+        this.row.hide();
+    }
 
-	update(qty, discount, rate){
-		if(this.order.data.owner !== frappe.session.user) return;
-		if(RM.busy_message() || !this.update_to_edit()){
-			return;
-		}
+    is_enabled_to_edit() {
+        return (this.status_enabled_for_edit.includes(this.data.status)) &&
+            RM.check_permissions("order", this.order, "write");
+    }
 
-		this.data.status = "Pending";
-		this.data.qty = flt(qty);
-		this.data.discount_percentage = flt(discount);
-		this.data.rate = flt(rate);
+    reset_html() {
+        let ps = this.data.process_status_data;
+        this.amount.val(RM.format_currency(this.data.amount));
+        this.detail.val(this.detail_html());
+        this.notes.val(this.data.notes);
+        this.icon.val(`<i class="${ps.icon}" style="color: ${ps.color}"/>`);
+    }
 
-		this.row.content = this.template();
-		this.row.val("");
+    delete() {
+        if (RM.busy_message() || this.data.status !== this.attending_status) return;
+        this.data.qty = 0;
+        this.update(true);
+    }
 
-		if(this.order.order_manage.objects.Qty.val() !== ""){
-			this.order.queue_item(this.data);
-		}
-	}
+    remove() {
+        this.row.remove();
+    }
 
-	delete(){
-		if(RM.busy_message()) return;
+    render() {
+        this.row = new JSHtml({
+            tag: "li",
+            properties: {class: "media event"},
+            content: this.template()
+        }).on("click", () => {
+            RM.pull_alert("left");
+            this.order.current_item = this;
+            this.select();
+        });
 
-		if(this.data.status !== this.attending_status) return;
+        this.order.container.append(this.row.html());
+    }
 
-		this.data.qty = 0;
-		this.row.content = this.template();
-		this.row.val("");
+    select() {
+        this.order.current_item = this;
+        setTimeout(() => {
+            this.order.order_manage.check_item_editor_status(this);
+            this.row.toggle_common('media.event', 'selected');
+        }, 0);
+    }
 
-		this.order.queue_item(this.data);
-	}
+    active_editor() {
+        if (typeof this.order == "undefined") return;
+        this.order.order_manage.check_item_editor_status(this);
+    }
 
-	render(){
-		let container = $("#"+this.order.order_manage.order_entry_container_name);
+    edit_notes() {
+        if (this.edit_form == null) {
+            this.edit_form = new CETIForm({
+                doctype: "Order Entry Item",
+                docname: this.data.name,
+                form_name: "order-item-note",
+                disabled_to_save: true,
+                after_load: () => {
+                    this.edit_form.form.set_value("notes", this.data.notes);
+                    this.edit_form.modal.set_primary_action(__("Save"), () => {
+                        let notes = this.edit_form.form.get_value("notes");
+                        this.edit_form.hide();
 
-		this.row = new JSHtml({
-			tag: "li",
-			properties: {class: "media event"},
-			content: this.template()
-		}).on("click", () => {
-			RM.pull_alert("left");
-			this.order.current_item = this;
-			this.select();
-		})
+                        if (notes !== this.data.notes) {
+                            this.data.notes = notes;
+                            this.notes.val(notes);
+                            window.saving = true;
+                            CETI.api.call({
+                                model: "Table Order",
+                                name: this.order.data.name,
+                                method: "set_item_note",
+                                args: {item: this.data.identifier, notes: notes},
+                                always: () => {
+                                    window.saving = false;
+                                },
+                            });
+                        }
+                    });
+                },
+                title: `${this.data.item_name} - ${__("Edit note")}`,
+            });
+        } else {
+            this.edit_form.show();
+            this.edit_form.reload();
+        }
+    }
 
-		container.append(this.row.html());
-	}
+    update(server = true) {
+        if (this.data.qty === 0) {
+            //this.order.delete_item(this.data.identifier);
+        } else {
+            this.calculate();
+            this.reset_html();
+        }
+        this.order.aggregate(true);
+        if (!server) return;
+        RM.working("Update Item", false);
+        window.saving = true;
+        CETI.api.call({
+            model: "Table Order",
+            name: this.order.data.name,
+            method: this.data.qty > 0 ? "push_item" : "delete_item",
+            args: {item: this.data.qty > 0 ? this.data : this.data.identifier},
+            always: () => {
+                window.saving = false;
+                RM.ready();
+            },
+        });
+    }
 
-	select(){
-		this.order.order_manage.flag_change = true;
-		this.active_editor();
-		this.row.add_class('selected').JQ().siblings('.media.event.selected').removeClass('selected');
-	}
+    calculate() {
+        let tax_percentage = RMHelper.JSONparse(this.data.item_tax_rate);
+        let base_amount = parseFloat(this.data.qty) * parseFloat(this.data.rate);
+        let tax_amount = 0;
+        if (tax_percentage != null) {
+            tax_percentage = Object.keys(tax_percentage).map((key) => tax_percentage[key]);
+            tax_percentage.forEach((tax) => {
+                tax_amount += base_amount * (tax / 100);
+            });
+        }
+        this.data.tax_amount = tax_amount;
+        this.data.amount = (base_amount + tax_amount);
+    }
 
-	active_editor(){
-		if(typeof this.order == "undefined") return;
-		this.order.order_manage.set_editor_status(this);
-	}
+    template() {
+        let ps = this.data.process_status_data;
+        this.icon = new JSHtml({
+            tag: "a",
+            properties: {class: "pull-left border-aero profile_thumb"},
+            content: `<i class="${ps.icon}" style="color: ${ps.color}"/>`
+        });
 
-	edit_notes(){
-		if(this.edit_form === false) {
-			this.edit_form = new CETIForm({
-				doctype: "Order Entry Item",
-				docname: this.data.name,
-				form_name: "order-item-note",
-				disabled_to_save: true,
-				after_load: () => {
-					this.edit_form.form.set_value("notes", this.data.notes);
+        this.edit_note_button = new JSHtml({
+            tag: "a",
+            properties: {
+                class: "edit-note pull-right",
+                style: "display: none"
+            },
+            content: `<i class="fa fa-pencil"/> ${__("Notes")}`
+        });
 
-					this.edit_form.modal.set_primary_action(__("Save"), () => {
-						let notes = this.edit_form.form.get_value("notes");
-						this.edit_form.hide();
+        this.notes = new JSHtml({
+            tag: "small",
+            properties: {class: "notes"},
+            content: (typeof this.data.notes == "object" ? "" : this.data.notes)
+        });
 
-						if(notes !== this.data.notes){
-							this.data.notes = notes;
-							this.notes.val(notes);
-							this.order.send_queue_items(0);
-						}
-					});
-				},
-				title: `${this.data.item_name} - ${__("Edit note")}`,
-			});
-		} else {
-			this.edit_form.show();
-			this.edit_form.reload();
-		}
-	}
+        this.detail = new JSHtml({
+            tag: "p",
+            content: this.detail_html()
+        });
 
-	update_notifications(data){
-		this.data.status_icon = data.status_icon;
-		this.data.status_color = data.status_color;
-		this.icon.content = `<i class="fa ${this.data.status_icon}" style="color: ${this.data.status_color}"/>`;
-		this.icon.val("");
-	}
+        this.amount = new JSHtml({
+            tag: 'a',
+            properties: {class: 'pull-right'},
+            content: RM.format_currency(this.data.amount)
+        });
 
-	template(){
-		this.icon = new JSHtml({
-			tag: "a",
-			properties: {class: "pull-left border-aero profile_thumb"},
-			content: `<i class="${this.data.status_icon}" style="color: ${this.data.status_color}"/>`
-		})
+        let edit_note_button = (
+            RM.check_permissions('order', this.order, 'write')
+        ) ? this.edit_note_button.on("click", () => {
+            this.edit_notes();
+        }).html() : "";
 
-		this.edit_note_button = new JSHtml({
-			tag: "a",
-			properties: {
-				class: "edit-note pull-right",
-				style: "display: none"
-			},
-			content: `<i class="fa fa-pencil"/> ${__("Notes")}`
-		});
-
-		this.notes = new JSHtml({
-			tag: "small",
-			properties: {class: "notes"},
-			content: (typeof this.data.notes == "object" ? "" : this.data.notes)
-		})
-
-		let edit_note_button = (this.data.status === this.attending_status && this.order.data.owner === frappe.session.user) ?
-			this.edit_note_button.on("click", () => {
-				this.edit_notes();
-			}).html() : "";
-
-		return `
+        return `
 		${this.icon.html()}
 		<div class="media-body">
 			<a class="title" href="javascript:void(0)">${this.data.item_name}
-				<a class="pull-right">${RM.format_currency(this.data.amount)}</a>
+				${this.amount.html()}
 			</a>
-			<p>${this.detail()}</p>
+			${this.detail.html()}
 			<p>
 				${this.notes.html()}
 				${edit_note_button}
 			</p>
 		</div>`
-	}
+    }
 
-	detail(){
-		let discount_data = '';
-		if(this.data.discount_percentage){
-			discount_data = `
+    detail_html() {
+        let discount_data = '';
+        if (this.data.discount_percentage) {
+            discount_data = `
 			<small style="color:green">
 				<strong>${this.data.discount_percentage}%<span class="fa fa-tags"/></strong>
 			</small>`
-		}
-		let discount = isNaN(parseFloat(this.data.discount_percentage)) ? 0 : parseFloat(this.data.discount_percentage);
+        }
+        let discount = isNaN(parseFloat(this.data.discount_percentage)) ? 0 : parseFloat(this.data.discount_percentage);
 
-		return `${this.data.qty} x @${RM.format_currency(parseFloat(this.data.rate) * (1-discount/100))} ${discount_data}`
-	}
+        return `${this.data.qty} x @${RM.format_currency(parseFloat(this.data.rate) * (1 - discount / 100))} ${discount_data}`
+    }
 }

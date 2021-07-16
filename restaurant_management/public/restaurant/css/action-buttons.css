@@ -1,4 +1,4 @@
-.erp-container.action-buttons{
+/*.erp-container.action-buttons{
     width: 100%;
 }
 
@@ -14,8 +14,6 @@
 .erp-container.action-buttons .control-button {
     -webkit-flex-grow: 1;
     flex-grow: 1;
-    background: #ffffff;
-    border: solid 1px #d4d4d4;
     display: inline-block;
     line-height: 33px;
     min-width: 80px;
@@ -30,10 +28,12 @@
     transition: all linear 150ms;
 }
 
-.erp-container.action-buttons .control-button:hover {
-    background-color: #cbcaca;
-}
-
 .erp-container.action-buttons .control-button.success {
     background: rgba(96, 161, 96, 0.84) !important;
 }
+
+.pay-btn {
+    border-color: rgba(119, 136, 153, 0.39) !important;
+    border-width: 1px !important;
+    border-style: ridge !important;
+}*/

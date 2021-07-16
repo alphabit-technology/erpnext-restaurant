@@ -13,12 +13,16 @@
   "item_invoice",
   "qty",
   "rate",
+  "valuation_rate",
   "amount",
   "price_list_rate",
   "discount_percentage",
   "identifier",
   "item_tax_template",
-  "item_tax_rate"
+  "item_tax_rate",
+  "table_description",
+  "discount_amount",
+  "tax_amount"
  ],
  "fields": [
   {
@@ -106,11 +110,32 @@
    "fieldname": "item_tax_rate",
    "fieldtype": "Data",
    "label": "Item Tax Rate"
+  },
+  {
+   "fieldname": "table_description",
+   "fieldtype": "Data",
+   "label": "Table Description"
+  },
+  {
+   "fieldname": "valuation_rate",
+   "fieldtype": "Currency",
+   "label": "valuation_rate"
+  },
+  {
+   "fieldname": "discount_amount",
+   "fieldtype": "Currency",
+   "label": "Discount Amount"
+  },
+  {
+   "fieldname": "tax_amount",
+   "fieldtype": "Currency",
+   "label": "Tax Amount"
   }
  ],
+ "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2020-06-01 00:16:47.124365",
+ "modified": "2021-06-05 15:05:03.396163",
  "modified_by": "Administrator",
  "module": "Restaurant Management",
  "name": "Order Entry Item",

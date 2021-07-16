@@ -1,3 +1,12 @@
+.erp-items {
+    border-right: var(--default_line);
+    border-left: var(--default_line);
+}
+
+.panel-order-items {
+    border-bottom: var(--default_line);
+}
+
 .panel-order-items ul.products-list {
     /*height: 330px;*/
     width: 100%;
@@ -5,20 +14,18 @@
 }
 
 .panel-order-items ul.products-list li:nth-child(odd) {
-    /*background-color: #f3f3eb;*/
-
+    background-color: var(--fill_color);
 }
 
 .panel-order-items ul.products-list li {
     margin: 0;
     padding: 3px 5px;
     cursor: pointer;
-    border-bottom: #ccced5 solid 1px;
+    border-bottom: var(--default_line);
 }
 
 .panel-order-items ul.products-list li.selected {
-    background-color: #dadfe7 !important;
-    /*background-color: #d5d4d4;*/
+    background-color: var(--selected_color) !important;
 }
 
 .panel-order-items ul.products-list li.selected .edit-note {
@@ -31,7 +38,7 @@
 }
 
 .panel-order-items .media .profile_thumb {
-    border: 1px solid;
+    border: var(--default_line);
     width: 50px;
     height: 50px;
     margin: 5px 10px 5px 0;
@@ -53,7 +60,6 @@
 }
 
 .panel-order-items a:not([href]):not([tabindex]) {
-    color: inherit;
     text-decoration: none;
 }
 
@@ -67,7 +73,6 @@
 }
 
 .panel-order-items a {
-    color: #5A738E;
     text-decoration: none;
     background-color: transparent;
 }
@@ -86,5 +91,5 @@
 }
 
 .panel-order-items .border-aero {
-    border-color: #9CC2CB !important;
+    border: var(--default_line) !important;
 }

@@ -7,7 +7,9 @@
  "engine": "InnoDB",
  "field_order": [
   "table",
+  "table_description",
   "room",
+  "room_description",
   "naming_series",
   "status",
   "customer",
@@ -28,89 +30,68 @@
    "fieldname": "table",
    "fieldtype": "Link",
    "label": "Table",
-   "options": "Restaurant Object",
-   "show_days": 1,
-   "show_seconds": 1
+   "options": "Restaurant Object"
   },
   {
    "fieldname": "naming_series",
    "fieldtype": "Select",
    "label": "Series",
-   "options": "OR-.YYYY.-",
-   "show_days": 1,
-   "show_seconds": 1
+   "options": "OR-.YYYY.-"
   },
   {
    "fieldname": "status",
    "fieldtype": "Select",
    "label": "Status",
-   "options": "Attending\nInvoiced",
-   "show_days": 1,
-   "show_seconds": 1
+   "options": "Attending\nInvoiced"
   },
   {
    "fetch_from": "table.room",
    "fieldname": "room",
-   "fieldtype": "Read Only",
+   "fieldtype": "Link",
    "label": "Room",
-   "show_days": 1,
-   "show_seconds": 1
+   "options": "Restaurant Object"
   },
   {
    "fieldname": "customer",
    "fieldtype": "Link",
    "label": "Customer",
-   "options": "Customer",
-   "show_days": 1,
-   "show_seconds": 1
+   "options": "Customer"
   },
   {
    "fieldname": "dinners",
    "fieldtype": "Int",
-   "label": "Dinners",
-   "show_days": 1,
-   "show_seconds": 1
+   "label": "Dinners"
   },
   {
    "fieldname": "link_invoice",
    "fieldtype": "Link",
    "label": "Invoice",
    "options": "Sales Invoice",
-   "read_only": 1,
-   "show_days": 1,
-   "show_seconds": 1
+   "read_only": 1
   },
   {
    "fieldname": "amount",
    "fieldtype": "Currency",
    "label": "Amount",
-   "read_only": 1,
-   "show_days": 1,
-   "show_seconds": 1
+   "read_only": 1
   },
   {
    "fieldname": "entry_items",
    "fieldtype": "Table",
    "label": "Entry Items",
-   "options": "Order Entry Item",
-   "show_days": 1,
-   "show_seconds": 1
+   "options": "Order Entry Item"
   },
   {
    "fieldname": "discount",
    "fieldtype": "Currency",
    "label": "Discount",
-   "read_only": 1,
-   "show_days": 1,
-   "show_seconds": 1
+   "read_only": 1
   },
   {
    "fieldname": "tax",
    "fieldtype": "Currency",
    "label": "Tax",
-   "read_only": 1,
-   "show_days": 1,
-   "show_seconds": 1
+   "read_only": 1
   },
   {
    "fieldname": "amended_from",
@@ -119,44 +100,47 @@
    "no_copy": 1,
    "options": "Table Order",
    "print_hide": 1,
-   "read_only": 1,
-   "show_days": 1,
-   "show_seconds": 1
+   "read_only": 1
   },
   {
    "fieldname": "pos_profile",
    "fieldtype": "Link",
    "label": "POS Profile",
-   "options": "POS Profile",
-   "show_days": 1,
-   "show_seconds": 1
+   "options": "POS Profile"
   },
   {
    "fieldname": "taxes_and_charges",
    "fieldtype": "Data",
-   "label": "Taxes and Charges",
-   "show_days": 1,
-   "show_seconds": 1
+   "label": "Taxes and Charges"
   },
   {
    "fieldname": "selling_price_list",
    "fieldtype": "Data",
-   "label": "Selling Price List",
-   "show_days": 1,
-   "show_seconds": 1
+   "label": "Selling Price List"
   },
   {
    "fieldname": "company",
    "fieldtype": "Link",
    "label": "Company",
-   "options": "Company",
-   "show_days": 1,
-   "show_seconds": 1
+   "options": "Company"
+  },
+  {
+   "fetch_from": "table.description",
+   "fieldname": "table_description",
+   "fieldtype": "Read Only",
+   "label": "Table Description"
+  },
+  {
+   "fetch_from": "room.description",
+   "fieldname": "room_description",
+   "fieldtype": "Read Only",
+   "label": "Room Description"
   }
  ],
+ "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2020-07-15 00:07:02.821385",
+ "modified": "2021-05-03 18:34:23.816999",
  "modified_by": "Administrator",
  "module": "Restaurant Management",
  "name": "Table Order",

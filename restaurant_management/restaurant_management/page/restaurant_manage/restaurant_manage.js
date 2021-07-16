@@ -1,10 +1,11 @@
 /**RestaurantManagement**/
 var RM = null;
+const [TRANSFER, UPDATE, DELETE, INVOICED, ADD, QUEUE, SPLIT] = ["Transfer", "Update", "Delete", "Invoiced", "Add", "queue", "Split"];
 
 frappe.pages['restaurant-manage'].on_page_load = function(wrapper) {
 	frappe.ui.make_app_page({
 		parent: wrapper,
-		title: 'Restaurant Manage',
+		title: '',
 		single_column: true
 	});
 
@@ -29,40 +30,28 @@ RestaurantManage = class RestaurantManage {
 		this.wrapper = $(wrapper).find('.layout-main-section');
 		this.page = wrapper.page;
 		this.editing = false;
-		this.transfer_order = undefined;
+		this.transfer_order = null;
 		this.current_room = null;
-		this.max_z_index = 50;
 		this.url_manage = "restaurant_management.restaurant_management.page.restaurant_manage.restaurant_manage.";
-		this.tables_container = null;
-		this.rooms_container = null;
 		this.busy = false;
 		this.async_process = false;
-		this.work_station = null;
 		this.pos_profile = null;
 		this.sounds = false;
 
-		this.general_edit_button = null;
-		this.add_room_button = null;
-
-		this.client = null;
+		this.client = this.uuid();
 		this.request_client = null;
 		this.company = frappe.defaults.get_user_default('company');
 		this.loaded = false;
+		this.store = {
+			items: []
+		}
+		this.components = [];
+		this.objects = [];
 
 		const base_assets = "assets/restaurant_management/restaurant/"
 
 		const assets = [
-			'assets/erpnext/js/pos/clusterize.js',
-			'assets/erpnext/css/pos.css',
-
-			'assets/ceti/js/jshtml-class.js',
-			'assets/ceti/js/num-pad-class.js',
-			'assets/ceti/css/num-pad.css',
-			'assets/ceti/js/ceti-modal.js',
-			'assets/ceti/js/ceti-api.js',
-			'assets/ceti/js/ceti-form-class.js',
-
-			'assets/restaurant_management/js/jquery-ui.js',
+			"assets/frappe/js/lib/clusterize.min.js",
 
 			base_assets + 'js/restaurant-room-class.js',
 			base_assets + 'js/restaurant-object-class.js',
@@ -84,7 +73,7 @@ RestaurantManage = class RestaurantManage {
 			base_assets + 'css/order-items.css',
 			base_assets + 'css/order-items-container.css',
 			base_assets + 'css/order-manage.css',
-			base_assets + 'css/order-manage-control-buttons.css',
+			base_assets + 'css/process-manage.css',
 			base_assets + 'css/product-list.css',
 			base_assets + 'css/restaurant-object.css'
 		];
@@ -97,36 +86,23 @@ RestaurantManage = class RestaurantManage {
 	make() {
 		return frappe.run_serially([
 			() => frappe.dom.freeze(),
+			() => this.prepare_dom(),
 			() => {
-				this.prepare_dom();
-				setTimeout(() => {
-					this.make_rooms();
-				}, 0)
-			},
-			() => {
-				this.working("Set Configuration");
-				this.get_config().then((r) => {
-					this.loaded = true;
-
-					this.permissions = r.permissions;
-					this.exceptions = r.exceptions;
-					this.restrictions = r.restrictions;
-
-					if(r.pos.has_pos){
-						this.pos_profile = r.pos.pos;
-						this.wrapper.find(".pos-profile").empty().append(this.pos_profile.name);
-					}else{
-						this.pos_profile = null;
-						this.raise_exception_for_pos_profile();
-					}
-					this.ready();
+				this.working("Set settings");
+				this.get_settings_data().then(() => {
+					this.make_rooms().then(() => {
+						setTimeout(() => {
+							this.check_permissions_status();
+						}, 100);
+					});
 				});
 			},
 			() => {
 				frappe.dom.unfreeze();
 			},
 			() => this.page.set_title(__('Restaurant Manage')),
-			() => this.listeners_server(),
+			() => this.real_time(),
+			() => this.page.$title_area.hide(),
 		]);
 	}
 
@@ -139,7 +115,6 @@ RestaurantManage = class RestaurantManage {
 	raise_exception_for_pos_profile() {
 		if($(this.base_wrapper).is(":visible")){
 			setTimeout(() => frappe.set_route('List', 'POS Profile'), 2000);
-			//frappe.msgprint(__("POS Profile is required to use Point-of-Sale"));
 			frappe.throw(this.not_has_pos_profile_message());
 		}
 	}
@@ -150,40 +125,98 @@ RestaurantManage = class RestaurantManage {
 
 	prepare_dom() {
 		this.rooms_container = new JSHtml({
-			tag: "div", properties: {class: "floor-selector"}
-		})
+			tag: "div",
+			properties: {
+				style: "display: flex; width: 100%"
+			}
+		});
 
-		this.tables_container = new JSHtml({
-			tag: "div", properties: {class: "table-container"}
-		})
-
-		let add_table = new JSHtml({
-			tag: "button", properties: {class: "btn btn-info btn-flat"},
-			content: `<span class="fa fa-plus"/> <small>${__("Table")}</small></span>`
+		this.floor_map = new JSHtml({
+			tag: "div", properties: {class: "table-container-scroll"}
 		}).on("click", () => {
-			event.stopPropagation();
+			RM.unselect_all_tables();
+		});
+
+		this.components['add_table'] = new JSHtml({
+			tag: "button", properties: {class: "btn btn-default btn-flat"},
+			content: `<span class="fa fa-plus"/> ${__("Table")}</span>`
+		}).on("click", () => {
 			this.add_object("Table");
-		})
+		});
 
-		let add_production_center = new JSHtml({
-			tag: "button", properties: {class: "btn btn-info btn-flat"},
-			content: `<span class="fa fa-plus"/> <small>${__("P Center")}</small></span>`
+		this.components['add_production_center'] = new JSHtml({
+			tag: "button", properties: {class: "btn btn-default btn-flat"},
+			content: `<span class="fa fa-plus"/> ${__("P Center")}</span>`
 		}).on("click", () => {
-			event.stopPropagation();
 			this.add_object("Production Center");
-		})
+		});
+
+		this.components['edit_room'] = new JSHtml({
+			tag: "button",
+			properties: {class: "btn btn-default btn-flat"},
+			content: `<span class="fa fa-pencil"/> ${__("Edit")}</span>`
+		}).on("click", () => {
+			if(this.current_room != null) this.current_room.edit();
+		});
+
+		this.components['delete_room'] = new JSHtml({
+			tag: "button",
+			properties: {class: "btn btn-default btn-flat"},
+			content: `<span class="fa fa-trash"/> {{text}}</span>`,
+			text:__('Delete')
+		}).on("click", () => {
+			if(this.current_room != null) this.current_room.delete();
+		}, DOUBLE_CLICK);
+
+		this.general_edit_button = new JSHtml({
+			tag: "div",
+			properties: {
+				class: 'btn-default button general-editor-button'
+			},
+			content: `<span class="fa fa-pencil"/>`
+		}).on("click", () => {
+			this.set_edit_status();
+		});
+
+		this.add_room_button = new JSHtml({
+			tag: "div",
+			properties: {
+				class: 'btn-default button general-editor-button add-room'
+			},
+			content: `<span class="fa fa-plus"/>`
+		}).on("click", () => {
+			this.add_object("Room");
+		});
+
+		this.config_button = new JSHtml({
+			tag: "div",
+			properties: {
+				class: `btn-default button general-editor-button setting`,
+				//style: 'display: none'
+			},
+			content: `<span class="fa fa-cog"/>`
+		}).on("click", () => {
+
+		});
 
 		this.wrapper.append(`
-			<div class="restaurant-manage" onmouseup="RM.unselect_all_tables();">
-				${this.rooms_container.html()}
+			<div class="restaurant-manage">
+				<div class="floor-selector">
+					${this.general_edit_button.html()}
+					${this.rooms_container.html()}
+					${this.add_room_button.html()}
+					${this.config_button.html()}
+				</div>
 				<div class="floor-map">
-					<div class="floor-map-editor pull-right" style="display: none">
-						<div class="edit-bar hide">
-							${add_table.html()}
-							${add_production_center.html()}
-						</div>
+					<div class="floor-map-editor left">
+						${this.components['add_table'].html()}
+						${this.components['add_production_center'].html()}
 					</div>
-					${this.tables_container.html()}
+					<div class="floor-map-editor right">
+						${this.components['edit_room'].html()}
+						${this.components['delete_room'].html()}
+					</div>
+					${this.floor_map.html()}
 				</div>
 			</div>
 			<div class="sidebar-footer">
@@ -200,32 +233,36 @@ RestaurantManage = class RestaurantManage {
 
 	make_rooms(){
 		this.working("Loading Rooms");
-		frappe.call({
-			method: this.url_manage + "get_rooms",
-			always: (r) => {
+		return new Promise(res => {
+			frappe.call({
+				method: this.url_manage + "get_rooms"
+			}).then(r => {
 				$("body").show();
 				this.rooms = r.message;
 				this.render_rooms();
 				this.ready();
-			},
+				res();
+			});
 		});
+	}
+
+	set_current_room(room){
+		this.current_room = room;
+		this.test_components();
 	}
 
 	render_rooms(current=false){
 		let room_from_url = null;
-		this.rooms_container.empty();
-
 		this.rooms.forEach((room, index, rooms) => {
-			if(typeof window[room.name] == "undefined"){
-				window[room.name] = new RestaurantRoom(room);
+			if(RM.object(room.name) == null){
+				RM.object(room.name, new RestaurantRoom(room))
 			}else{
-				window[room.name].data = room;
+				RM.object(room.name).data = room;
 			}
-			window[room.name].render();
 
 			if(current === false){
 				if (this.current_room == null) {
-					if(typeof window[this.get_room_from_url()] == "undefined"){
+					if(RM.object(this.get_room_from_url()) == null){
 						room_from_url = rooms[0].name;
 					}else{
 						room_from_url = this.get_room_from_url();
@@ -238,100 +275,151 @@ RestaurantManage = class RestaurantManage {
 			}
 		});
 
-		this.general_edit_button = new JSHtml({
-			tag: "div",
-			properties: {class: `btn-default button general-editor-button ${this.editing ? 'active' : ''}`},
-			content: `<span class="fa fa-pencil"/>`
-		}).on("click", () => {
-			event.stopPropagation();
-			this.set_edit_status();
-		})
-
-		this.add_room_button = new JSHtml({
-			tag: "div",
-			properties: {
-				class: `btn-default button general-editor-button ${this.editing ? 'active' : ''}`,
-				style: `display: ${this.editing ? 'block' : 'none'}`
-			},
-			content: `<span class="fa fa-plus"/>`
-		}).on("click", () => {
-			event.stopPropagation();
-			this.add_object("Room");
-		})
-
-		this.rooms_container.prepend(
-			this.general_edit_button.html()
-		)
-
-		$(".floor-map-editor").show();
-
 		setTimeout(() => {
-			if(this.current_room != null)
-				this.current_room.hide_tables();
-
-			this.current_room = window[room_from_url];
-
+			this.current_room = RM.object(room_from_url);
 			if (this.current_room != null) {
 				this.current_room.select();
 			}
-		}, 0)
-
-		this.config_button = new JSHtml({
-			tag: "div",
-			properties: {class: `btn-default button general-editor-button ${this.editing ? 'active' : ''}`},
-			content: `<span class="fa fa-cog"/>`
-		}).on("click", () => {
-			event.stopPropagation();
-		})
-
-		this.rooms_container.append(
-			this.add_room_button.html() +
-			this.config_button.html()
-		);
-
-		setTimeout(() =>{
-			if(!this.permissions.restaurant_object.write){
-				this.general_edit_button.disable().hide();
-			}
-		}, 0)
+		}, 0);
 	}
 
-	get_config() {
-		return frappe.xcall(this.url_manage + "get_config", {})
+	get_settings_data() {
+		return new Promise(res => {
+			frappe.xcall(this.url_manage + "get_settings_data", {}).then((r) => {
+				this.set_settings_data(r);
+				res();
+			});
+		});
+	}
+
+	set_settings_data(r){
+		this.loaded = true;
+
+		this.permissions = r.permissions;
+		this.exceptions = r.exceptions;
+		this.restrictions = r.restrictions;
+
+		if(r.pos.has_pos){
+			this.pos_profile = r.pos.pos;
+			this.wrapper.find(".pos-profile").empty().append(this.pos_profile.name);
+		}else{
+			this.pos_profile = null;
+			this.raise_exception_for_pos_profile();
+		}
+		this.ready();
 	}
 
 	in_rooms(f){
 		this.rooms.forEach((room, index, rooms) => {
-			if (typeof window[room.name] != "undefined") {
-				f(window[room.name])
+			if (RM.object(room.name) != null) {
+				f(RM.object(room.name), index, rooms)
 			}
-		})
+		});
 	}
 
-	listeners_server(){
-		frappe.realtime.on("notify_to_check_command", (data) => {
-			data.commands_food.forEach((command_food) => {
-				data.productions_center.forEach((production_center) => {
-					if (typeof window["process_manage_" + production_center] != "undefined") {
-						window["process_manage_" + production_center].check_item(command_food);
-					}
-				})
-				data.orders.forEach((order) => {
-					if (typeof window[order] != "undefined") {
-						window[order].check_item(command_food);
-					}
-				})
-			})
-		})
+	object(name, object=null){
+		let obj = this.objects[name];
+		if(typeof obj == "undefined" && object != null){
+			this.objects[name] = object;
+		}
+		return typeof this.objects[name] != "undefined" ? this.objects[name] : null;
+	}
 
-		frappe.realtime.on("pos_profile_update", (data) => {
-			if(data && data.has_pos){
-				this.pos_profile = data.pos;
+	real_time(){
+		frappe.realtime.on("debug_data", (data) => {
+			console.log(data);
+		});
+
+		let check_items_in_process_manage = (items) =>{
+			this.in_rooms((room) => {
+				room.in_tables((obj) => {
+					if(obj.process_manage != null){
+						obj.process_manage.check_items(items);
+					}
+				});
+			});
+		}
+
+		frappe.realtime.on("notify_to_check_order_data", (r) => {
+			let data = r.data;
+			let order = data.order;
+
+			this.request_client = r.client;
+			check_items_in_process_manage(data.items);
+
+			let table = RM.object(order.data.table);
+			if(this.current_room == null || table == null) return;
+
+			if(r.action === TRANSFER){
+				let last_table = RM.object(order.data.last_table);
+				if(last_table != null && last_table.order_manage != null){
+					last_table.order_manage.check_data(r)
+				}
+
+				this.transfer_order = null;
+
+				if (table.order_manage == null) {
+					if (this.client === r.client) {
+						setTimeout(() => {
+							table.order_manage = new OrderManage({
+								identifier: RM.OMName(table.data.name),
+								table: table,
+								current_order_identifier: order.data.name
+							});
+							RM.object(table.order_manage.identifier, table.order_manage);
+						});
+					}
+				} else {
+					setTimeout(() => {
+						table.order_manage.check_data(r);
+						if(table.room.data.name === RM.current_room.data.name && RM.client === r.client) {
+							table.order_manage.show();
+						}
+					});
+				}
+			}else{
+				if (table.order_manage != null) {
+					setTimeout(() => {
+						table.order_manage.check_data(r);
+					});
+				}
+			}
+		});
+
+		frappe.realtime.on("update_settings", () => {
+			this.get_settings_data().then(() => {
+				this.check_permissions_status();
+			});
+		});
+
+		frappe.realtime.on("check_rooms", (r) => {
+			this.rooms = r.rooms;
+			this.render_rooms(r.client === RM.client ? r.current_room : false);
+		});
+
+		frappe.realtime.on("pos_profile_update", (r) => {
+			if(r && r.has_pos){
+				this.pos_profile = r.pos;
 			}else{
 				this.pos_profile = null;
 				this.raise_exception_for_pos_profile();
 			}
-		})
+		});
+	}
+
+	check_permissions_status(){
+		this.in_rooms((room) => {
+			room.in_tables((Table) => {
+				if(Table.order_manage != null){
+					Table.order_manage.check_permissions_status();
+				}
+				Table.set_orders_count();
+			}, "Table");
+		});
+
+		if(!this.permissions.restaurant_object.write){
+			this.general_edit_button.disable().hide();
+		}
 	}
 
 	add_object(t){
@@ -342,14 +430,13 @@ RestaurantManage = class RestaurantManage {
 		}
 	}
 
-	add_room(t){
+	add_room(){
 		this.working("Add Room");
 		frappe.call({
 			method: this.url_manage + "add_room",
-			always: (r) => {
+			args: {client: RM.client},
+			always: () => {
 				this.ready();
-				this.rooms = r.message.rooms;
-				this.render_rooms(r.message.current_room);
 			},
 		});
 	}
@@ -358,22 +445,26 @@ RestaurantManage = class RestaurantManage {
 		if(!this.permissions.restaurant_object.write) return;
 		if(this.editing){
 			this.editing = false;
-			this.general_edit_button.remove_class("active");
-			this.add_room_button.remove_class("active").hide();
-
-			$(".floor-selector").removeClass("active");
-			$(".floor-map").removeClass("active");
-			$(".edit-bar").addClass("hide");
+			$(".restaurant-manage").removeClass("editing");
 			this.unselect_all_tables();
 		}else{
 			this.editing = true;
-			this.general_edit_button.add_class("active");
-			this.add_room_button.add_class("active").show();
-
-			$(".floor-selector").addClass("active");
-			$(".floor-map").addClass("active");
-			$(".edit-bar").removeClass("hide");
+			$(".restaurant-manage").addClass("editing");
+			Object.keys(this.components).forEach(k => {
+				this.components[k].hide();
+			});
+			this.test_components();
 		}
+	}
+
+	test_components(){
+		Object.keys(this.components).forEach(k => {
+			if(this.current_room == null){
+				this.components[k].hide();
+			} else {
+				this.components[k].show();
+			}
+		});
 	}
 
 	get_room_from_url(){
@@ -381,9 +472,9 @@ RestaurantManage = class RestaurantManage {
 	}
 
 	unselect_all_tables(){
-		if(this.current_room != null){
-			this.current_room.unselect_all_tables();
-		}
+		this.in_rooms((room) => {
+			room.unselect_all_tables();
+		});
 	}
 
 	pull_alert(position="right", max_width="calc(100% - 410px)"){
@@ -396,6 +487,7 @@ RestaurantManage = class RestaurantManage {
 					-webkit-user-select: none;
 					-ms-user-select: none;
 					user-select: none;
+					z-index: 999999999999999999999;
 				}
 			</style>`
 		)
@@ -403,7 +495,8 @@ RestaurantManage = class RestaurantManage {
 
 	delete_current_room(){
 		this.current_room = null;
-		window.location.href = "/desk#restaurant-manage";
+		frappe.set_route(`/restaurant-manage?restaurant_room=?`);
+		this.test_components();
 	}
 
 	working(text, busy=true, async_process=false){
@@ -414,7 +507,7 @@ RestaurantManage = class RestaurantManage {
 
 	ready(message=false, sound=false){
 		this.busy = false;
-		if(typeof RM.transfer_order != "undefined"){
+		if(RM.transfer_order != null){
 			this.working("Transferring Order");
 		}else{
 			this.wrapper.find(".restaurant-manage-status").empty().append(__("Ready"))
@@ -434,7 +527,7 @@ RestaurantManage = class RestaurantManage {
 			frappe.show_alert({
 				indicator: 'red',
 				message: __("Please wait for an operation to complete")
-			})
+			});
 			return true;
 		}
 		return false;
@@ -444,7 +537,7 @@ RestaurantManage = class RestaurantManage {
 		frappe.show_alert({
 			indicator: indicator,
 			message: __(message)
-		})
+		});
 	}
 
 	format_currency(value){
@@ -473,13 +566,13 @@ RestaurantManage = class RestaurantManage {
 		}
 	}
 
-	uuid() {
-		let id = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-			var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+	uuid(prefix='obj') {
+		let id = 'xxxx-xx-4xx-yxx-xxxxx'.replace(/[xy]/g, function (c) {
+			let r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
 			return v.toString(16);
 		});
 
-		return "obj-" + id;
+		return prefix + "_" + id;
 	}
 
 	check_permissions(model=null, record=null, action){
@@ -497,11 +590,11 @@ RestaurantManage = class RestaurantManage {
 				r = false;
 				this.exceptions.map(e => {
 					r = e[model + "_" + action] === 1;
-				})
+				});
 			}
 
 			if (record == null) {
-				if(r === false){
+				if(!r){
 					exception();
 				}
 			} else {
@@ -515,8 +608,8 @@ RestaurantManage = class RestaurantManage {
 				}
 			}
 
-			if (model === 'pos') {
-				if (r) r = this.pos_profile["allow_" + action] === 1;
+			if (model === 'pos' && r) {
+				r = this.pos_profile["allow_" + action] === 1;
 			}
 		}
 
@@ -535,6 +628,10 @@ RestaurantManage = class RestaurantManage {
 				return this.check_permissions("order", null, "manage");
 			}
 		}
+
 		return true;
 	}
+
+	PMName(process_manage){return "process_manage" + process_manage;}
+	OMName(order_manage){return "order_manage" + order_manage;}
 }

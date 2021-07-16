@@ -7,39 +7,47 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 
+from restaurant_management.restaurant_management.page.restaurant_manage.restaurant_manage import debug_data
+
 
 class RestaurantObject(Document):
     @property
     def _room(self):
         return frappe.get_doc("Restaurant Object", self.room)
 
+    def after_delete(self):
+        frappe.publish_realtime(self.name, dict(
+            action="Delete"
+        ))
+
     def on_update(self):
         self._on_update()
 
     def _on_update(self):
-        data = self.get_objects(self.name)
+        frappe.publish_realtime(self.name, dict(
+            action="Update",
+            data=self.get_data() if self.type == "Room" else self.get_objects(self.name)[0]
+        ))
 
-        if len(data) > 0:
-            frappe.publish_realtime(self.name, dict(
-                action="Update",
-                data=data[0]
-            ))
+        self.send_notifications()
 
-    def validate_user(self, user=frappe.session.user):
-        if self.current_user is None:
+    def validate_transaction(self, user=frappe.session.user):
+        if self.current_user is None or self.current_user == "Administrator" or self.orders_count == 0:
             frappe.db.set_value("Restaurant Object", self.name, "current_user", user)
+            self.reload()
             return True
-        else:
-            if self.orders_count == 0:
-                frappe.db.set_value("Restaurant Object", self.name, "current_user", user)
-                return True
 
         if self.current_user != user and self.orders_count > 0:
-            frappe.throw(_("The table {0} is Assigned to another User").format(self.description))
+            from restaurant_management.restaurant_management.restaurant_manage import check_exceptions
+            if not check_exceptions(
+                    dict(name="Restaurant Object", short_name="table", action="read", data=self),
+                    _("The table {0} is Assigned to another User").format(self.description)
+            ):
+                frappe.throw(_("The table {0} is Assigned to another User").format(self.description))
 
     def add_order(self, client=None):
-        last_user = self.current_user
-        self.validate_user()
+        # last_user = self.current_user
+        self.validate_transaction()
 
         from erpnext.stock.get_item_details import get_pos_profile
         # from erpnext.controllers.accounts_controller import get_default_taxes_and_charges
@@ -65,64 +73,32 @@ class RestaurantObject(Document):
         order.company = company
 
         order.save()
+        order.send_notifications(dict(action="Add", client=client))
+        #self.send_notifications(client)
 
-        self.send_notifications(client, order.name)
-
-        #if last_user != frappe.session.user:
+        # if last_user != frappe.session.user:
         #    self._on_update()
 
-    def send_notifications(self, client=None, order=None):
+    def send_notifications(self):
         if self.type == "Production Center":
             frappe.publish_realtime(self.name, dict(
                 action="Notifications",
-                orders_count=self.orders_count_in_production_center
+                orders_count=self.orders_count_in_production_center,
+                current_user=self.current_user
             ))
         else:
             frappe.publish_realtime(self.name, dict(
                 action="Notifications",
                 orders_count=self.orders_count,
-                client=client,
-                order=order
+                current_user=self.current_user
             ))
 
-            frappe.publish_realtime(self._room.name, dict(
-                action="Notifications",
-                orders_count=self._room.orders_count
-            ))
-
-    def notify_to_check_command(self, status, data):
-        productions_center = []
-        orders = []
-
-        status = frappe.get_list("Status Managed Production Center", "parent", filters={
-            "parentType": "Restaurant Object",
-            "status_managed": ("in", status)
-        })
-
-        for item in status:
-            table = frappe.get_doc("Restaurant Object", item.parent)
-            productions_center.append(table.name)
-            table.send_notifications()
-
-        for item in data:
-            orders.append(item["order_name"])
-
-        if len(productions_center) > 0:
-            frappe.publish_realtime("notify_to_check_command", dict(
-                orders=orders,
-                productions_center=productions_center,
-                commands_food=data
-            ))
-
-        if len(orders):
-            order = frappe.get_doc("Table Order", orders[0])
-            data = order.data()
-
-            frappe.publish_realtime(order.name, dict(
-                action="Update",
-                data=data["data"],
-                items=data["items"]
-            ))
+            if self.type != "Room":
+                frappe.publish_realtime(self._room.name, dict(
+                    action="Notifications",
+                    orders_count=self._room.orders_count,
+                    current_user=self.current_user
+                ))
 
     @property
     def orders_count(self):
@@ -143,7 +119,8 @@ class RestaurantObject(Document):
             return frappe.db.count("Order Entry Item", {
                 "status": ("in", status_managed),
                 "item_group": ("in", items_group),
-                "parent": ("!=", "")
+                "parent": ("!=", ""),
+                "qty": (">", 0)
             })
 
         return 0
@@ -166,17 +143,27 @@ class RestaurantObject(Document):
             "type": ("!=", "Room")
         })
 
-        fields = ["name", "type", "description", "no_of_seats", "identifier", "orders_count", "css_style", "min_size", "current_user"]
         for table in tables:
-            t = frappe.get_doc("Restaurant Object", table.name)
-            for field in fields:
-                table[field] = getattr(t, field)
-
-            if table.type == "Production Center":
-                table["status_managed"] = t._status_managed
-                table["items_group"] = t._items_group
+            data = frappe.get_doc("Restaurant Object", table.name).get_data()
+            for prop in data:
+                table[prop] = data[prop]
 
         return tables
+
+    def get_data(self):
+        fields = ["name", "description", "orders_count"] if self.type == "Room" \
+            else ["name", "type", "description", "no_of_seats", "identifier", "orders_count",
+                  "data_style", "min_size", "current_user", "color", 'shape']
+        data = {}
+
+        for field in fields:
+            data[field] = getattr(self, field)
+
+        if self.type == "Production Center":
+            data["status_managed"] = self._status_managed
+            data["items_group"] = self._items_group
+
+        return data
 
     @property
     def min_size(self):
@@ -192,17 +179,25 @@ class RestaurantObject(Document):
 
     def add_object(self, t="Table"):
         import random
+
         objects_count = self.count_objects(t) + 1
-        colors = ["#9b59b6", "#3498db", "#95a5a6", "#e74c3c", "#34495e", "#2ecc71"]
-        color = colors[random.randint(0, 5)]
 
         table = frappe.new_doc("Restaurant Object")
+
+        zIndex = objects_count + 60
+        left = objects_count * 25 + (0 if t == 'Table' else 200)
+        top = objects_count * 25
+        colors = ["#5b1e34", "#97264f", "#1a4469", "#1579d0", "#2d401d", "#2e844e", "#505a62"]
+        color = colors[random.randint(0, 6)]
+
+        data_style = f'"x":"{left}","y":"{top}","z-index":"{zIndex}","width":"100px","height":"100px"'
         table.type = t
         table.room = self.name
-        table.style = f"z-index: {objects_count + 60}; left: {(objects_count * 25 + (0 if table.type == 'Table' else 200))}px; top: {objects_count * 25}px;"
+        table.data_style = "{" + data_style + "}"
         table.color = color
         table.description = f"{t[:1]}{(objects_count + 1)}"
         table.no_of_seats = 4
+        table.shape = 'Square'
         table.save()
 
         frappe.publish_realtime(
@@ -226,56 +221,65 @@ class RestaurantObject(Document):
         status = self.next_status(last_status)
 
         frappe.db.set_value("Order Entry Item", {"identifier": identifier}, "status", status)
-        item = self.commands_food(identifier)
+        self.reload()
+        item = self.commands_food(identifier, last_status)
+        order = frappe.get_doc("Table Order", item[0]["order_name"])
 
-        self.notify_to_check_command([last_status, status], item)
+        order.send_notifications(dict(items=item, status=[last_status, status]))
 
     def command_data(self, command):
         item = self.commands_food(command)
-        if len(item) > 0:
-            return {
-                "data": item[0],
-            }
-        return None
+        return {"data": item[0]} if len(item) > 0 else None
 
-    def commands_food(self, identifier=None):
+    def commands_food(self, identifier=None, last_status=None):
         status_managed = self.status_managed
 
         filters = {
             "status": ("in", [item.status_managed for item in status_managed]),
             "item_group": ("in", self._items_group),
-            "parent": ("!=", "")
+            "parent": ("!=", ""),
+            "qty": (">", 0)
         } if identifier is None else {
             "identifier": identifier
         }
 
         items = []
         for entry in frappe.get_all("Order Entry Item", "*", filters=filters, order_by="creation"):
-            items.append(self.get_command_data(entry))
+            items.append(self.get_command_data(entry, last_status))
 
         return items
 
-    def get_command_data(self, entry):
+    def get_command_data(self, entry, las_status=None):
         return dict(
             identifier=entry.identifier,
             item_group=entry.item_group,
             item_code=entry.item_code,
             item_name=entry.item_name,
             order_name=entry.parent,
+            table_description=entry.table_description,
+            short_name=self.order_short_name(entry.parent),
             qty=entry.qty,
             rate=entry.rate,
             amount=(entry.qty * entry.rate),
             entry_name=entry.name,
             status=entry.status,
+            last_status=las_status,
             notes=entry.notes,
             creation=frappe.format_value(entry.creation, {"fieldtype": "Datetime"}),
-            process_status_data=dict(
-                next_action_message=self._status(entry.status)["action_message"],
-                color=self._status(entry.status)["color"],
-                icon=self._status(entry.status)["icon"],
-                status_message=self._status(entry.status)["message"]
-            )
+            process_status_data=self.process_status_data(entry)
         )
+
+    def process_status_data(self, item):
+        return dict(
+            next_action_message=self._status(item.status)["action_message"],
+            color=self._status(item.status)["color"],
+            icon=self._status(item.status)["icon"],
+            status_message=self._status(item.status)["message"]
+        )
+
+    @staticmethod
+    def order_short_name(order_name):
+        return order_name[8:]
 
     def next_status(self, last_status):
         status_managed = self.status_managed
@@ -299,6 +303,10 @@ class RestaurantObject(Document):
         )
         return _status[status] if status in _status else _status["Pending"]
 
+    @staticmethod
+    def status_list():
+        return ["Pending"]
+
     @property
     def _status_managed(self):
         return [item.status_managed for item in self.status_managed]
@@ -317,24 +325,33 @@ class RestaurantObject(Document):
 
         return items_groups
 
-    def save_position(self, style):
-        frappe.db.set_value("Restaurant Object", self.name, "style", style)
+    def set_style(self, data, shape=None):
+        _data = data
+        if shape and self.type == "Production Center":
+            _data = "Square"
+
+        frappe.db.set_value("Restaurant Object", self.name, "shape" if shape else 'data_style', _data)
         self._on_update()
 
     @property
     def _delete(self):
-        name = self.name
+        #name = self.name
         self.delete()
+        #return
+        ##if frappe.db.count("Restaurant Object", filters={"name": name}) == 0:
+        #    frappe.publish_realtime(name, dict(
+        #        action="Delete"
+        ##    ))
+        # #   return True
+        #else:
+        #    return False
 
-        if frappe.db.count("Restaurant Object", filters={"name": name}) == 0:
-            frappe.publish_realtime(name, dict(
-                action="Delete"
-            ))
-            return True
-        else:
-            return False
 
+def load_json(data):
+    import json
+    try:
+        _data = json.loads("{}" if data is None else data)
+    except ValueError as e:
+        _data = []
 
-@frappe.whitelist()
-def test(doc, method=None):
-    frappe.throw(doc.name)
+    return _data
