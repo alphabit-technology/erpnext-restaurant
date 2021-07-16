@@ -37,7 +37,6 @@ RestaurantManage = class RestaurantManage {
 		this.async_process = false;
 		this.pos_profile = null;
 		this.sounds = false;
-
 		this.client = this.uuid();
 		this.request_client = null;
 		this.company = frappe.defaults.get_user_default('company');
