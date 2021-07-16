@@ -463,7 +463,7 @@ RestaurantObject = class RestaurantObject {
                 title: __(`Update ${this.data.type}`),
                 field_properties: {
                     type: {read_only: true},
-                    room: {read_only: true}
+                    room: {read_only: true, hidden: true},
                 }
             });
         } else {

@@ -12,7 +12,7 @@ setup(
 	version=version,
 	description='Restaurant',
 	author='Quantum Bit Core',
-	author_email='info@ceti.systems',
+	author_email='qubitcore.io@gmail.com',
 	packages=find_packages(),
 	zip_safe=False,
 	include_package_data=True,
