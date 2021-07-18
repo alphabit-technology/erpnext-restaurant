@@ -32,6 +32,7 @@ def after_install():
                 published=1,
                 login_required=1,
                 allow_edit=1,
+                module="Restaurant Management"
             )])
 
     for form in forms:

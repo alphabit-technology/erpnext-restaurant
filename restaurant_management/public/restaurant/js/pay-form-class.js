@@ -170,6 +170,7 @@ PayForm = class PayForm {
 
     _send_payment() {
         if (!RM.can_pay) return;
+        let order_manage = this.order.order_manage;
 
         RM.working("Generating Invoice");
         this.order.data.dinners = this.dinners.val();
@@ -185,11 +186,12 @@ PayForm = class PayForm {
             always: (r) => {
                 RM.ready();
                 if (typeof r.message != "undefined" && r.message.status) {
-                    this.order.order_manage.clear_current_order();
-                    this.order.order_manage.set_buttons_status();
+                    order_manage.clear_current_order();
+                    order_manage.check_buttons_status();
+                    order_manage.check_item_editor_status()
                     this.form.hide();
                     this.print(r.message.invoice_name);
-                    this.order.order_manage.make_orders();
+                    order_manage.make_orders();
                 } else {
                     this.reset_payment_button();
                 }
@@ -200,7 +202,7 @@ PayForm = class PayForm {
 
     print(invoice_name) {
         if (!RM.can_pay) return;
-        window.open(`printview?doctype=Sales%20Invoice&name=${invoice_name}&trigger_print=1&format=${RM.pos_profile.print_format_for_online}&no_letterhead=0`, '_blank');
+        window.open(`/api/method/frappe.utils.print_format.download_pdf?doctype=Sales%20Invoice&name=${invoice_name}&format=${RM.pos_profile.print_format_for_online}&no_letterhead=1&letterhead=No%20Letterhead&settings=%7B%7D&_lang=en`, '_blank');
     }
 
     update_paid_value() {

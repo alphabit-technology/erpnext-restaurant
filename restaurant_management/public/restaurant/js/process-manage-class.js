@@ -119,6 +119,12 @@ ProcessManage = class ProcessManage {
         });
     }
 
+    remove_item(item){
+        if(this.items[item]){
+             this.items[item].remove();
+        }
+    }
+
     add_item(item) {
         this.items[item.identifier] = new FoodCommand({
             identifier: item.identifier,

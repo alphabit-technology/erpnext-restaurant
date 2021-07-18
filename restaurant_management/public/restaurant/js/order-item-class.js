@@ -4,6 +4,7 @@ class OrderItem {
         this.edit_form = null;
         this.attending_status = this.order.data.attending_status;
         this.status_enabled_for_edit = [this.attending_status, "Pending", null, undefined, ""];
+        this.status_enabled_for_delete = [this.attending_status, "Pending", "Sent", null, undefined, ""];
         this.render();
         this.listeners();
     }
@@ -25,6 +26,11 @@ class OrderItem {
             RM.check_permissions("order", this.order, "write");
     }
 
+    is_enabled_to_delete() {
+        return (this.status_enabled_for_delete.includes(this.data.status)) &&
+            RM.check_permissions("order", this.order, "write");
+    }
+
     reset_html() {
         let ps = this.data.process_status_data;
         this.amount.val(RM.format_currency(this.data.amount));
@@ -34,7 +40,7 @@ class OrderItem {
     }
 
     delete() {
-        if (RM.busy_message() || this.data.status !== this.attending_status) return;
+        if (RM.busy_message() || !this.is_enabled_to_delete()) return;
         this.data.qty = 0;
         this.update(true);
     }
@@ -57,11 +63,12 @@ class OrderItem {
         this.order.container.append(this.row.html());
     }
 
-    select() {
+    select(scroller=false) {
         this.order.current_item = this;
         setTimeout(() => {
             this.order.order_manage.check_item_editor_status(this);
             this.row.toggle_common('media.event', 'selected');
+            if(scroller) this.order.scroller();
         }, 0);
     }
 

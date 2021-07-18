@@ -7,7 +7,6 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 import json
-from six import string_types, iteritems
 
 from restaurant_management.restaurant_management.page.restaurant_manage.restaurant_manage import RestaurantManage
 
@@ -15,9 +14,6 @@ status_attending = "Attending"
 
 
 class TableOrder(Document):
-    # def onload(self):
-    #    return frappe.throw(_("The table is Assigned to another User"))
-
     def validate(self):
         self.set_default_customer()
 
@@ -88,35 +84,15 @@ class TableOrder(Document):
                     table_description=f'{self.room_description} ({self.table_description})'
                 ))
 
-                """frappe.db.set_value("Order Entry Item", {"identifier": item.identifier}, "qty", rest)
-                new_order.append('entry_items', dict(
-                    item_code=item.item_code,
-                    qty=divide_item["qty"],
-                    rate=item.rate,
-                    price_list_rate=item.price_list_rate,
-                    item_tax_template=item.item_tax_template,
-                    item_tax_rate=item.item_tax_rate,
-                    discount_percentage=item.discount_percentage,
-                    status=item.status,
-                    identifier=item.identifier if rest == 0 else divide_item["identifier"],
-                    notes=item.notes,
-                    creation=item.creation,
-                    table_description=f'{self.room_description} ({self.table_description})'
-                ))"""
             status.append(item.status)
 
         self.db_commit()
         new_order.aggregate()
-        #self.reload()
         new_order.table = self.table
         new_order.save()
 
-        #self.calculate_order(self.items_list())
-        #new_order.calculate_order(new_order.items_list())
-
         new_order.send_notifications(dict(action="Add", client=client))
         self.send_notifications(dict(action="Split", client=client, status=status))
-
 
         return True
 
@@ -133,11 +109,13 @@ class TableOrder(Document):
         items = self.options_param(options, "items")
         last_table = self.options_param(options, "last_table")
         status = self.options_param(options, "status")
+        item_removed = self.options_param(options, "item_removed")
 
         frappe.publish_realtime("notify_to_check_order_data", dict(
             action=action,
             data=[] if action is None else self.data(items, last_table),
-            client=self.options_param(options, "client")
+            client=self.options_param(options, "client"),
+            item_removed=item_removed
         ))
 
         self._table.send_notifications()
@@ -188,16 +166,8 @@ class TableOrder(Document):
         self.link_invoice = invoice.name
         self.save()
         frappe.db.set_value("Table Order", self.name, "docstatus", 1)
-        # self.reload()
 
         frappe.msgprint(_('Invoice Created'), indicator='green', alert=True)
-
-        #table = self._table
-        #table.send_notifications()
-
-        #frappe.publish_realtime(self.name, dict(
-        #    action="Invoiced"
-        #))
 
         self.send_notifications(dict(action="Invoiced", status=["Invoiced"]))
 
@@ -222,37 +192,12 @@ class TableOrder(Document):
             table_description = f'{self.room_description} ({self.table_description})'
             frappe.db.set_value("Order Entry Item", {"identifier": i.identifier}, "table_description",
                                 table_description)
-            # frappe.publish_realtime(i.identifier + "_update_table", table_description)
 
         self.reload()
-
-        # new_table._on_update()
-
-        # data = self.data()
-        # frappe.publish_realtime(self.name, dict(
-        #    action="Transfer",
-        #    table=self.table
-        # ))
-
         self.send_notifications(dict(action="Transfer", client=client, last_table=last_table_name))
 
-        # new_table.send_notifications(client)
         last_table.send_notifications()
         return True
-
-        # frappe.publish_realtime(table, dict(
-        #    action="Transfer Order",
-        #    orders=self._table.orders_list(),
-        #    order=data["data"],
-        #    items=data["items"],
-        #    client=client
-        # ))
-
-        # frappe.publish_realtime("change_command_food_titles", dict(
-        #    items=data["items"]
-        # ))
-
-        # self._table.send_notifications(client)
 
     def set_invoice_values(self, invoice):
         invoice.company = self.company
@@ -352,9 +297,7 @@ class TableOrder(Document):
             self.db_commit()
         else:
             self.aggregate()
-        #getattr(self, self.update_item(item))
 
-        #self.update_order(item)
         self.send_notifications(dict(item=item["identifier"]))
 
     def delete_item(self, item):
@@ -363,9 +306,10 @@ class TableOrder(Document):
             dict(name="Table Order", short_name="order", action="write", data=self),
             "You cannot modify an order from another User"
         )
+
         frappe.db.delete('Order Entry Item', {'identifier': item})
         self.db_commit()
-        self.send_notifications(dict(action='queue'))
+        self.send_notifications(dict(action='queue', item_removed=item))
 
     def db_commit(self):
         frappe.db.commit()
@@ -448,14 +392,12 @@ class TableOrder(Document):
             if frappe.db.count("Order Entry Item", {"identifier": entry["identifier"]}) == 0:
                 self.append('entry_items', data)
                 return "aggregate"
-                #self.aggregate()
             else:
                 _data = ','.join('='.join((f"`{key}`", f"'{'' if val is None else val}'")) for (key, val) in data.items())
                 frappe.db.sql("""UPDATE `tabOrder Entry Item` set {data} WHERE `identifier` = '{identifier}'""".format(
                     identifier=entry["identifier"], data=_data)
                 )
                 return "db_commit"
-                #self.db_commit()
 
     def calculate_order(self, items):
         entry_items = {item["identifier"]: item for item in items}
@@ -607,12 +549,3 @@ class TableOrder(Document):
 
     def after_delete(self):
         self.send_notifications(dict(action="Delete", status=["Deleted"]))
-        #self._table.send_notifications()
-        # self.send_notifications()
-
-        #if frappe.db.count("Table Order", self.name) == 0:
-        #    self.send_notifications()
-            #frappe.publish_realtime(self.name, dict(
-            #    action="Delete",
-            #    order=self.name
-            #))

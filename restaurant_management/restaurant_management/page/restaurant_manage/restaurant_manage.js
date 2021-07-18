@@ -329,11 +329,15 @@ RestaurantManage = class RestaurantManage {
 			console.log(data);
 		});
 
-		let check_items_in_process_manage = (items) =>{
+		let check_items_in_process_manage = (items, item_removed=null) =>{
+			console.log(item_removed)
 			this.in_rooms((room) => {
 				room.in_tables((obj) => {
 					if(obj.process_manage != null){
 						obj.process_manage.check_items(items);
+						if(item_removed){
+							obj.process_manage.remove_item(item_removed);
+						}
 					}
 				});
 			});
@@ -344,7 +348,7 @@ RestaurantManage = class RestaurantManage {
 			let order = data.order;
 
 			this.request_client = r.client;
-			check_items_in_process_manage(data.items);
+			check_items_in_process_manage(data.items, r.item_removed);
 
 			let table = RM.object(order.data.table);
 			if(this.current_room == null || table == null) return;

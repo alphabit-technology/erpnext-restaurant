@@ -15,7 +15,11 @@ TableOrder = class TableOrder {
 
     reset_data(data, action) {
         this.data = data.order.data;
-        this.check_items(data.items, this.current_item, action);
+        this.check_items({
+            items: data.items,
+            current: this.current_item,
+            action: action
+        });
 
         if (this.order_manage.is_same_order(this)) {
             this.render();
@@ -94,7 +98,7 @@ TableOrder = class TableOrder {
             if (via_click) {
                 this.get_items();
             } else {
-                this.order_manage.order_status_message();
+                this.order_manage.order_status_message("from select order");
                 this.order_manage.check_buttons_status();
             }
         }, 0);
@@ -137,10 +141,9 @@ TableOrder = class TableOrder {
         });
         test_item = test_item || this.add_locale_item(new_item);
         if (test_item != null) {
-            this.order_manage.order_status_message();
-            //this.current_item = test_item;
+            //this.order_manage.order_status_message("from push item");
             test_item.update();
-            test_item.select();
+            test_item.select(true);
         }
     }
 
@@ -179,7 +182,12 @@ TableOrder = class TableOrder {
         }
     }
 
-    check_items(items = [], current = null, action = null) {
+    check_items(options={}){
+        let items = options.hasOwnProperty("items") ? options.items : [];
+        let current = options.hasOwnProperty("current") ? options.current : null;
+        let action = options.hasOwnProperty("action") ? options.action : null;
+        let from = options.hasOwnProperty("from") ? options.from : "";
+
         current = current || this.current_item;
         let test_item = null, current_item = null;
 
@@ -203,15 +211,20 @@ TableOrder = class TableOrder {
         if (current != null) current_item = this.get_item(current.data.identifier);
 
         if (this.order_manage.is_same_order(this)) {
-            this.order_manage.order_status_message();
+            this.order_manage.order_status_message("from check item");
             setTimeout(() => {
                 this.order_manage.check_buttons_status();
                 if (current_item == null) {
-                    this.order_manage.check_item_editor_status();
+
+                    if(this.items_count()){
+                        this.select_first_item();
+                    }else{
+                        this.order_manage.check_item_editor_status();
+                    }
                 } else {
-                    current_item.select();
+                    current_item.select(action==null);
                     if (action == null) {
-                        this.scroller();
+                        //this.scroller();
                     }
                 }
             }, 0);
@@ -247,7 +260,7 @@ TableOrder = class TableOrder {
         let position_row = (this.find_item_position(this.current_item) * row_height);
 
         let container = $(this.order_manage.get_container()).find('.panel-order-items')[0];
-        container.scrollTo({top: position_row});
+        container.scrollTo({top: position_row, behavior: 'smooth'});
     }
 
     find_item_position(test_item) {
@@ -265,7 +278,7 @@ TableOrder = class TableOrder {
                 if (typeof r.message != "undefined") {
                     this.data = r.message.order.data;
                     this.render();
-                    this.check_items(r.message.items);
+                    this.check_items({items: r.message.items});
                 }
             },
         });
@@ -477,7 +490,7 @@ TableOrder = class TableOrder {
                 RM.ready(false, "success");
                 this.data = r.message.order.data;
                 this.render();
-                this.check_items(r.message.items);
+                this.check_items({items: r.message.items});
             },
         });
     }
@@ -538,12 +551,6 @@ TableOrder = class TableOrder {
     delete_current_item() {
         this.current_item = null;
         this.order_manage.check_buttons_status();
-        this.order_manage.check_item_editor_status();
-
-        setTimeout(() => {
-            this.select_first_item();
-            this.order_manage.order_status_message();
-        });
     }
 
     select_first_item() {
@@ -552,15 +559,18 @@ TableOrder = class TableOrder {
         });
     }
 
+    is_some_item(item1, item2) {
+        return item1 != null && item1.data.identifier === item2.data.identifier;
+    }
+
     delete_item(identifier) {
-        this.in_items((item, k) => {
-            if (item.data.identifier === identifier) {
-                if (this.current_item != null && this.current_item.data.identifier === identifier) {
-                    this.delete_current_item();
-                }
-                item.remove();
-                delete this.items[k];
+        let item = this.get_item(identifier);
+        if(item){
+            if(this.is_some_item(this.current_item, item)){
+                this.delete_current_item();
             }
-        });
+            item.remove();
+            delete this.items[identifier];
+        }
     }
 }

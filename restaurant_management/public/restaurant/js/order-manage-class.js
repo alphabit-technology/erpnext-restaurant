@@ -10,7 +10,6 @@ OrderManage = class OrderManage {
         this.num_pad = null;
         this.transferring_order = false;
         this.table_name = this.table.data.name;
-        /*this.identifier = `order_manage_${this.table_name}`;*/
         this.order_container_name = `order-container-${this.table_name}`;
         this.order_entry_container_name = `container-order-entry-${this.table_name}`;
         this.editor_container_name = `edit-container-${this.table_name}`;
@@ -583,7 +582,7 @@ OrderManage = class OrderManage {
         ).val(data.rate, false);
         objects.Minus.prop("disabled", !item_is_enabled_to_edit);
         objects.Plus.prop("disabled", !item_is_enabled_to_edit);
-        objects.Trash.prop("disabled", !item_is_enabled_to_edit);
+        objects.Trash.prop("disabled", !item.is_enabled_to_delete());
     }
 
     make_items() {
@@ -750,7 +749,7 @@ OrderManage = class OrderManage {
         }
     }
 
-    order_status_message() {
+    order_status_message(from) {
         let container = $("#" + this.identifier);
         if (this.current_order == null) {
             container.removeClass("has-order");
