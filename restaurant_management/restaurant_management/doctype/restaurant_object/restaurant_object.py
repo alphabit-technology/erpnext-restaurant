@@ -29,7 +29,7 @@ class RestaurantObject(Document):
             data=self.get_data() if self.type == "Room" else self.get_objects(self.name)[0]
         ))
 
-        self.send_notifications()
+        self.synchronize()
 
     def validate_transaction(self, user=frappe.session.user):
         if self.current_user is None or self.current_user == "Administrator" or self.orders_count == 0:
@@ -73,13 +73,12 @@ class RestaurantObject(Document):
         order.company = company
 
         order.save()
-        order.send_notifications(dict(action="Add", client=client))
-        #self.send_notifications(client)
+        order.synchronize(dict(action="Add", client=client))
 
         # if last_user != frappe.session.user:
         #    self._on_update()
 
-    def send_notifications(self):
+    def synchronize(self):
         if self.type == "Production Center":
             frappe.publish_realtime(self.name, dict(
                 action="Notifications",
@@ -225,7 +224,7 @@ class RestaurantObject(Document):
         item = self.commands_food(identifier, last_status)
         order = frappe.get_doc("Table Order", item[0]["order_name"])
 
-        order.send_notifications(dict(items=item, status=[last_status, status]))
+        order.synchronize(dict(items=item, status=[last_status, status]))
 
     def command_data(self, command):
         item = self.commands_food(command)

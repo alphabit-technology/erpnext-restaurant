@@ -14,11 +14,11 @@ RestaurantObject = class RestaurantObject {
         this.process_manage = null;
 
         this.render();
-        this.listener();
+        this.init_synchronize();
         RM.object(data.identifier, this);
     }
 
-    listener() {
+    init_synchronize() {
         frappe.realtime.on(this.data.name, (data) => {
             if (data.action === "Notifications") {
                 this.update_notifications(data);

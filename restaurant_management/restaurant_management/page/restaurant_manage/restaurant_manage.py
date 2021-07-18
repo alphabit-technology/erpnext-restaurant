@@ -12,7 +12,7 @@ class RestaurantManage:
 
         for item in object_in_status:
             obj = frappe.get_doc("Restaurant Object", item.parent)
-            obj.send_notifications()
+            obj.synchronize()
 
     @staticmethod
     def get_rooms():

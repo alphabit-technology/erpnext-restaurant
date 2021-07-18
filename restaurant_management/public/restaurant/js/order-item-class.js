@@ -6,14 +6,14 @@ class OrderItem {
         this.status_enabled_for_edit = [this.attending_status, "Pending", null, undefined, ""];
         this.status_enabled_for_delete = [this.attending_status, "Pending", "Sent", null, undefined, ""];
         this.render();
-        this.listeners();
+        this.init_synchronize();
     }
 
-    listeners() {
+    init_synchronize() {
         frappe.realtime.on("pos_profile_update", () => {
             setTimeout(() => {
                 this.active_editor();
-            }, 0)
+            }, 0);
         });
     }
 

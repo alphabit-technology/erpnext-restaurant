@@ -67,7 +67,7 @@ class TableOrder(Document):
                 rest = (int(item.qty) - int(divide_item["qty"]))
                 current_item = self.items_list(item.identifier)[0]
                 current_item["qty"] = rest
-                self.update_item(current_item)
+                self.update_item(current_item, True, False)
 
                 new_order.update_item(dict(
                     item_code=item.item_code,
@@ -88,11 +88,10 @@ class TableOrder(Document):
 
         self.db_commit()
         new_order.aggregate()
-        new_order.table = self.table
         new_order.save()
 
-        new_order.send_notifications(dict(action="Add", client=client))
-        self.send_notifications(dict(action="Split", client=client, status=status))
+        new_order.synchronize(dict(action="Add", client=client))
+        self.synchronize(dict(action="Split", client=client, status=status))
 
         return True
 
@@ -104,21 +103,21 @@ class TableOrder(Document):
     def options_param(options, param):
         return None if options is None else (options[param] if param in options else None)
 
-    def send_notifications(self, options=None):
+    def synchronize(self, options=None):
         action = self.options_param(options, "action") or "Update"
         items = self.options_param(options, "items")
         last_table = self.options_param(options, "last_table")
         status = self.options_param(options, "status")
         item_removed = self.options_param(options, "item_removed")
 
-        frappe.publish_realtime("notify_to_check_order_data", dict(
+        frappe.publish_realtime("synchronize_order_data", dict(
             action=action,
             data=[] if action is None else self.data(items, last_table),
             client=self.options_param(options, "client"),
             item_removed=item_removed
         ))
 
-        self._table.send_notifications()
+        self._table.synchronize()
 
         if status is not None:
             RestaurantManage.production_center_notify(status)
@@ -169,7 +168,7 @@ class TableOrder(Document):
 
         frappe.msgprint(_('Invoice Created'), indicator='green', alert=True)
 
-        self.send_notifications(dict(action="Invoiced", status=["Invoiced"]))
+        self.synchronize(dict(action="Invoiced", status=["Invoiced"]))
 
         return dict(
             status=True,
@@ -194,9 +193,9 @@ class TableOrder(Document):
                                 table_description)
 
         self.reload()
-        self.send_notifications(dict(action="Transfer", client=client, last_table=last_table_name))
+        self.synchronize(dict(action="Transfer", client=client, last_table=last_table_name))
 
-        last_table.send_notifications()
+        last_table.synchronize()
         return True
 
     def set_invoice_values(self, invoice):
@@ -216,6 +215,9 @@ class TableOrder(Document):
         new_order.taxes_and_charges = self.taxes_and_charges
         new_order.selling_price_list = self.selling_price_list
         new_order.pos_profile = self.pos_profile
+        new_order.table = self.table
+
+        new_order.save()
 
     def get_invoice(self, entry_items=None, make=False):
         invoice = frappe.new_doc("Sales Invoice")
@@ -284,7 +286,7 @@ class TableOrder(Document):
             "You cannot modify an order from another User"
         )
         self.calculate_order(all_items)
-        self.send_notifications(dict(action="queue"))
+        self.synchronize(dict(action="queue"))
 
     def push_item(self, item):
         from restaurant_management.restaurant_management.restaurant_manage import check_exceptions
@@ -298,18 +300,21 @@ class TableOrder(Document):
         else:
             self.aggregate()
 
-        self.send_notifications(dict(item=item["identifier"]))
+        self.synchronize(dict(item=item["identifier"]))
 
-    def delete_item(self, item):
-        from restaurant_management.restaurant_management.restaurant_manage import check_exceptions
-        check_exceptions(
-            dict(name="Table Order", short_name="order", action="write", data=self),
-            "You cannot modify an order from another User"
-        )
+    def delete_item(self, item, unrestricted=False, synchronize=True):
+        if not unrestricted:
+            from restaurant_management.restaurant_management.restaurant_manage import check_exceptions
+            check_exceptions(
+                dict(name="Table Order", short_name="order", action="write", data=self),
+                "You cannot modify an order from another User"
+            )
 
         frappe.db.delete('Order Entry Item', {'identifier': item})
         self.db_commit()
-        self.send_notifications(dict(action='queue', item_removed=item))
+
+        if synchronize:
+            self.synchronize(dict(action='queue', item_removed=item))
 
     def db_commit(self):
         frappe.db.commit()
@@ -327,50 +332,12 @@ class TableOrder(Document):
         self.amount = amount
         self.save()
 
-    def update_order(self, entry):
+    def update_item(self, entry, unrestricted=False, synchronize_on_delete=True):
         if entry["qty"] == 0:
-            self.delete_item(entry["identifier"])
-        else:
-            entry_items = {entry["identifier"]: entry}
-            invoice = self.get_invoice(entry_items)
-
-            item = invoice.items[0]
-
-            data = dict(
-                item_code=item.item_code,
-                qty=item.qty,
-                rate=item.rate,
-                price_list_rate=item.price_list_rate,
-                item_tax_template=item.item_tax_template,
-                item_tax_rate=item.item_tax_rate,
-                tax_amount=invoice.base_total_taxes_and_charges,
-                amount=invoice.grand_total,
-                discount_percentage=item.discount_percentage,
-                discount_amount=invoice.base_discount_amount,
-                status="Attending" if entry["status"] in ["Pending", "", None] else entry["status"],
-                identifier=entry["identifier"],
-                notes=entry["notes"],
-                table_description=f'{self.room_description} ({self.table_description})'
-            )
-
-            if frappe.db.count("Order Entry Item", {"identifier": entry["identifier"]}) == 0:
-                self.append('entry_items', data)
-                self.aggregate()
-            else:
-                _data = ','.join('='.join((f"`{key}`", f"'{'' if val is None else val}'")) for (key, val) in data.items())
-                frappe.db.sql("""UPDATE `tabOrder Entry Item` set {data} WHERE `identifier` = '{identifier}'""".format(
-                    identifier=entry["identifier"], data=_data)
-                )
-                self.db_commit()
-
-    def update_item(self, entry):
-        if entry["qty"] == 0:
-            self.delete_item(entry["identifier"])
+            self.delete_item(entry["identifier"], unrestricted, synchronize_on_delete)
             return "db_commit"
         else:
-            entry_item = {entry["identifier"]: entry}
-            invoice = self.get_invoice(entry_item)
-
+            invoice = self.get_invoice({entry["identifier"]: entry})
             item = invoice.items[0]
             data = dict(
                 item_code=item.item_code,
@@ -506,7 +473,7 @@ class TableOrder(Document):
                 data_to_send.append(table.get_command_data(item))
 
         self.reload()
-        self.send_notifications(dict(status=["Sent"]))
+        self.synchronize(dict(status=["Sent"]))
 
         return self.data()
 
@@ -514,7 +481,7 @@ class TableOrder(Document):
         frappe.db.set_value("Order Entry Item", {"identifier": item}, "notes", notes)
         self.reload()
         item = self.items_list(item)
-        self.send_notifications(dict(items=item))
+        self.synchronize(dict(items=item))
 
     @property
     def get_items(self):
@@ -548,4 +515,4 @@ class TableOrder(Document):
         self.save()
 
     def after_delete(self):
-        self.send_notifications(dict(action="Delete", status=["Deleted"]))
+        self.synchronize(dict(action="Delete", status=["Deleted"]))

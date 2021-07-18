@@ -16,11 +16,11 @@ OrderManage = class OrderManage {
         this.pad_container_name = `pad-container-${this.table_name}`;
         this.item_container_name = `items-container-${this.table_name}`;
         this.not_selected_order = null;
-        this.real_time();
+        this.init_synchronize();
         this.initialize();
     }
 
-    real_time() {
+    init_synchronize() {
         frappe.realtime.on("pos_profile_update", () => {
             setTimeout(() => {
                 this.check_buttons_status();
@@ -494,7 +494,6 @@ OrderManage = class OrderManage {
     }
 
     check_buttons_status() {
-
         if (this.current_order == null) {
             this.disable_components();
             this.components.new.enable().show();

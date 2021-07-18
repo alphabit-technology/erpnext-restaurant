@@ -4,11 +4,11 @@ class RestaurantRoom {
         this.edit_form = null;
         this.data = data;
         this.tables = {};
-        this.listener();
+        this.init_synchronize();
         this.render();
     }
 
-    listener() {
+    init_synchronize() {
         frappe.realtime.on(this.data.name, (data) => {
             if (data.action === "Notifications") {
                 this.data.orders_count = data.orders_count;

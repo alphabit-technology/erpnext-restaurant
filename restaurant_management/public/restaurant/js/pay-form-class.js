@@ -10,13 +10,13 @@ PayForm = class PayForm {
         this.wrapper_form = null;
 
         this.initialize();
-        this.listeners();
+        this.init_synchronize();
     }
 
-    listeners() {
+    init_synchronize() {
         frappe.realtime.on("pos_profile_update", () => {
             this.form.hide();
-        })
+        });
     }
 
     reload() {

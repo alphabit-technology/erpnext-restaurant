@@ -100,7 +100,7 @@ RestaurantManage = class RestaurantManage {
 				frappe.dom.unfreeze();
 			},
 			() => this.page.set_title(__('Restaurant Manage')),
-			() => this.real_time(),
+			() => this.init_synchronize(),
 			() => this.page.$title_area.hide(),
 		]);
 	}
@@ -324,13 +324,12 @@ RestaurantManage = class RestaurantManage {
 		return typeof this.objects[name] != "undefined" ? this.objects[name] : null;
 	}
 
-	real_time(){
+	init_synchronize(){
 		frappe.realtime.on("debug_data", (data) => {
 			console.log(data);
 		});
 
 		let check_items_in_process_manage = (items, item_removed=null) =>{
-			console.log(item_removed)
 			this.in_rooms((room) => {
 				room.in_tables((obj) => {
 					if(obj.process_manage != null){
@@ -343,7 +342,7 @@ RestaurantManage = class RestaurantManage {
 			});
 		}
 
-		frappe.realtime.on("notify_to_check_order_data", (r) => {
+		frappe.realtime.on("synchronize_order_data", (r) => {
 			let data = r.data;
 			let order = data.order;
 
