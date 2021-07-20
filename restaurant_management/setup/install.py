@@ -15,7 +15,7 @@ def after_install():
         "Restaurant Production Center": dict(doc_type='Restaurant Object'),
         "Restaurant Order": dict(doc_type='Table Order'),
         "Order Item Note": dict(doc_type='Order Entry Item'),
-        "Customer Edit": dict(doc_type='Customer'),
+        # "Customer Edit": dict(doc_type='Customer'),
         "Payment Order": dict(doc_type='Table Order'),
     }
 
