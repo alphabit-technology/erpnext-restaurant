@@ -18,13 +18,18 @@ frappe.pages['restaurant-manage'].on_page_load = function(wrapper) {
 	});
 }
 
-frappe.pages['restaurant-manage'].refresh = function(wrapper) {
+/*frappe.pages['restaurant-manage'].refresh = function(wrapper) {
 	if(RM != null){
 		RM.test_pos();
 	}
-}
+}*/
 
 RestaurantManage = class RestaurantManage {
+	#pos_profile = null;
+	#permissions = null;
+	#exceptions = null;
+	#restrictions = null;
+
 	constructor(wrapper) {
 		this.base_wrapper = wrapper;
 		this.wrapper = $(wrapper).find('.layout-main-section');
@@ -34,8 +39,6 @@ RestaurantManage = class RestaurantManage {
 		this.current_room = null;
 		this.url_manage = "restaurant_management.restaurant_management.page.restaurant_manage.restaurant_manage.";
 		this.busy = false;
-		this.async_process = false;
-		this.pos_profile = null;
 		this.sounds = false;
 		this.client = this.uuid();
 		this.request_client = null;
@@ -113,7 +116,7 @@ RestaurantManage = class RestaurantManage {
 
 	raise_exception_for_pos_profile() {
 		if($(this.base_wrapper).is(":visible")){
-			setTimeout(() => frappe.set_route('List', 'POS Profile'), 2000);
+			//setTimeout(() => frappe.set_route('List', 'POS Profile'), 2000);
 			frappe.throw(this.not_has_pos_profile_message());
 		}
 	}
@@ -123,6 +126,7 @@ RestaurantManage = class RestaurantManage {
 	}
 
 	prepare_dom() {
+		let self = this;
 		this.rooms_container = new JSHtml({
 			tag: "div",
 			properties: {
@@ -187,15 +191,21 @@ RestaurantManage = class RestaurantManage {
 			this.add_object("Room");
 		});
 
-		this.config_button = new JSHtml({
+		this.menu_button = new JSHtml({
 			tag: "div",
 			properties: {
 				class: `btn-default button general-editor-button setting`,
 				//style: 'display: none'
 			},
-			content: `<span class="fa fa-cog"/>`
+			content: '<span class="fa fa-sign-out">'
 		}).on("click", () => {
-
+			frappe.confirm(
+				'Are you sure to leave this page and close the POS?',
+				function(){
+					self.close_pos();
+				},
+			);
+			/*Functions to close POS Profile, to settings Restaurant and others*/
 		});
 
 		this.wrapper.append(`
@@ -204,7 +214,7 @@ RestaurantManage = class RestaurantManage {
 					${this.general_edit_button.html()}
 					${this.rooms_container.html()}
 					${this.add_room_button.html()}
-					${this.config_button.html()}
+					${this.menu_button.html()}
 				</div>
 				<div class="floor-map">
 					<div class="floor-map-editor left">
@@ -228,6 +238,16 @@ RestaurantManage = class RestaurantManage {
 		`);
 
 		this.pull_alert("left");
+	}
+
+	close_pos(){
+		let voucher = frappe.model.get_new_doc('POS Closing Entry');
+		voucher.pos_profile = RM.pos_profile;
+		voucher.user = frappe.session.user;
+		voucher.company = RM.company;
+		voucher.period_end_date = frappe.datetime.now_datetime();
+		voucher.posting_date = frappe.datetime.now_date();
+		frappe.set_route('Form', 'POS Closing Entry', voucher.name);
 	}
 
 	make_rooms(){
@@ -282,6 +302,54 @@ RestaurantManage = class RestaurantManage {
 		}, 0);
 	}
 
+	validate(options=[], data){
+		let response = true;
+
+		let _throw = (message) => {
+			response = false;
+			frappe.msgprint(__(message));
+		}
+
+		let _validate = (structure, type, err_message) => {
+			if ((data != null || typeof data === type) && Object.keys(structure).every(elem => Object.keys(data).includes(elem))) {
+				Object.keys(structure).forEach(k => {
+					if (typeof structure[k] !== typeof data[k]) {
+						_throw();
+					}
+				});
+			} else {
+				_throw(err_message);
+			}
+		}
+
+		let validations = {
+			pos_profile: () => {
+				const base_structure = {"applicable_for_users": [], "payments": [], "item_groups": [], "customer_groups": []};
+				_validate(base_structure, "object", "Your pos profile data is invalid");
+			},
+			permissions: () => {
+				const base_structure = {"invoice": {}, "order": {}, "restaurant_object": {}};
+				_validate(base_structure, "object", "Your permissions data is invalid");
+			},
+			exceptions: () => {
+				const base_structure = [];
+				_validate(base_structure, "object", "Your exceptions data is invalid");
+			},
+			restrictions: () => {
+				const base_structure = {restaurant_permissions: []};
+				_validate(base_structure, "object", "Your exceptions data is invalid");
+			},
+		};
+
+		options.forEach(validation => {
+			if(Object.keys(validations).includes(validation)){
+				validations[validation]();
+			}
+		});
+
+		return response;
+	}
+
 	get_settings_data() {
 		return new Promise(res => {
 			frappe.xcall(this.url_manage + "get_settings_data", {}).then((r) => {
@@ -293,20 +361,38 @@ RestaurantManage = class RestaurantManage {
 
 	set_settings_data(r){
 		this.loaded = true;
-
 		this.permissions = r.permissions;
 		this.exceptions = r.exceptions;
 		this.restrictions = r.restrictions;
 
 		if(r.pos.has_pos){
 			this.pos_profile = r.pos.pos;
-			this.wrapper.find(".pos-profile").empty().append(this.pos_profile.name);
-		}else{
-			this.pos_profile = null;
-			this.raise_exception_for_pos_profile();
+			if(this.pos_profile != null){
+				this.wrapper.find(".pos-profile").empty().append(this.pos_profile.name);
+			}
 		}
 		this.ready();
 	}
+
+	set pos_profile(pos_profile){
+		if(this.validate(['pos_profile'], pos_profile)) this.#pos_profile = pos_profile;
+	}
+	get pos_profile() {return this.#pos_profile}
+
+	set permissions(permissions){
+		if(this.validate(['permissions'], permissions)) this.#permissions = permissions;
+	}
+	get permissions() {return this.#permissions}
+
+	set exceptions(exceptions){
+		if(this.validate(['exceptions'], exceptions)) this.#exceptions = exceptions;
+	}
+	get exceptions() {return this.#exceptions}
+
+	set restrictions(restrictions){
+		if(this.validate(['restrictions'], restrictions)) this.#restrictions = restrictions;
+	}
+	get restrictions() {return this.#restrictions}
 
 	in_rooms(f){
 		this.rooms.forEach((room, index, rooms) => {
@@ -501,9 +587,8 @@ RestaurantManage = class RestaurantManage {
 		this.test_components();
 	}
 
-	working(text, busy=true, async_process=false){
+	working(text, busy=true){
 		this.busy = busy;
-		this.async_process = async_process;
 		this.wrapper.find(".restaurant-manage-status").empty().append(__(text));
 	}
 

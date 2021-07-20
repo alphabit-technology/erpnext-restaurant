@@ -355,11 +355,17 @@ RestaurantObject = class RestaurantObject {
     }
 
     open_modal() {
+        if (RM.pos_profile == null) {
+            RM.raise_exception_for_pos_profile();
+            return;
+        }
+
         if (this.data.type === "Table") {
             if (!RM.can_open_order_manage(this)) {
                 RM.notification("red", __("The table is assigned to another user, you can not open"));
                 return;
             }
+
             let open = () => {
                 setTimeout(() => {
                     if (this.order_manage == null) {

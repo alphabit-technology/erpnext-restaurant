@@ -141,7 +141,6 @@ TableOrder = class TableOrder {
         });
         test_item = test_item || this.add_locale_item(new_item);
         if (test_item != null) {
-            //this.order_manage.order_status_message("from push item");
             test_item.update();
             test_item.select(true);
         }
@@ -186,7 +185,6 @@ TableOrder = class TableOrder {
         let items = options.hasOwnProperty("items") ? options.items : [];
         let current = options.hasOwnProperty("current") ? options.current : null;
         let action = options.hasOwnProperty("action") ? options.action : null;
-        let from = options.hasOwnProperty("from") ? options.from : "";
 
         current = current || this.current_item;
         let test_item = null, current_item = null;
@@ -223,9 +221,6 @@ TableOrder = class TableOrder {
                     }
                 } else {
                     current_item.select(action==null);
-                    if (action == null) {
-                        //this.scroller();
-                    }
                 }
             }, 0);
         }

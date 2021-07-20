@@ -56,7 +56,6 @@ class OrderItem {
             content: this.template()
         }).on("click", () => {
             RM.pull_alert("left");
-            this.order.current_item = this;
             this.select();
         });
 
@@ -65,11 +64,9 @@ class OrderItem {
 
     select(scroller=false) {
         this.order.current_item = this;
-        setTimeout(() => {
-            this.order.order_manage.check_item_editor_status(this);
-            this.row.toggle_common('media.event', 'selected');
-            if(scroller) this.order.scroller();
-        }, 0);
+        this.order.order_manage.check_item_editor_status(this);
+        this.row.toggle_common('media.event', 'selected');
+        if(scroller) this.order.scroller();
     }
 
     active_editor() {
@@ -123,6 +120,7 @@ class OrderItem {
         }
         this.order.aggregate(true);
         if (!server) return;
+
         RM.working("Update Item", false);
         window.saving = true;
         frappeHelper.api.call({

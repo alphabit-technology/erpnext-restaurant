@@ -29,15 +29,15 @@ OrderManage = class OrderManage {
     }
 
     get_container() {
-        return document.getElementById(this.identifier)
+        return document.getElementById(this.identifier);
     }
 
     order_container() {
-        return document.getElementById(this.order_container_name)
+        return document.getElementById(this.order_container_name);
     }
 
     order_entry_container() {
-        return document.getElementById(this.order_entry_container_name)
+        return document.getElementById(this.order_entry_container_name);
     }
 
     reload() {
@@ -607,7 +607,7 @@ OrderManage = class OrderManage {
         });
     }
 
-    get_orders(current = null, via_socket = false) {
+    get_orders(current = null) {
         RM.working(__("Loading Orders in") + ": " + this.title);
         if (current == null) current = this.current_order_identifier;
         frappeHelper.api.call({
@@ -617,7 +617,7 @@ OrderManage = class OrderManage {
             args: {},
             always: (r) => {
                 RM.ready();
-                this.make_orders(r.message, current, via_socket);
+                this.make_orders(r.message, current);
             },
         });
     }
@@ -667,14 +667,14 @@ OrderManage = class OrderManage {
         return typeof order == "undefined" ? null : order;
     }
 
-    make_orders(orders = [], current = null, via_socket = false) {
+    make_orders(orders = [], current = null) {
         let _orders = Object.keys(this.orders);
 
         orders.forEach((order) => {
             if (_orders.includes(order.name)) {
                 this.orders[order.name].data = order;
             } else {
-                this.append_order(order, current, via_socket);
+                this.append_order(order, current);
             }
         });
 
