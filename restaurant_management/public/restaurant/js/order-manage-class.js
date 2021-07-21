@@ -1,13 +1,14 @@
 OrderManage = class OrderManage {
+    #objects = {};
+    #components = {};
+    #items = {};
+    #orders = {};
+    #numpad = null;
+
     constructor(options) {
         Object.assign(this, options);
         this.modal = null;
-        this.orders = {};
         this.current_order = null;
-        this.items = {};
-        this.components = {};
-        this.objects = {};
-        this.num_pad = null;
         this.transferring_order = false;
         this.table_name = this.table.data.name;
         this.order_container_name = `order-container-${this.table_name}`;
@@ -19,6 +20,12 @@ OrderManage = class OrderManage {
         this.init_synchronize();
         this.initialize();
     }
+
+    get objects(){ return this.#objects}
+    get components(){ return this.#components}
+    get items(){ return this.#items}
+    get orders(){ return this.#orders}
+    get numpad(){ return this.#numpad}
 
     init_synchronize() {
         frappe.realtime.on("pos_profile_update", () => {
@@ -279,7 +286,7 @@ OrderManage = class OrderManage {
         objs.forEach((element, index) => {
             base_html += `<td class='${this.table_name}-${index}'>`;
 
-            this.objects[element.name] = new JSHtml({
+            this.#objects[element.name] = new JSHtml({
                 tag: element.tag,
                 properties: element.properties,
                 content: (typeof element.content != "undefined" ? element.content : "")
@@ -291,9 +298,9 @@ OrderManage = class OrderManage {
         });
         $(container).empty().append(base_html + "</tr></tbody>");
 
-        this.objects.Qty.float();
-        this.objects.Discount.float();
-        this.objects.Rate.float();
+        this.#objects.Qty.float();
+        this.#objects.Discount.float();
+        this.#objects.Rate.float();
     }
 
     update_detail(input) {
@@ -558,7 +565,7 @@ OrderManage = class OrderManage {
 
     check_item_editor_status(item = null) {
         /**item OrderItem class**/
-        let objects = this.objects;
+        let objects = this.#objects;
         if (item == null) {
             this.empty_inputs();
             this.in_objects((input) => {
@@ -585,7 +592,7 @@ OrderManage = class OrderManage {
     }
 
     make_items() {
-        this.items = new ProductItem({
+        this.#items = new ProductItem({
             wrapper: $(`#${this.item_container_name}`),
             order_manage: this,
         });
@@ -693,7 +700,7 @@ OrderManage = class OrderManage {
             $(this.order_container()).prepend(new_order.html())
         }
 
-        this.components.new_order = new_order;
+        this.#components.new_order = new_order;
     }
 
     append_order(order, current = null) {
@@ -702,7 +709,7 @@ OrderManage = class OrderManage {
             data: Object.assign({}, order.data)
         });
 
-        this.orders[test_order.data.name] = test_order;
+        this.#orders[test_order.data.name] = test_order;
 
         if (current != null && current === test_order.data.name) {
             setTimeout(() => {
@@ -727,8 +734,8 @@ OrderManage = class OrderManage {
 
     clear_current_order() {
         if (this.current_order != null) {
-            this.components.Tax.val(`${__("Tax")}: ${RM.format_currency(0)}`);
-            this.components.Total.val(`${__("Total")}: ${RM.format_currency(0)}`);
+            this.#components.Tax.val(`${__("Tax")}: ${RM.format_currency(0)}`);
+            this.#components.Total.val(`${__("Total")}: ${RM.format_currency(0)}`);
             this.delete_order(this.current_order.data.name);
         }
     }

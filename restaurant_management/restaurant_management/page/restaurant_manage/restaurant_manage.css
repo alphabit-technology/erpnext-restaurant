@@ -88,7 +88,7 @@
     float: right;
     color: var(--orange);
     font-size: 14px;
-    font-weight: bold;
+    /*font-weight: bold;*/
     padding: 0 5px 0 0;
 }
 

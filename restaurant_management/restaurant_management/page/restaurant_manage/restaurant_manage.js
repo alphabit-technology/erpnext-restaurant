@@ -18,17 +18,13 @@ frappe.pages['restaurant-manage'].on_page_load = function(wrapper) {
 	});
 }
 
-/*frappe.pages['restaurant-manage'].refresh = function(wrapper) {
-	if(RM != null){
-		RM.test_pos();
-	}
-}*/
-
 RestaurantManage = class RestaurantManage {
 	#pos_profile = null;
 	#permissions = null;
 	#exceptions = null;
 	#restrictions = null;
+	#company = null;
+	#components = [];
 
 	constructor(wrapper) {
 		this.base_wrapper = wrapper;
@@ -42,15 +38,14 @@ RestaurantManage = class RestaurantManage {
 		this.sounds = false;
 		this.client = this.uuid();
 		this.request_client = null;
-		this.company = frappe.defaults.get_user_default('company');
+		this.#company = frappe.defaults.get_user_default('company');
 		this.loaded = false;
 		this.store = {
 			items: []
 		}
-		this.components = [];
 		this.objects = [];
 
-		const base_assets = "assets/restaurant_management/restaurant/"
+		const base_assets = "assets/restaurant_management/restaurant/";
 
 		const assets = [
 			"assets/frappe/js/lib/clusterize.min.js",
@@ -116,7 +111,6 @@ RestaurantManage = class RestaurantManage {
 
 	raise_exception_for_pos_profile() {
 		if($(this.base_wrapper).is(":visible")){
-			//setTimeout(() => frappe.set_route('List', 'POS Profile'), 2000);
 			frappe.throw(this.not_has_pos_profile_message());
 		}
 	}
@@ -140,21 +134,21 @@ RestaurantManage = class RestaurantManage {
 			RM.unselect_all_tables();
 		});
 
-		this.components['add_table'] = new JSHtml({
+		this.#components.add_table = new JSHtml({
 			tag: "button", properties: {class: "btn btn-default btn-flat"},
 			content: `<span class="fa fa-plus"/> ${__("Table")}</span>`
 		}).on("click", () => {
 			this.add_object("Table");
 		});
 
-		this.components['add_production_center'] = new JSHtml({
+		this.#components.add_production_center = new JSHtml({
 			tag: "button", properties: {class: "btn btn-default btn-flat"},
 			content: `<span class="fa fa-plus"/> ${__("P Center")}</span>`
 		}).on("click", () => {
 			this.add_object("Production Center");
 		});
 
-		this.components['edit_room'] = new JSHtml({
+		this.#components.edit_room = new JSHtml({
 			tag: "button",
 			properties: {class: "btn btn-default btn-flat"},
 			content: `<span class="fa fa-pencil"/> ${__("Edit")}</span>`
@@ -162,7 +156,7 @@ RestaurantManage = class RestaurantManage {
 			if(this.current_room != null) this.current_room.edit();
 		});
 
-		this.components['delete_room'] = new JSHtml({
+		this.#components.delete_room = new JSHtml({
 			tag: "button",
 			properties: {class: "btn btn-default btn-flat"},
 			content: `<span class="fa fa-trash"/> {{text}}</span>`,
@@ -191,21 +185,43 @@ RestaurantManage = class RestaurantManage {
 			this.add_object("Room");
 		});
 
-		this.menu_button = new JSHtml({
+		this.setting_button = new JSHtml({
 			tag: "div",
 			properties: {
 				class: `btn-default button general-editor-button setting`,
-				//style: 'display: none'
+				style: 'display: none'
 			},
-			content: '<span class="fa fa-sign-out">'
+			content: '<span class="fa fa-gears">'
+		}).on("click", () => {
+
+		});
+
+		this.close_pos_button = new JSHtml({
+			tag: "a",
+			content: ' (' + __('Close') + ' <span class="fa fa-sign-out"></span>)'
 		}).on("click", () => {
 			frappe.confirm(
-				'Are you sure to leave this page and close the POS?',
+				'Close the POS?',
 				function(){
 					self.close_pos();
 				},
 			);
-			/*Functions to close POS Profile, to settings Restaurant and others*/
+		});
+
+		this.pos_profile_description = new JSHtml({
+			tag: "span",
+			properties: {
+				class: 'pos-profile'
+			},
+			content: '{{text}}' + this.close_pos_button.html(),
+			text: 'POS Profile'
+		}).on("click", () => {
+			frappe.confirm(
+				'Close the POS?',
+				function(){
+					self.close_pos();
+				},
+			);
 		});
 
 		this.wrapper.append(`
@@ -214,16 +230,16 @@ RestaurantManage = class RestaurantManage {
 					${this.general_edit_button.html()}
 					${this.rooms_container.html()}
 					${this.add_room_button.html()}
-					${this.menu_button.html()}
+					${this.setting_button.html()}
 				</div>
 				<div class="floor-map">
 					<div class="floor-map-editor left">
-						${this.components['add_table'].html()}
-						${this.components['add_production_center'].html()}
+						${this.components.add_table.html()}
+						${this.components.add_production_center.html()}
 					</div>
 					<div class="floor-map-editor right">
-						${this.components['edit_room'].html()}
-						${this.components['delete_room'].html()}
+						${this.components.edit_room.html()}
+						${this.components.delete_room.html()}
 					</div>
 					${this.floor_map.html()}
 				</div>
@@ -231,7 +247,7 @@ RestaurantManage = class RestaurantManage {
 			<div class="sidebar-footer">
 				<div class="non-selectable">
 					<span class="restaurant-manage-status">${__("Ready")}</span>
-					<span class="pos-profile">${__("POS Profile")}</span>
+					${this.pos_profile_description.html()}
 				</div>
 			</div>
 			<div id="customize-alert-message"></div>
@@ -302,7 +318,7 @@ RestaurantManage = class RestaurantManage {
 		}, 0);
 	}
 
-	validate(options=[], data){
+	/*validate(options=[], data){
 		let response = true;
 
 		let _throw = (message) => {
@@ -348,7 +364,7 @@ RestaurantManage = class RestaurantManage {
 		});
 
 		return response;
-	}
+	}*/
 
 	get_settings_data() {
 		return new Promise(res => {
@@ -361,38 +377,25 @@ RestaurantManage = class RestaurantManage {
 
 	set_settings_data(r){
 		this.loaded = true;
-		this.permissions = r.permissions;
-		this.exceptions = r.exceptions;
-		this.restrictions = r.restrictions;
+		this.#permissions = r.permissions;
+		this.#exceptions = r.exceptions;
+		this.#restrictions = r.restrictions;
 
 		if(r.pos.has_pos){
-			this.pos_profile = r.pos.pos;
+			this.#pos_profile = r.pos.pos;
 			if(this.pos_profile != null){
-				this.wrapper.find(".pos-profile").empty().append(this.pos_profile.name);
+				this.pos_profile_description.val(this.pos_profile.name);
 			}
 		}
 		this.ready();
 	}
 
-	set pos_profile(pos_profile){
-		if(this.validate(['pos_profile'], pos_profile)) this.#pos_profile = pos_profile;
-	}
 	get pos_profile() {return this.#pos_profile}
-
-	set permissions(permissions){
-		if(this.validate(['permissions'], permissions)) this.#permissions = permissions;
-	}
 	get permissions() {return this.#permissions}
-
-	set exceptions(exceptions){
-		if(this.validate(['exceptions'], exceptions)) this.#exceptions = exceptions;
-	}
 	get exceptions() {return this.#exceptions}
-
-	set restrictions(restrictions){
-		if(this.validate(['restrictions'], restrictions)) this.#restrictions = restrictions;
-	}
 	get restrictions() {return this.#restrictions}
+	get company() {return this.#company}
+	get components() {return this.#components}
 
 	in_rooms(f){
 		this.rooms.forEach((room, index, rooms) => {
@@ -487,9 +490,9 @@ RestaurantManage = class RestaurantManage {
 
 		frappe.realtime.on("pos_profile_update", (r) => {
 			if(r && r.has_pos){
-				this.pos_profile = r.pos;
+				this.#pos_profile = r.pos;
 			}else{
-				this.pos_profile = null;
+				this.#pos_profile = null;
 				this.raise_exception_for_pos_profile();
 			}
 		});
@@ -539,7 +542,7 @@ RestaurantManage = class RestaurantManage {
 			this.editing = true;
 			$(".restaurant-manage").addClass("editing");
 			Object.keys(this.components).forEach(k => {
-				this.components[k].hide();
+				this.#components[k].hide();
 			});
 			this.test_components();
 		}
@@ -548,9 +551,9 @@ RestaurantManage = class RestaurantManage {
 	test_components(){
 		Object.keys(this.components).forEach(k => {
 			if(this.current_room == null){
-				this.components[k].hide();
+				this.#components[k].hide();
 			} else {
-				this.components[k].show();
+				this.#components[k].show();
 			}
 		});
 	}
