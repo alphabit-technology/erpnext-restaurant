@@ -8,6 +8,7 @@ OrderManage = class OrderManage {
     constructor(options) {
         Object.assign(this, options);
         this.modal = null;
+        this.print_modal = null;
         this.current_order = null;
         this.transferring_order = false;
         this.table_name = this.table.data.name;
@@ -123,17 +124,17 @@ OrderManage = class OrderManage {
             content: RMHelper.no_data('Select or create an Order')
         });
 
-        this.modal.container().append(this.template());
+        this.modal.container.append(this.template());
 
-        this.components.new = RMHelper.default_button("New", 'add', () => this.add_order(), DOUBLE_CLICK);
-        this.components.edit = RMHelper.default_button("Edit", 'edit', () => this.update_current_order());
-        this.components.delete = RMHelper.default_button("Delete", 'trash', () => this.delete_current_order(), DOUBLE_CLICK);
+        this.#components.new = RMHelper.default_button("New", 'add', () => this.add_order(), DOUBLE_CLICK);
+        this.#components.edit = RMHelper.default_button("Edit", 'edit', () => this.update_current_order());
+        this.#components.delete = RMHelper.default_button("Delete", 'trash', () => this.delete_current_order(), DOUBLE_CLICK);
 
-        this.modal.title_container().empty().append(
+        this.modal.title_container.empty().append(
             RMHelper.return_main(this.title, () => this.modal.hide()).html()
         )
 
-        this.modal.buttons_container().prepend(`
+        this.modal.buttons_container.prepend(`
 			${this.components.delete.html()}
 			${this.components.edit.html()}
 			${this.components.new.html()}
@@ -432,7 +433,7 @@ OrderManage = class OrderManage {
 
             row[0].forEach((col) => {
                 col.props.class += ` ${default_class}-${col.name}`;
-                this.components[col.name] = new JSHtml({
+                this.#components[col.name] = new JSHtml({
                     tag: "td",
                     properties: col.props,
                     content: "{{text}}" + (typeof col.content == "undefined" ? "" : col.content),
@@ -483,7 +484,7 @@ OrderManage = class OrderManage {
 
     in_components(f) {
         Object.keys(this.components).forEach(k => {
-            if (typeof this.components[k] != "undefined") {
+            if (typeof this.#components[k] != "undefined") {
                 f(this.components[k], k);
             }
         });
@@ -503,61 +504,61 @@ OrderManage = class OrderManage {
     check_buttons_status() {
         if (this.current_order == null) {
             this.disable_components();
-            this.components.new.enable().show();
+            this.#components.new.enable().show();
             if (typeof this.components.new_order != "undefined")
-                this.components.new_order.enable().show();
+                this.#components.new_order.enable().show();
             return;
         } else {
             if (RM.check_permissions("order", null, "create")) {
-                this.components.new.enable().show();
+                this.#components.new.enable().show();
                 if (typeof this.components.new_order != "undefined")
-                    this.components.new_order.enable().show();
+                    this.#components.new_order.enable().show();
             } else {
-                this.components.new.disable().hide();
+                this.#components.new.disable().hide();
                 if (typeof this.components.new_order != "undefined")
-                    this.components.new_order.disable().hide();
+                    this.#components.new_order.disable().hide();
             }
         }
 
         if (this.current_order.data.status !== "Invoiced") {
             if (this.current_order.items_count() === 0) {
                 if (RM.check_permissions("order", this.current_order, "delete")) {
-                    this.components.delete.enable().show();
+                    this.#components.delete.enable().show();
                 } else {
-                    this.components.delete.disable().hide();
+                    this.#components.delete.disable().hide();
                 }
             } else {
-                this.components.delete.disable().hide();
-                this.components.Pay.prop("disabled", !RM.can_pay());
+                this.#components.delete.disable().hide();
+                this.#components.Pay.prop("disabled", !RM.can_pay());
             }
 
             if (RM.check_permissions("order", this.current_order, "write")) {
                 if (this.current_order.has_queue_items()) {
-                    this.components.Order.enable().add_class("btn-danger").val(__("Add"));
+                    this.#components.Order.enable().add_class("btn-danger").val(__("Add"));
                 } else {
                     let orders_count = this.current_order.data.products_not_ordered;
                     if (orders_count > 0) {
-                        this.components.Order.enable().remove_class("btn-danger").add_class("btn-success")
+                        this.#components.Order.enable().remove_class("btn-danger").add_class("btn-success")
                             .val(`${__('Order')}<span class="badge" style="font-size: 12px">${orders_count}</span>`);
                     } else {
-                        this.components.Order.val(__("Order")).disable();
+                        this.#components.Order.val(__("Order")).disable();
                     }
                 }
 
-                this.components.Divide.prop("disabled", this.current_order.items_count() === 0);
-                this.components.edit.enable().show();
-                this.components.Transfer.enable();
+                this.#components.Divide.prop("disabled", this.current_order.items_count() === 0);
+                this.#components.edit.enable().show();
+                this.#components.Transfer.enable();
             } else {
-                this.components.edit.disable().hide();
-                this.components.Transfer.disable();
-                this.components.Order.disable();
-                this.components.Divide.disable();
+                this.#components.edit.disable().hide();
+                this.#components.Transfer.disable();
+                this.#components.Order.disable();
+                this.#components.Divide.disable();
             }
         } else {
             this.disable_components();
         }
 
-        this.components.Account.prop(
+        this.#components.Account.prop(
             "disabled",
             !RM.check_permissions("order", this.current_order, "print") || this.current_order.items_count() === 0
         );
@@ -733,9 +734,9 @@ OrderManage = class OrderManage {
     }
 
     clear_current_order() {
+        this.#components.Tax.val(`${__("Tax")}: ${RM.format_currency(0)}`);
+        this.#components.Total.val(`${__("Total")}: ${RM.format_currency(0)}`);
         if (this.current_order != null) {
-            this.#components.Tax.val(`${__("Tax")}: ${RM.format_currency(0)}`);
-            this.#components.Total.val(`${__("Total")}: ${RM.format_currency(0)}`);
             this.delete_order(this.current_order.data.name);
         }
     }

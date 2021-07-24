@@ -2,6 +2,7 @@ PayForm = class PayForm {
     constructor(options) {
         Object.assign(this, options);
         this.modal = null;
+        this.print_modal = null;
         this.button_payment = null;
         this.num_pad = undefined;
         this.payment_methods = {};
@@ -188,7 +189,7 @@ PayForm = class PayForm {
                 if (typeof r.message != "undefined" && r.message.status) {
                     order_manage.clear_current_order();
                     order_manage.check_buttons_status();
-                    order_manage.check_item_editor_status()
+                    order_manage.check_item_editor_status();
                     this.form.hide();
                     this.print(r.message.invoice_name);
                     order_manage.make_orders();
@@ -202,7 +203,34 @@ PayForm = class PayForm {
 
     print(invoice_name) {
         if (!RM.can_pay) return;
-        window.open(`/api/method/frappe.utils.print_format.download_pdf?doctype=Sales%20Invoice&name=${invoice_name}&format=${RM.pos_profile.print_format_for_online}&no_letterhead=1&letterhead=No%20Letterhead&settings=%7B%7D&_lang=en`, '_blank');
+
+        let title = invoice_name + " (" + __("Print") + ")";
+        let order_manage = this.order.order_manage;
+        let props = {
+            model: "Sales Invoice",
+            model_name: invoice_name,
+            args: {
+                format: RM.pos_profile.print_format_for_online,
+                _lang: RM.lang,
+                no_letterhead: RM.pos_profile.letter_head ? RM.pos_profile.letter_head : 1,
+                letterhead: RM.pos_profile.letter_head ? RM.pos_profile.letter_head : 'No%20Letterhead'
+            },
+            from_server: true,
+            set_buttons: true,
+            is_pdf: true,
+            customize: true,
+            title: title
+        };
+
+        if(order_manage.print_modal){
+            order_manage.print_modal.set_props(props);
+            order_manage.print_modal.set_title(title);
+            order_manage.print_modal.reload().show();
+        }else{
+            order_manage.print_modal = new DeskModal(props);
+        }
+
+        //window.open(`/api/method/frappe.utils.print_format.download_pdf?doctype=Sales%20Invoice&name=${invoice_name}&format=${RM.pos_profile.print_format_for_online}&no_letterhead=1&letterhead=No%20Letterhead&settings=%7B%7D&_lang=en`, '_blank');
     }
 
     update_paid_value() {

@@ -17,5 +17,15 @@ frappe.ui.form.on('Restaurant Settings', {
 				}
 			});
 		});
+	},
+
+	setup: function(frm) {
+		frm.set_query("print_format", function () {
+			return {
+				filters: [
+					['Print Format', 'doc_type', '=', 'Table Order']
+				]
+			};
+		});
 	}
 });

@@ -42,8 +42,8 @@ ProcessManage = class ProcessManage {
     }
 
     make_dom() {
-        this.modal.container().empty().append(this.template());
-        this.modal.title_container().empty().append(
+        this.modal.container.empty().append(this.template());
+        this.modal.title_container.empty().append(
             RMHelper.return_main(this.title, () => this.modal.hide()).html()
         );
     }

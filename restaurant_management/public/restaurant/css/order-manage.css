@@ -2,6 +2,8 @@
     position: absolute;
     width: 100%;
     height: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
 }
 
 .order-manage .order-entry-container {

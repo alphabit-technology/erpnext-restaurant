@@ -25,6 +25,7 @@ RestaurantManage = class RestaurantManage {
 	#restrictions = null;
 	#company = null;
 	#components = [];
+	#lang = null;
 
 	constructor(wrapper) {
 		this.base_wrapper = wrapper;
@@ -380,6 +381,7 @@ RestaurantManage = class RestaurantManage {
 		this.#permissions = r.permissions;
 		this.#exceptions = r.exceptions;
 		this.#restrictions = r.restrictions;
+		this.#lang = r.lang;
 
 		if(r.pos.has_pos){
 			this.#pos_profile = r.pos.pos;
@@ -396,6 +398,7 @@ RestaurantManage = class RestaurantManage {
 	get restrictions() {return this.#restrictions}
 	get company() {return this.#company}
 	get components() {return this.#components}
+	get lang() {return this.#lang}
 
 	in_rooms(f){
 		this.rooms.forEach((room, index, rooms) => {

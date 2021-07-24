@@ -334,7 +334,7 @@ TableOrder = class TableOrder {
             RMHelper.return_main(
                 `${this.data.name} (${__("Divide Account")})`,
                 () => this.divide_account_modal.hide(),
-                this.divide_account_modal.title_container()
+                this.divide_account_modal.title_container
             );
 
             RMHelper.default_button(
@@ -342,7 +342,7 @@ TableOrder = class TableOrder {
                 'ok',
                 () => this._divide(),
                 DOUBLE_CLICK,
-                this.divide_account_modal.buttons_container()
+                this.divide_account_modal.buttons_container
             ).show();
         }
 
@@ -516,7 +516,31 @@ TableOrder = class TableOrder {
     }
 
     print_account() {
-        window.open(`/api/method/frappe.utils.print_format.download_pdf?doctype=Table%20Order&name=${this.data.name}&format=Standard&no_letterhead=1&letterhead=No%20Letterhead&settings=%7B%7D&_lang=en`, '_blank');
+        let title = this.data.name + " (" + __("Account") + ")";
+        let order_manage = this.order_manage;
+        let props = {
+            model: "Table Order",
+            model_name: this.data.name,
+            from_server: true,
+            args: {
+                format: "Order Account",
+                _lang: RM.lang,
+                no_letterhead: RM.pos_profile.letter_head ? RM.pos_profile.letter_head : 1,
+                letterhead: RM.pos_profile.letter_head ? RM.pos_profile.letter_head : 'No%20Letterhead'
+            },
+            set_buttons: true,
+            is_pdf: true,
+            customize: true,
+            title: title
+        }
+
+        if(order_manage.print_modal){
+            order_manage.print_modal.set_props(props);
+            order_manage.print_modal.set_title(title);
+            order_manage.print_modal.reload().show();
+        }else{
+            order_manage.print_modal = new DeskModal(props);
+        }
     }
 
     edit() {

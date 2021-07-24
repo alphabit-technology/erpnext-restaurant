@@ -60,11 +60,11 @@ class RMHelperClass {
 
     default_full_modal(title, f) {
         return new DeskModal({
-            "full_page": true,
-            "customize": true,
-            "adjust_height": 25,
-            "title": title,
-            "call_back": () => {
+            full_page: true,
+            customize: true,
+            adjust_height: 25,
+            title: title,
+            call_back: () => {
                 setTimeout(f);
             }
         });

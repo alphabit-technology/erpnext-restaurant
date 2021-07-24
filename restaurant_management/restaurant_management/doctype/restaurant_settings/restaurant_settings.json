@@ -9,8 +9,10 @@
   "restricted_to_owner_table",
   "for_orders_section",
   "restricted_to_owner_order",
-  "column_break_8",
+  "section_break_12",
   "color",
+  "column_break_7",
+  "print_format",
   "section_break_11",
   "restaurant_permissions_info",
   "restaurant_permissions"
@@ -23,10 +25,6 @@
   },
   {
    "fieldname": "for_orders_section",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "column_break_8",
    "fieldtype": "Column Break"
   },
   {
@@ -59,13 +57,27 @@
   {
    "fieldname": "color",
    "fieldtype": "Color",
-   "label": "Color"
+   "label": "Restriction Color"
+  },
+  {
+   "fieldname": "section_break_12",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_7",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "print_format",
+   "fieldtype": "Link",
+   "label": "Print Format",
+   "options": "Print Format"
   }
  ],
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2021-05-11 08:29:43.133338",
+ "modified": "2021-07-23 17:31:16.232784",
  "modified_by": "Administrator",
  "module": "Restaurant Management",
  "name": "Restaurant Settings",

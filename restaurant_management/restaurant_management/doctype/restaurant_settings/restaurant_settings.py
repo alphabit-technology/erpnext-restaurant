@@ -26,8 +26,7 @@ class RestaurantSettings(Document):
             ),
             restrictions=restaurant_settings,
             exceptions=[item for item in restaurant_settings.restaurant_permissions if item.role_profile == profile],
-            geo_data=frappe.session,
-            test_data=frappe.get_doc("User", frappe.session.user)
+            lang=frappe.session.data.lang
         )
 
     @staticmethod
