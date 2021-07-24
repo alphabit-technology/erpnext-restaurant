@@ -177,8 +177,7 @@ class RestaurantObject(Document):
     def add_object(self, t="Table"):
         import random
 
-        objects_count = self.count_objects(t) + 1
-
+        objects_count = frappe.db.count("Restaurant Object", filters={"room": self.name})
         table = frappe.new_doc("Restaurant Object")
 
         zIndex = objects_count + 60

@@ -4,6 +4,7 @@ class RestaurantRoom {
         this.edit_form = null;
         this.data = data;
         this.tables = {};
+        this.max_z_index = 60;
         this.init_synchronize();
         this.render();
     }
@@ -176,14 +177,14 @@ class RestaurantRoom {
             method: "get_objects",
             args: {},
             always: (r) => {
-                this.make_tables(r.message);
+                this.make_objects(r.message);
                 RM.ready();
             },
             freeze: false
         });
     }
 
-    make_tables(tables = []) {
+    make_objects(tables = []) {
         let _tables = Object.keys(this.tables);
 
         tables.forEach((table) => {
@@ -214,8 +215,7 @@ class RestaurantRoom {
 
     set_z_index() {
         this.in_tables((table) => {
-            let max_z_index = RM.max_z_index;
-            RM.max_z_index = (max_z_index < table.get_z_index()) ? table.get_z_index() : max_z_index;
+            this.max_z_index += table.get_z_index();
         });
     }
 

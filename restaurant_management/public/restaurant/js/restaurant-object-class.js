@@ -171,11 +171,11 @@ RestaurantObject = class RestaurantObject {
         }
         let styleText = "";
 
-        this.data_style_keys.forEach((k) => {
-            this.data_style[k] = fix_prop(k);
-            if (k !== 'x' && k !== 'y') {
-                let prop = this.data_style[k];
-                styleText += k !== 'transform' ? (typeof prop != "undefined" ? `${k}:${prop};` : '') : '';
+        this.data_style_keys.forEach((prop) => {
+            this.data_style[prop] = fix_prop(prop);
+            if (prop !== 'x' && prop !== 'y') {
+                let prop_value = this.is_selected() && prop === 'z-index' ? this.room.max_z_index : this.data_style[prop];
+                styleText += prop !== 'transform' ? (typeof prop_value != "undefined" ? `${prop}:${prop_value};` : '') : '';
             }
         });
 
@@ -343,14 +343,14 @@ RestaurantObject = class RestaurantObject {
             this.unselect();
         } else {
             this.room.set_z_index();
-            this.obj.css("z-index", parseInt(RM.max_z_index) + 1);
+            this.obj.css("z-index", parseInt(this.room.max_z_index) + 1);
             this.obj.toggle_common('d-table', 'selected');
         }
     }
 
     set_z_index() {
         this.room.set_z_index();
-        this.data_style['z-index'] = (parseInt(RM.max_z_index) + 1);
+        this.data_style['z-index'] = (parseInt(this.room.max_z_index) + 1);
         this.obj.css("z-index", this.data_style['z-index']);
     }
 

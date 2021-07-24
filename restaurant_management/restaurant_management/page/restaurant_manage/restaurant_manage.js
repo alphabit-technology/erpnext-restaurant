@@ -435,7 +435,6 @@ RestaurantManage = class RestaurantManage {
 		}
 
 		frappe.realtime.on("synchronize_order_data", (r) => {
-			console.log(r)
 			let data = r.data;
 			let order = data.order;
 
