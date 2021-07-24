@@ -310,11 +310,12 @@ class TableOrder(Document):
                 "You cannot modify an order from another User"
             )
 
+        status = frappe.db.get_value("Order Entry Item", {'identifier': item}, "status")
         frappe.db.delete('Order Entry Item', {'identifier': item})
         self.db_commit()
 
-        if synchronize:
-            self.synchronize(dict(action='queue', item_removed=item))
+        if synchronize and frappe.db.count("Order Entry Item", {"identifier": item}) == 0:
+            self.synchronize(dict(action='queue', item_removed=item, status=[status]))
 
     def db_commit(self):
         frappe.db.commit()

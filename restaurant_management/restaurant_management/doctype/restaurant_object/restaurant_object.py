@@ -7,8 +7,6 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 
-from restaurant_management.restaurant_management.page.restaurant_manage.restaurant_manage import debug_data
-
 
 class RestaurantObject(Document):
     @property
@@ -334,16 +332,7 @@ class RestaurantObject(Document):
 
     @property
     def _delete(self):
-        #name = self.name
         self.delete()
-        #return
-        ##if frappe.db.count("Restaurant Object", filters={"name": name}) == 0:
-        #    frappe.publish_realtime(name, dict(
-        #        action="Delete"
-        ##    ))
-        # #   return True
-        #else:
-        #    return False
 
 
 def load_json(data):
