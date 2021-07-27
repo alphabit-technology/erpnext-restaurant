@@ -2,7 +2,6 @@ PayForm = class PayForm {
     constructor(options) {
         Object.assign(this, options);
         this.modal = null;
-        this.print_modal = null;
         this.button_payment = null;
         this.num_pad = undefined;
         this.payment_methods = {};
@@ -66,7 +65,7 @@ PayForm = class PayForm {
     make_inputs() {
         let payment_methods = "";
         RM.pos_profile.payments.forEach((mode_of_payment) => {
-            this.payment_methods[mode_of_payment.mode_of_payment] = new JSHtml({
+            this.payment_methods[mode_of_payment.mode_of_payment] = frappe.jshtml({
                 tag: "input",
                 properties: {
                     type: "text",
@@ -92,7 +91,7 @@ PayForm = class PayForm {
         });
         $(this.wrapper_form.payment_methods.wrapper).empty().append(payment_methods);
 
-        this.dinners = new JSHtml({
+        this.dinners = frappe.jshtml({
             tag: "input",
             properties: {
                 type: "text",
@@ -122,7 +121,7 @@ PayForm = class PayForm {
     }
 
     make_payment_button() {
-        this.button_payment = new JSHtml({
+        this.button_payment = frappe.jshtml({
             tag: "button",
             wrapper: this.wrapper_form.payment_button.wrapper,
             properties: {
@@ -130,23 +129,23 @@ PayForm = class PayForm {
                 class: `btn btn-primary btn-lg btn-flat`,
                 style: "width: 100%; height: 60px;"
             },
-            content: `<span style="font-size: 25px; font-weight: 400">{{text}} ${this.order.total_money()}</span>`,
+            content: `<span style="font-size: 25px; font-weight: 400">{{text}} ${this.order.total_money}</span>`,
             text: `${__("Pay")}`
         }).on("click", () => {
-            if (!RM.can_pay()) return;
+            if (!RM.can_pay) return;
             this.button_payment.disable().val(__("Paying"));
             this.send_payment();
-        }, DOUBLE_CLICK);
+        }, DOUBLE_CLICK).prop("disabled", !RM.can_pay);
 
-        setTimeout(() => {
-            if (!RM.can_pay()) this.button_payment.disable();
-        }, 0);
+        /*setTimeout(() => {
+            if (!RM.can_pay) this.button_payment.disable();
+        }, 0);*/
     }
 
-    get_payments_values() {
+    get payments_values() {
         let payment_values = {};
         RM.pos_profile.payments.forEach((mode_of_payment) => {
-            let value = this.payment_methods[mode_of_payment.mode_of_payment].float_val();
+            let value = this.payment_methods[mode_of_payment.mode_of_payment].float_val;
             if (value > 0) {
                 payment_values[mode_of_payment.mode_of_payment] = value;
             }
@@ -162,7 +161,7 @@ PayForm = class PayForm {
 
     reset_payment_button() {
         RM.ready();
-        if (!RM.can_pay()) {
+        if (!RM.can_pay) {
             this.button_payment.disable();
             return;
         }
@@ -180,9 +179,9 @@ PayForm = class PayForm {
             name: this.order.data.name,
             method: "make_invoice",
             args: {
-                mode_of_payment: this.get_payments_values(),
+                mode_of_payment: this.payments_values,
                 customer: this.form.form.get_value("customer"),
-                dinners: this.dinners.float_val()
+                dinners: this.dinners.float_val
             },
             always: (r) => {
                 RM.ready();
@@ -229,8 +228,6 @@ PayForm = class PayForm {
         }else{
             order_manage.print_modal = new DeskModal(props);
         }
-
-        //window.open(`/api/method/frappe.utils.print_format.download_pdf?doctype=Sales%20Invoice&name=${invoice_name}&format=${RM.pos_profile.print_format_for_online}&no_letterhead=1&letterhead=No%20Letterhead&settings=%7B%7D&_lang=en`, '_blank');
     }
 
     update_paid_value() {
@@ -238,11 +235,11 @@ PayForm = class PayForm {
 
         setTimeout(() => {
             Object.keys(this.payment_methods).forEach((payment_method) => {
-                total += this.payment_methods[payment_method].float_val();
+                total += this.payment_methods[payment_method].float_val;
             })
 
             this.form.form.set_value("total_payment", total);
-            this.form.form.set_value("change_amount", (total - this.order.amount()));
+            this.form.form.set_value("change_amount", (total - this.order.amount));
         }, 0);
     }
 }

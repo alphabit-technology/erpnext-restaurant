@@ -109,7 +109,7 @@ OrderManage = class OrderManage {
     }
 
     make_dom() {
-        this.empty_carts = new JSHtml({
+        this.empty_carts = frappe.jshtml({
             tag: 'div',
             content: RMHelper.no_data('No added items'),
             properties: {
@@ -118,7 +118,7 @@ OrderManage = class OrderManage {
             }
         });
 
-        this.not_selected_order = new JSHtml({
+        this.not_selected_order = frappe.jshtml({
             tag: 'div',
             properties: {class: "no-order-message"},
             content: RMHelper.no_data('Select or create an Order')
@@ -131,7 +131,7 @@ OrderManage = class OrderManage {
         this.#components.delete = RMHelper.default_button("Delete", 'trash', () => this.delete_current_order(), DOUBLE_CLICK);
 
         this.modal.title_container.empty().append(
-            RMHelper.return_main(this.title, () => this.modal.hide()).html()
+            RMHelper.return_main_button(this.title, () => this.modal.hide()).html()
         )
 
         this.modal.buttons_container.prepend(`
@@ -202,10 +202,8 @@ OrderManage = class OrderManage {
                 content: '<span class="fa fa-minus">',
                 on: {
                     'click': () => {
-                        if (typeof this.num_pad.input != "undefined") {
-                            if (!this.num_pad.input.is_disabled()) {
-                                this.num_pad.input.minus();
-                            }
+                        if (this.num_pad.input && !this.num_pad.input.is_disabled) {
+                            this.num_pad.input.minus();
                         }
                     }
                 }
@@ -247,10 +245,8 @@ OrderManage = class OrderManage {
                 content: '<span class="fa fa-plus">',
                 on: {
                     'click': () => {
-                        if (typeof this.num_pad.input != "undefined") {
-                            if (!this.num_pad.input.is_disabled()) {
-                                this.num_pad.input.plus();
-                            }
+                        if (this.num_pad.input && !this.num_pad.input.is_disabled) {
+                            this.num_pad.input.plus();
                         }
                     }
                 }
@@ -262,11 +258,14 @@ OrderManage = class OrderManage {
                 content: '<span class="fa fa-trash">',
                 on: {
                     'click': () => {
-                        if (RM.check_permissions("pos", null, "delete")) {
-                            if (this.current_order != null && this.current_order.current_item != null)
-                                this.current_order.current_item.delete();
-                        } else {
-                            frappe.msgprint(__("You do not have permissions to delete Items"));
+                        let current_item =  this.current_order ? this.current_order.current_item : null;
+
+                        if (current_item != null){
+                            if(current_item.is_enabled_to_delete){
+                                current_item.delete();
+                            }else{
+                                frappe.msgprint(__("You do not have permissions to delete Items"));
+                            }
                         }
                     }
                 }
@@ -287,7 +286,7 @@ OrderManage = class OrderManage {
         objs.forEach((element, index) => {
             base_html += `<td class='${this.table_name}-${index}'>`;
 
-            this.#objects[element.name] = new JSHtml({
+            this.#objects[element.name] = frappe.jshtml({
                 tag: element.tag,
                 properties: element.properties,
                 content: (typeof element.content != "undefined" ? element.content : "")
@@ -322,7 +321,7 @@ OrderManage = class OrderManage {
 
         if (this.current_order != null && this.current_order.current_item != null) {
             let current_item = this.current_order.current_item;
-            if (!current_item.is_enabled_to_edit()) {
+            if (!current_item.is_enabled_to_edit) {
                 return;
             }
 
@@ -332,7 +331,7 @@ OrderManage = class OrderManage {
             let base_rate = parseFloat(current_item.data.price_list_rate);
 
             if (input.properties.name === "qty") {
-                if (input.val() === 0 && RM.check_permissions("pos", null, "delete")) {
+                if (input.val() === 0 && current_item.is_enabled_to_delete) {
                     frappe.msgprint(__("You do not have permissions to delete Items"));
                     current_item.select();
                     return;
@@ -433,7 +432,7 @@ OrderManage = class OrderManage {
 
             row[0].forEach((col) => {
                 col.props.class += ` ${default_class}-${col.name}`;
-                this.#components[col.name] = new JSHtml({
+                this.#components[col.name] = frappe.jshtml({
                     tag: "td",
                     properties: col.props,
                     content: "{{text}}" + (typeof col.content == "undefined" ? "" : col.content),
@@ -463,7 +462,7 @@ OrderManage = class OrderManage {
             this.num_pad = new NumPad({
                 wrapper: this.components.Pad.obj,
                 on_enter: () => {
-                    if (this.num_pad.input != null && !this.num_pad.input.is_disabled()) {
+                    if (this.num_pad.input && !this.num_pad.input.is_disabled) {
                         this.update_detail(this.num_pad.input);
                     }
                 }
@@ -474,8 +473,8 @@ OrderManage = class OrderManage {
         }, 0);
     }
 
-    is_same_order(order) {
-        return this.current_order != null && this.current_order.data.name === order.data.name;
+    is_same_order(order = null) {
+        return this.current_order && order && this.current_order.data.name === order.data.name;
     }
 
     no_order_message() {
@@ -529,7 +528,7 @@ OrderManage = class OrderManage {
                 }
             } else {
                 this.#components.delete.disable().hide();
-                this.#components.Pay.prop("disabled", !RM.can_pay());
+                this.#components.Pay.prop("disabled", !RM.can_pay);
             }
 
             if (RM.check_permissions("order", this.current_order, "write")) {
@@ -576,7 +575,7 @@ OrderManage = class OrderManage {
         }
         let pos_profile = RM.pos_profile
         let data = item.data;
-        let item_is_enabled_to_edit = item.is_enabled_to_edit();
+        let item_is_enabled_to_edit = item.is_enabled_to_edit;
 
         objects.Qty.prop(
             "disabled", !item_is_enabled_to_edit
@@ -589,7 +588,7 @@ OrderManage = class OrderManage {
         ).val(data.rate, false);
         objects.Minus.prop("disabled", !item_is_enabled_to_edit);
         objects.Plus.prop("disabled", !item_is_enabled_to_edit);
-        objects.Trash.prop("disabled", !item.is_enabled_to_delete());
+        objects.Trash.prop("disabled", !item.is_enabled_to_delete);
     }
 
     make_items() {
@@ -641,7 +640,7 @@ OrderManage = class OrderManage {
     check_permissions_status() {
         this.is_enabled_to_open();
         this.in_orders(order => {
-            order.button.content = order.get_content();
+            order.button.content = order.content;
             order.button.css(
                 "color", RM.check_permissions('order', order, "write") ? "unset" : RM.restrictions.color
             ).val(order.data.items_count);
@@ -686,7 +685,7 @@ OrderManage = class OrderManage {
             }
         });
 
-        let new_order = new JSHtml({
+        let new_order = frappe.jshtml({
             tag: "button",
             properties: {
                 class: "btn btn-app btn-lg btn-order",
@@ -736,6 +735,7 @@ OrderManage = class OrderManage {
     clear_current_order() {
         this.#components.Tax.val(`${__("Tax")}: ${RM.format_currency(0)}`);
         this.#components.Total.val(`${__("Total")}: ${RM.format_currency(0)}`);
+        this.check_item_editor_status();
         if (this.current_order != null) {
             this.delete_order(this.current_order.data.name);
         }
@@ -745,8 +745,9 @@ OrderManage = class OrderManage {
         let order = this.get_order(order_name);
         if (order != null) {
             order.delete_items();
-            if (this.current_order != null && this.current_order.data.name === order.data.name) {
+            if (this.is_same_order(order)){
                 this.current_order = null;
+                this.clear_current_order();
             }
             delete this.orders[order_name];
             order.button.remove();

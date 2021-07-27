@@ -8,8 +8,8 @@ class FoodCommand {
     }
 
     render() {
-        if (this.rendered === false) {
-            this.action_button = new JSHtml({
+        if (!this.rendered) {
+            this.action_button = frappe.jshtml({
                 tag: "h5",
                 properties: {
                     class: `btn btn-default btn-flat btn-food-command`,
@@ -21,7 +21,7 @@ class FoodCommand {
                 this.execute();
             }, DOUBLE_CLICK)
 
-            this.status_label = new JSHtml({
+            this.status_label = frappe.jshtml({
                 tag: "h5",
                 properties: {
                     class: "btn btn-flat btn-food-command status-label",
@@ -30,17 +30,17 @@ class FoodCommand {
                 content: `<i class="${this.data.process_status_data.icon} pull-left status-label-icon"/> ${this.data.process_status_data.status_message}`,
             });
 
-            this.title = new JSHtml({
+            this.title = frappe.jshtml({
                 tag: "h5",
                 content: `${this.data.table_description} | ${this.data.short_name}`,
             });
 
-            this.item = new JSHtml({
+            this.item = frappe.jshtml({
                 tag: "article",
                 properties: {
                     class: "food-command-container"
                 },
-                content: this.template()
+                content: this.template
             });
 
             $(this.process_manage.command_container()).append(
@@ -57,17 +57,17 @@ class FoodCommand {
     }
 
     refresh_html() {
-        let ps = this.data.process_status_data;
+        let psd = this.data.process_status_data;
         this.update_title();
-        this.detail.val(this.detail_html());
-        this.action_button.val(ps.next_action_message);
+        this.detail.val(this.html_detail);
+        this.action_button.val(psd.next_action_message);
 
         this.show_notes();
 
         this.status_label.val(
-            `<i class="${ps.icon} pull-left" style="font-size: 22px"/> ${ps.status_message}`
+            `<i class="${psd.icon} pull-left" style="font-size: 22px"/> ${psd.status_message}`
         ).css([
-            {prop: "background-color", value: ps.color}
+            {prop: "background-color", value: psd.color}
         ]);
     }
 
@@ -102,7 +102,7 @@ class FoodCommand {
         });
     }
 
-    detail_html() {
+    get html_detail() {
         return `
 		<div class="row food-command-detail">
 			<div style="width: 30%; display: inline-block">
@@ -120,19 +120,19 @@ class FoodCommand {
 		`
     }
 
-    template() {
-        this.detail = new JSHtml({
+    get template() {
+        this.detail = frappe.jshtml({
             tag: "div",
             properties: {
                 class: "row food-command-detail"
             },
-            content: this.detail_html()
+            content: this.html_detail
         });
 
-        this.notes = new JSHtml({
+        this.notes = frappe.jshtml({
             tag: "div",
-            properties: {class: "row product-notes", style: "color: #313030; display: none;"},
-            content: '<h6 style="width: 100%; color: var(--red)">{{text}}</h6>',
+            properties: {class: "row product-notes", style: "display: none;"},
+            content: '<h6 style="width: 100%;">{{text}}</h6>',
             text: ""
         });
 

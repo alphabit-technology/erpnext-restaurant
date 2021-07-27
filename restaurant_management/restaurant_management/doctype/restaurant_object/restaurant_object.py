@@ -32,6 +32,7 @@ class RestaurantObject(Document):
     def validate_transaction(self, user=frappe.session.user):
         if self.current_user is None or self.current_user == "Administrator" or self.orders_count == 0:
             frappe.db.set_value("Restaurant Object", self.name, "current_user", user)
+            frappe.db.commit()
             self.reload()
             return True
 

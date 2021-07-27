@@ -4,7 +4,6 @@ class RestaurantRoom {
         this.edit_form = null;
         this.data = data;
         this.tables = {};
-        this.max_z_index = 60;
         this.init_synchronize();
         this.render();
     }
@@ -48,33 +47,33 @@ class RestaurantRoom {
         let dsy = this.obj_max_heigth;
         let dsx = this.obj_max_width;
 
-        if (dsx == null || (obj.absolute_width() > dsx.absolute_width())) {
+        if (dsx == null || (obj.absolute_width > dsx.absolute_width)) {
             this.obj_max_width = obj;
             dsx = obj;
         }
 
-        if (dsy == null || (obj.absolute_height() > dsy.absolute_height())) {
+        if (dsy == null || (obj.absolute_height > dsy.absolute_height)) {
             this.obj_max_heigth = obj;
             dsy = obj;
         }
 
         obj.room.tables_container.css([
-            {prop: 'min-width', value: (dsx.absolute_width() + 35) + 'px'},
-            {prop: 'min-height', value: dsy.absolute_height() + 'px'}
+            {prop: 'min-width', value: (dsx.absolute_width + 35) + 'px'},
+            {prop: 'min-height', value: dsy.absolute_height + 'px'}
         ]);
     }
 
     render() {
-        this.tables_container = new JSHtml({
+        this.tables_container = frappe.jshtml({
             tag: "div", properties: {class: "table-container"}
         }).on("click", () => {
             RM.unselect_all_tables();
         });
 
-        this.obj = new JSHtml({
+        this.obj = frappe.jshtml({
             tag: "div",
             properties: {class: "btn-default button room"},
-            content: this.template()
+            content: this.template
         }).on("click", () => {
             this.select();
         });
@@ -82,14 +81,14 @@ class RestaurantRoom {
         RM.floor_map.append(this.tables_container.html());
     }
 
-    template() {
-        this.indicator = new JSHtml({
+    get template() {
+        this.indicator = frappe.jshtml({
             tag: "span",
             properties: {class: `badge ${this.data.orders_count > 0 ? 'bg-yellow' : 'bg-none'}`},
             content: this.data.orders_count
         });
 
-        this.description = new JSHtml({
+        this.description = frappe.jshtml({
             tag: "span",
             content: this.data.description
         })
@@ -106,9 +105,10 @@ class RestaurantRoom {
 
     in_tables(f, condition = null) {
         Object.keys(this.tables).forEach((table) => {
-            if (typeof this.tables[table] != "undefined") {
-                if (condition == null || this.tables[table].data[condition.field] === condition.value) {
-                    f(this.tables[table], table, this.tables);
+            let t = this.tables[table];
+            if (typeof t != "undefined") {
+                if (condition == null || (condition.value === t.data[condition.field])) {
+                    f(t, table, this.tables);
                 }
             }
         });
@@ -187,7 +187,8 @@ class RestaurantRoom {
     make_objects(tables = []) {
         let _tables = Object.keys(this.tables);
 
-        tables.forEach((table) => {
+        tables.forEach((table, index) => {
+            table.index = index;
             if (_tables.includes(table.name)) {
                 this.tables[table.name].reset_data(table);
             } else {
@@ -210,12 +211,6 @@ class RestaurantRoom {
             always: () => {
                 RM.ready();
             }
-        });
-    }
-
-    set_z_index() {
-        this.in_tables((table) => {
-            this.max_z_index += table.get_z_index();
         });
     }
 

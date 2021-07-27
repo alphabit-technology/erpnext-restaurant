@@ -1,17 +1,5 @@
 let DOUBLE_CLICK = 'double_click';
 
-function scrollIfNeeded(element, container) {
-    if (element.offsetTop < container.scrollTop) {
-        container.scrollTop = element.offsetTop;
-    } else {
-        const offsetBottom = element.offsetTop + element.offsetHeight;
-        const scrollBottom = container.scrollTop + container.offsetHeight;
-        if (offsetBottom > scrollBottom) {
-            container.scrollTop = offsetBottom - container.offsetHeight;
-        }
-    }
-}
-
 class RMHelperClass {
     constructor() {
         this.icons = {
@@ -34,28 +22,24 @@ class RMHelperClass {
         </div>`
     }
 
-    return_main(title, f, wrapper = null) {
-        return new JSHtml({
+    return_main_button(title, f, wrapper = null) {
+        return frappe.jshtml({
             tag: "button",
             wrapper: wrapper,
             properties: {class: "btn btn-default btn-flat"},
             content: "<span class='fa fa-reply' style='padding-right: 5px'/> {{text}}",
             text: title
-        }).on("click", () => {
-            setTimeout(f);
-        });
+        }).on("click", () => f());
     }
 
     default_button(text, icon, f, method, wrapper = null) {
-        return new JSHtml({
+        return frappe.jshtml({
             tag: "button",
             wrapper: wrapper,
             properties: {class: "btn btn-default btn-flat", style: 'display: none;'},
             content: `${this.icons[icon]} {{text}}`,
             text: __(text)
-        }).on("click", () => {
-            setTimeout(f);
-        }, method);
+        }).on("click", () => f());
     }
 
     default_full_modal(title, f) {
@@ -64,9 +48,7 @@ class RMHelperClass {
             customize: true,
             adjust_height: 25,
             title: title,
-            call_back: () => {
-                setTimeout(f);
-            }
+            call_back: () => f()
         });
     }
 

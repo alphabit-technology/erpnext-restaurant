@@ -41,13 +41,13 @@ TableOrder = class TableOrder {
                 font_color = `color: ${RM.restrictions.color};`;
             }
 
-            this.button = new JSHtml({
+            this.button = frappe.jshtml({
                 tag: "button",
                 properties: {
                     class: "btn btn-app btn-lg btn-order",
                     style: `${font_color}; background-color: var(--fill_color)`
                 },
-                content: this.get_content(),
+                content: this.content,
                 text: this.data.items_count
             }).on("click", (obj, objHtml, event) => {
                 event.stopPropagation();
@@ -57,7 +57,7 @@ TableOrder = class TableOrder {
                 this.select();
             });
 
-            this.container = new JSHtml({
+            this.container = frappe.jshtml({
                 tag: "div",
                 properties: {style: "display: none;", class: `order-entry-container hide`},
                 wrapper: this.order_manage.order_entry_container()
@@ -67,7 +67,7 @@ TableOrder = class TableOrder {
         }, 0);
     }
 
-    get_content() {
+    get content() {
         let background_color = `background-color: ${RM.check_permissions("order", this, "write") ? '' : RM.restrictions.color};`;
         return `<span class='badge' style="${background_color}">{{text}}</span>${this.data.short_name}`;
     }
@@ -331,7 +331,7 @@ TableOrder = class TableOrder {
 
     make_divide_account() {
         if (this.divide_account_modal.set_buttons) {
-            RMHelper.return_main(
+            RMHelper.return_main_button(
                 `${this.data.name} (${__("Divide Account")})`,
                 () => this.divide_account_modal.hide(),
                 this.divide_account_modal.title_container
@@ -490,16 +490,16 @@ TableOrder = class TableOrder {
         });
     }
 
-    amount() {
+    get amount() {
         return isNaN(parseFloat(this.data.amount)) ? 0 : parseFloat(this.data.amount);
     }
 
-    total_money() {
-        return RM.format_currency(this.amount());
+    get total_money() {
+        return RM.format_currency(this.amount);
     }
 
     pay() {
-        if (RM.busy || !RM.can_pay()) return;
+        if (RM.busy || !RM.can_pay) return;
         if (RM.pos_profile == null) {
             frappe.msgprint(RM.not_has_pos_profile_message());
         } else if (RM.pos_profile.payments.length === 0) {

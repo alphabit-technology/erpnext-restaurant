@@ -9,13 +9,15 @@
     transition: background, background-color 300ms ease-in-out;
     border-radius: var(--table-border-radius);
     border: 1px solid var(--gray);
-
     touch-action: none;
     user-select: none;
-
-    /* This makes things *much* easier */
     box-sizing: border-box;
     position: absolute;
+}
+
+.restaurant-manage .floor-map .d-table.selected {
+    cursor: move !important;
+    z-index: 50;
 }
 
 .floor-map .d-table .resize-handle-container {
@@ -193,11 +195,6 @@
     -webkit-border-radius: 100px 100px 0;
     border-radius: 100px 100px 0 0;
     bottom: -1px;
-}
-
-.restaurant-manage .floor-map .d-table.selected {
-    cursor: move !important;
-    z-index: 50;
 }
 
 .pos .oe_hidden {

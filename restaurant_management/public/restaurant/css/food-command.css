@@ -1,6 +1,3 @@
-.process-manage{
-}
-
 article {
     display: block;
 }
@@ -23,25 +20,24 @@ article {
     text-align: center;
 }
 
-.food-command-container .food-command .food-command-title {
+.food-command-container .food-command-title {
     height: 40px;
     padding: 10px;
     background-color: var(--fill_color);
 }
 
-.food-command-container .food-command .food-command-detail {
+.food-command-container .food-command-detail {
     height: 70px;
     display: block;
     margin-top: 10px
 }
 
-.process-manage .food-command .product-notes {
-    background-color: orange;
-    padding-top: 5px;
-    color: red;
+.food-command-container .product-notes {
+    background-color: var(--bg-red);
+    padding: 5px;
 }
 
-.food-command-container .food-command .food-command-footer{
+.food-command-container .food-command-footer{
     position: absolute;
     bottom: -1px;
     height: 40px;
@@ -49,22 +45,22 @@ article {
     display: table;
 }
 
-.food-command-container .food-command .food-command-footer .btn-food-command {
+.food-command-container .btn-food-command {
     display: block !important;
     height: 40px;
     margin: 0;
 }
 
-.food-command-container .food-command .food-command-footer .btn-food-command.status-label {
+.food-command-container .btn-food-command.status-label {
     cursor: default !important;
     opacity: 1 !important;
     color: white;
 }
 
-.food-command-container .food-command .food-command-footer .status-label-icon {
+.food-command-container .status-label-icon {
     font-size: 20px;
 }
 
-.process-manage .food-command .product-notes.empty {
+.food-command-container .product-notes.empty {
     display: none !important;
 }

@@ -21,26 +21,30 @@ class OrderItem {
         this.row.hide();
     }
 
-    is_enabled_to_edit() {
+    get is_enabled_to_edit() {
         return (this.status_enabled_for_edit.includes(this.data.status)) &&
             RM.check_permissions("order", this.order, "write");
     }
 
-    is_enabled_to_delete() {
-        return (this.status_enabled_for_delete.includes(this.data.status)) &&
-            RM.check_permissions("order", this.order, "write");
+    get is_enabled_to_delete() {
+        return (
+            this.status_enabled_for_delete.includes(this.data.status)) &&
+            (
+                RM.check_permissions("order", this.order, "write")// &&
+                //RM.check_permissions("pos", null, "delete")
+            );
     }
 
     reset_html() {
         let ps = this.data.process_status_data;
         this.amount.val(RM.format_currency(this.data.amount));
-        this.detail.val(this.detail_html());
+        this.detail.val(this.html_detail);
         this.notes.val(this.data.notes);
         this.icon.val(`<i class="${ps.icon}" style="color: ${ps.color}"/>`);
     }
 
     delete() {
-        if (RM.busy_message() || !this.is_enabled_to_delete()) return;
+        if (RM.busy_message() || !this.is_enabled_to_delete) return;
         this.data.qty = 0;
         this.update(true);
     }
@@ -50,10 +54,10 @@ class OrderItem {
     }
 
     render() {
-        this.row = new JSHtml({
+        this.row = frappe.jshtml({
             tag: "li",
             properties: {class: "media event"},
-            content: this.template()
+            content: this.template
         }).on("click", () => {
             RM.pull_alert("left");
             this.select();
@@ -112,6 +116,11 @@ class OrderItem {
     }
 
     update(server = true) {
+        if(this.data.qty === 0 && !this.is_enabled_to_delete){
+            frappe.msgprint(__("You do not have permissions to delete Items"));
+            return;
+        }
+
         if (this.data.qty === 0) {
             //this.order.delete_item(this.data.identifier);
         } else {
@@ -120,6 +129,8 @@ class OrderItem {
         }
         this.order.aggregate(true);
         if (!server) return;
+
+
 
         RM.working("Update Item", false);
         window.saving = true;
@@ -149,15 +160,15 @@ class OrderItem {
         this.data.amount = (base_amount + tax_amount);
     }
 
-    template() {
-        let ps = this.data.process_status_data;
-        this.icon = new JSHtml({
+    get template() {
+        let psd = this.data.process_status_data;
+        this.icon = frappe.jshtml({
             tag: "a",
             properties: {class: "pull-left border-aero profile_thumb"},
-            content: `<i class="${ps.icon}" style="color: ${ps.color}"/>`
+            content: `<i class="${psd.icon}" style="color: ${psd.color}"/>`
         });
 
-        this.edit_note_button = new JSHtml({
+        this.edit_note_button = frappe.jshtml({
             tag: "a",
             properties: {
                 class: "edit-note pull-right",
@@ -166,18 +177,18 @@ class OrderItem {
             content: `<i class="fa fa-pencil"/> ${__("Notes")}`
         });
 
-        this.notes = new JSHtml({
+        this.notes = frappe.jshtml({
             tag: "small",
             properties: {class: "notes"},
             content: (typeof this.data.notes == "object" ? "" : this.data.notes)
         });
 
-        this.detail = new JSHtml({
+        this.detail = frappe.jshtml({
             tag: "p",
-            content: this.detail_html()
+            content: this.html_detail
         });
 
-        this.amount = new JSHtml({
+        this.amount = frappe.jshtml({
             tag: 'a',
             properties: {class: 'pull-right'},
             content: RM.format_currency(this.data.amount)
@@ -203,7 +214,7 @@ class OrderItem {
 		</div>`
     }
 
-    detail_html() {
+    get html_detail() {
         let discount_data = '';
         if (this.data.discount_percentage) {
             discount_data = `

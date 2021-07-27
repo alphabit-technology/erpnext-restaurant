@@ -209,7 +209,7 @@ class ProductItem {
         const {item_code, item_name, item_image} = item;
         const item_title = item_name || item_code;
 
-        return new JSHtml({
+        return frappe.jshtml({
             tag: "article",
             properties: {class: "pos-item-wrapper product non-selectable"},
             content: template()

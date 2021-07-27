@@ -87,7 +87,7 @@ RestaurantManage = class RestaurantManage {
 			() => this.prepare_dom(),
 			() => {
 				this.working("Set settings");
-				this.get_settings_data().then(() => {
+				this.settings_data.then(() => {
 					this.make_rooms().then(() => {
 						setTimeout(() => {
 							this.check_permissions_status();
@@ -112,44 +112,44 @@ RestaurantManage = class RestaurantManage {
 
 	raise_exception_for_pos_profile() {
 		if($(this.base_wrapper).is(":visible")){
-			frappe.throw(this.not_has_pos_profile_message());
+			frappe.throw(this.not_has_pos_profile_message);
 		}
 	}
 
-	not_has_pos_profile_message(){
+	get not_has_pos_profile_message(){
 		return __("POS Profile is required to use Point-of-Sale");
 	}
 
 	prepare_dom() {
 		let self = this;
-		this.rooms_container = new JSHtml({
+		this.rooms_container = frappe.jshtml({
 			tag: "div",
 			properties: {
 				style: "display: flex; width: 100%"
 			}
 		});
 
-		this.floor_map = new JSHtml({
+		this.floor_map = frappe.jshtml({
 			tag: "div", properties: {class: "table-container-scroll"}
 		}).on("click", () => {
 			RM.unselect_all_tables();
 		});
 
-		this.#components.add_table = new JSHtml({
+		this.#components.add_table = frappe.jshtml({
 			tag: "button", properties: {class: "btn btn-default btn-flat"},
 			content: `<span class="fa fa-plus"/> ${__("Table")}</span>`
 		}).on("click", () => {
 			this.add_object("Table");
 		});
 
-		this.#components.add_production_center = new JSHtml({
+		this.#components.add_production_center = frappe.jshtml({
 			tag: "button", properties: {class: "btn btn-default btn-flat"},
 			content: `<span class="fa fa-plus"/> ${__("P Center")}</span>`
 		}).on("click", () => {
 			this.add_object("Production Center");
 		});
 
-		this.#components.edit_room = new JSHtml({
+		this.#components.edit_room = frappe.jshtml({
 			tag: "button",
 			properties: {class: "btn btn-default btn-flat"},
 			content: `<span class="fa fa-pencil"/> ${__("Edit")}</span>`
@@ -157,7 +157,7 @@ RestaurantManage = class RestaurantManage {
 			if(this.current_room != null) this.current_room.edit();
 		});
 
-		this.#components.delete_room = new JSHtml({
+		this.#components.delete_room = frappe.jshtml({
 			tag: "button",
 			properties: {class: "btn btn-default btn-flat"},
 			content: `<span class="fa fa-trash"/> {{text}}</span>`,
@@ -166,7 +166,7 @@ RestaurantManage = class RestaurantManage {
 			if(this.current_room != null) this.current_room.delete();
 		}, DOUBLE_CLICK);
 
-		this.general_edit_button = new JSHtml({
+		this.general_edit_button = frappe.jshtml({
 			tag: "div",
 			properties: {
 				class: 'btn-default button general-editor-button'
@@ -176,7 +176,7 @@ RestaurantManage = class RestaurantManage {
 			this.set_edit_status();
 		});
 
-		this.add_room_button = new JSHtml({
+		this.add_room_button = frappe.jshtml({
 			tag: "div",
 			properties: {
 				class: 'btn-default button general-editor-button add-room'
@@ -186,7 +186,7 @@ RestaurantManage = class RestaurantManage {
 			this.add_object("Room");
 		});
 
-		this.setting_button = new JSHtml({
+		this.setting_button = frappe.jshtml({
 			tag: "div",
 			properties: {
 				class: `btn-default button general-editor-button setting`,
@@ -197,7 +197,7 @@ RestaurantManage = class RestaurantManage {
 
 		});
 
-		this.close_pos_button = new JSHtml({
+		this.close_pos_button = frappe.jshtml({
 			tag: "a",
 			content: ' (' + __('Close') + ' <span class="fa fa-sign-out"></span>)'
 		}).on("click", () => {
@@ -209,7 +209,7 @@ RestaurantManage = class RestaurantManage {
 			);
 		});
 
-		this.pos_profile_description = new JSHtml({
+		this.pos_profile_description = frappe.jshtml({
 			tag: "span",
 			properties: {
 				class: 'pos-profile'
@@ -298,10 +298,10 @@ RestaurantManage = class RestaurantManage {
 
 			if(current === false){
 				if (this.current_room == null) {
-					if(RM.object(this.get_room_from_url()) == null){
+					if(RM.object(this.room_from_url) == null){
 						room_from_url = rooms[0].name;
 					}else{
-						room_from_url = this.get_room_from_url();
+						room_from_url = this.room_from_url;
 					}
 				}else{
 					room_from_url = this.current_room.data.name;
@@ -319,55 +319,7 @@ RestaurantManage = class RestaurantManage {
 		}, 0);
 	}
 
-	/*validate(options=[], data){
-		let response = true;
-
-		let _throw = (message) => {
-			response = false;
-			frappe.msgprint(__(message));
-		}
-
-		let _validate = (structure, type, err_message) => {
-			if ((data != null || typeof data === type) && Object.keys(structure).every(elem => Object.keys(data).includes(elem))) {
-				Object.keys(structure).forEach(k => {
-					if (typeof structure[k] !== typeof data[k]) {
-						_throw();
-					}
-				});
-			} else {
-				_throw(err_message);
-			}
-		}
-
-		let validations = {
-			pos_profile: () => {
-				const base_structure = {"applicable_for_users": [], "payments": [], "item_groups": [], "customer_groups": []};
-				_validate(base_structure, "object", "Your pos profile data is invalid");
-			},
-			permissions: () => {
-				const base_structure = {"invoice": {}, "order": {}, "restaurant_object": {}};
-				_validate(base_structure, "object", "Your permissions data is invalid");
-			},
-			exceptions: () => {
-				const base_structure = [];
-				_validate(base_structure, "object", "Your exceptions data is invalid");
-			},
-			restrictions: () => {
-				const base_structure = {restaurant_permissions: []};
-				_validate(base_structure, "object", "Your exceptions data is invalid");
-			},
-		};
-
-		options.forEach(validation => {
-			if(Object.keys(validations).includes(validation)){
-				validations[validation]();
-			}
-		});
-
-		return response;
-	}*/
-
-	get_settings_data() {
+	get settings_data() {
 		return new Promise(res => {
 			frappe.xcall(this.url_manage + "get_settings_data", {}).then((r) => {
 				this.set_settings_data(r);
@@ -481,7 +433,7 @@ RestaurantManage = class RestaurantManage {
 		});
 
 		frappe.realtime.on("update_settings", () => {
-			this.get_settings_data().then(() => {
+			this.settings_data.then(() => {
 				this.check_permissions_status();
 			});
 		});
@@ -502,8 +454,8 @@ RestaurantManage = class RestaurantManage {
 	}
 
 	check_permissions_status(){
-		this.in_rooms((room) => {
-			room.in_tables((Table) => {
+		this.in_rooms((Room) => {
+			Room.in_tables((Table) => {
 				if(Table.order_manage != null){
 					Table.order_manage.check_permissions_status();
 				}
@@ -561,7 +513,7 @@ RestaurantManage = class RestaurantManage {
 		});
 	}
 
-	get_room_from_url(){
+	get room_from_url(){
 		return frappe.urllib.get_arg("restaurant_room");
 	}
 
@@ -709,12 +661,12 @@ RestaurantManage = class RestaurantManage {
 		return r;
 	}
 
-	can_pay(){
+	get can_pay(){
 		return this.check_permissions("invoice", null, "create");
 	}
 
 	can_open_order_manage(table){
-		if(frappe.session.user === "Administrator" || this.can_pay()) return true;
+		if(frappe.session.user === "Administrator" || this.can_pay) return true;
 
 		if(table.data.current_user !== frappe.session.user && table.data.orders_count > 0){
 			if(this.restrictions.restricted_to_owner_table){
