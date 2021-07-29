@@ -352,6 +352,12 @@ OrderManage = class OrderManage {
 
     make_pad() {
         const default_class = `pad-col ${this.table_name}`;
+        this.orders_count_badge = frappe.jshtml({
+            tag: 'span',
+            properties: {class: 'badge', style: 'font-size: 12px'},
+            content: "{{text}}",
+            text: 0
+        });
 
         let num_pads_components = [
             [
@@ -536,11 +542,17 @@ OrderManage = class OrderManage {
                     this.#components.Order.enable().add_class("btn-danger").val(__("Add"));
                 } else {
                     let orders_count = this.current_order.data.products_not_ordered;
+                    this.#components.Order.reset_confirm();
+
                     if (orders_count > 0) {
-                        this.#components.Order.enable().remove_class("btn-danger").add_class("btn-success")
-                            .val(`${__('Order')}<span class="badge" style="font-size: 12px">${orders_count}</span>`);
+                        this.orders_count_badge.val(""+orders_count+"");
+                        this.#components.Order.set_content(
+                            `<span class="fa fa-cutlery pull-right"/>${__('Order')}${this.orders_count_badge.html()}{{text}}`
+                        ).enable();
                     } else {
-                        this.#components.Order.val(__("Order")).disable();
+                        this.#components.Order.set_content(
+                            `<span class="fa fa-cutlery pull-right"/>${__('Order')}{{text}}`
+                        ).disable();
                     }
                 }
 
