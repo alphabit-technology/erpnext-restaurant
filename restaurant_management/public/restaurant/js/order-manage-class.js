@@ -582,7 +582,7 @@ OrderManage = class OrderManage {
     }
 
     check_item_editor_status(item = null) {
-        /**item OrderItem class**/
+        /** item OrderItem class **/
         let objects = this.#objects;
         if (item == null) {
             this.empty_inputs();
