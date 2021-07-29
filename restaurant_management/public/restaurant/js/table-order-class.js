@@ -49,8 +49,7 @@ TableOrder = class TableOrder {
                 },
                 content: this.content,
                 text: this.data.items_count
-            }).on("click", (obj, objHtml, event) => {
-                event.stopPropagation();
+            }).on("click", () => {
                 if (RM.busy_message()) {
                     return;
                 }
@@ -359,6 +358,7 @@ TableOrder = class TableOrder {
             Object.keys(adds).forEach((key) => {
                 let add = adds[key];
                 add.addEventListener("click", (event) => {
+                    event.preventDefault();
                     event.stopPropagation();
 
                     if (item.in_current_order > 0) {
@@ -382,6 +382,7 @@ TableOrder = class TableOrder {
             Object.keys(all_minus).forEach((key) => {
                 let minus = all_minus[key];
                 minus.addEventListener("click", (event) => {
+                    event.preventDefault();
                     event.stopPropagation();
                     if (item.in_new_order > 0) {
                         item.in_current_order++;

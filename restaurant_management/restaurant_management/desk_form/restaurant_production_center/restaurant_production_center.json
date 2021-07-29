@@ -9,7 +9,7 @@
  "amount": 0.0,
  "amount_based_on_field": 0,
  "button_label": "Save",
- "creation": "2021-07-16 19:25:11.550450",
+ "creation": "2021-07-23 18:06:59.197671",
  "currency": "HNL",
  "desk_form_fields": [
   {
@@ -38,19 +38,6 @@
   },
   {
    "allow_read_on_all_link_options": 1,
-   "fieldname": "room",
-   "fieldtype": "Link",
-   "hidden": 0,
-   "label": "Room",
-   "max_length": 0,
-   "max_value": 0,
-   "options": "Restaurant Object",
-   "read_only": 0,
-   "reqd": 0,
-   "show_in_filter": 0
-  },
-  {
-   "allow_read_on_all_link_options": 1,
    "fieldname": "room_description",
    "fieldtype": "Read Only",
    "hidden": 0,
@@ -59,6 +46,19 @@
    "max_value": 0,
    "options": "Restaurant Object",
    "read_only": 1,
+   "reqd": 0,
+   "show_in_filter": 0
+  },
+  {
+   "allow_read_on_all_link_options": 1,
+   "fieldname": "room",
+   "fieldtype": "Link",
+   "hidden": 0,
+   "label": "Room",
+   "max_length": 0,
+   "max_value": 0,
+   "options": "Restaurant Object",
+   "read_only": 0,
    "reqd": 0,
    "show_in_filter": 0
   },
@@ -164,7 +164,7 @@
  "is_standard": 1,
  "login_required": 1,
  "max_attachment_size": 0,
- "modified": "2021-07-23 17:29:42.954628",
+ "modified": "2021-07-23 18:06:59.482246",
  "modified_by": "Administrator",
  "module": "Restaurant Management",
  "name": "restaurant-production-center",

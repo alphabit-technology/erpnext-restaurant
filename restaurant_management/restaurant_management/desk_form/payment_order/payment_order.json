@@ -9,7 +9,7 @@
  "amount": 0.0,
  "amount_based_on_field": 0,
  "button_label": "Save",
- "creation": "2021-07-16 19:25:11.668646",
+ "creation": "2021-07-23 18:06:59.345412",
  "currency": "HNL",
  "desk_form_fields": [
   {
@@ -181,7 +181,7 @@
  "is_standard": 1,
  "login_required": 1,
  "max_attachment_size": 0,
- "modified": "2021-07-23 17:29:43.139890",
+ "modified": "2021-07-23 18:06:59.610440",
  "modified_by": "Administrator",
  "module": "Restaurant Management",
  "name": "payment-order",

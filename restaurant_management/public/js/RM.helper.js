@@ -39,7 +39,7 @@ class RMHelperClass {
             properties: {class: "btn btn-default btn-flat", style: 'display: none;'},
             content: `${this.icons[icon]} {{text}}`,
             text: __(text)
-        }).on("click", () => f());
+        }).on("click", () => f(), method);
     }
 
     default_full_modal(title, f) {
