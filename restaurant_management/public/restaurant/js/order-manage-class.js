@@ -495,7 +495,14 @@ OrderManage = class OrderManage {
         });
     }
 
+    reset_order_button(){
+        this.#components.Order.set_content(
+            `<span class="fa fa-cutlery pull-right"/>${__('Order')}{{text}}`
+        ).reset_confirm();
+    }
+
     disable_components() {
+       this.reset_order_button();
         this.in_components((component, k) => {
             if (!["Pad", "Tax", "Total"].includes(k)) {
                 component.disable();
@@ -542,7 +549,6 @@ OrderManage = class OrderManage {
                     this.#components.Order.enable().add_class("btn-danger").val(__("Add"));
                 } else {
                     let orders_count = this.current_order.data.products_not_ordered;
-                    this.#components.Order.reset_confirm();
 
                     if (orders_count > 0) {
                         this.orders_count_badge.val(""+orders_count+"");
