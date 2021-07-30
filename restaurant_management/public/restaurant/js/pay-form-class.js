@@ -136,10 +136,6 @@ PayForm = class PayForm {
             this.button_payment.disable().val(__("Paying"));
             this.send_payment();
         }, DOUBLE_CLICK).prop("disabled", !RM.can_pay);
-
-        /*setTimeout(() => {
-            if (!RM.can_pay) this.button_payment.disable();
-        }, 0);*/
     }
 
     get payments_values() {

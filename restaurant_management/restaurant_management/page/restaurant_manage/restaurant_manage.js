@@ -100,7 +100,7 @@ RestaurantManage = class RestaurantManage {
 			},
 			() => this.page.set_title(__('Restaurant Manage')),
 			() => this.init_synchronize(),
-			() => this.page.$title_area.hide(),
+			() => this.page.$title_area.hide()
 		]);
 	}
 

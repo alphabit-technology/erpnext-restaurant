@@ -28,24 +28,16 @@ OrderManage = class OrderManage {
     get orders(){ return this.#orders}
     get numpad(){ return this.#numpad}
 
+    get container() {return document.getElementById(this.identifier);}
+    get order_container() {return document.getElementById(this.order_container_name);}
+    get order_entry_container() {return document.getElementById(this.order_entry_container_name);}
+
     init_synchronize() {
         frappe.realtime.on("pos_profile_update", () => {
             setTimeout(() => {
                 this.check_buttons_status();
             }, 0)
         });
-    }
-
-    get_container() {
-        return document.getElementById(this.identifier);
-    }
-
-    order_container() {
-        return document.getElementById(this.order_container_name);
-    }
-
-    order_entry_container() {
-        return document.getElementById(this.order_entry_container_name);
     }
 
     reload() {
@@ -533,7 +525,7 @@ OrderManage = class OrderManage {
         }
 
         if (this.current_order.data.status !== "Invoiced") {
-            if (this.current_order.items_count() === 0) {
+            if (this.current_order.items_count === 0) {
                 if (RM.check_permissions("order", this.current_order, "delete")) {
                     this.#components.delete.enable().show();
                 } else {
@@ -562,7 +554,7 @@ OrderManage = class OrderManage {
                     }
                 }
 
-                this.#components.Divide.prop("disabled", this.current_order.items_count() === 0);
+                this.#components.Divide.prop("disabled", this.current_order.items_count === 0);
                 this.#components.edit.enable().show();
                 this.#components.Transfer.enable();
             } else {
@@ -577,7 +569,7 @@ OrderManage = class OrderManage {
 
         this.#components.Account.prop(
             "disabled",
-            !RM.check_permissions("order", this.current_order, "print") || this.current_order.items_count() === 0
+            !RM.check_permissions("order", this.current_order, "print") || this.current_order.items_count === 0
         );
     }
 
@@ -715,7 +707,7 @@ OrderManage = class OrderManage {
         }, DOUBLE_CLICK);
 
         if (typeof this.components.new_order == "undefined") {
-            $(this.order_container()).prepend(new_order.html())
+            $(this.order_container).prepend(new_order.html());
         }
 
         this.#components.new_order = new_order;
@@ -775,14 +767,14 @@ OrderManage = class OrderManage {
         }
     }
 
-    order_status_message(from) {
+    order_status_message() {
         let container = $("#" + this.identifier);
         if (this.current_order == null) {
             container.removeClass("has-order");
             container.removeClass("has-items");
         } else {
             container.addClass("has-order");
-            if (this.current_order.items_count() === 0) {
+            if (this.current_order.items_count === 0) {
                 container.removeClass("has-items");
             } else {
                 container.addClass("has-items");

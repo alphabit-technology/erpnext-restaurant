@@ -59,7 +59,7 @@ TableOrder = class TableOrder {
             this.container = frappe.jshtml({
                 tag: "div",
                 properties: {style: "display: none;", class: `order-entry-container hide`},
-                wrapper: this.order_manage.order_entry_container()
+                wrapper: this.order_manage.order_entry_container
             });
 
             this.make_html();
@@ -104,7 +104,7 @@ TableOrder = class TableOrder {
     }
 
     make_html() {
-        $(this.order_manage.order_container()).append(`${this.button.html()}`)
+        $(this.order_manage.order_container).append(`${this.button.html()}`)
     }
 
     in_items(f) {
@@ -213,7 +213,7 @@ TableOrder = class TableOrder {
                 this.order_manage.check_buttons_status();
                 if (current_item == null) {
 
-                    if(this.items_count()){
+                    if(this.items_count){
                         this.select_first_item();
                     }else{
                         this.order_manage.check_item_editor_status();
@@ -238,7 +238,7 @@ TableOrder = class TableOrder {
         return typeof item == "undefined" ? null : item;
     }
 
-    items_count() {
+    get items_count() {
         return Object.keys(this.items).length;
     }
 
@@ -247,13 +247,13 @@ TableOrder = class TableOrder {
     }
 
     scroller() {
-        let order_entry_container = this.order_manage.order_entry_container();
+        let order_entry_container = this.order_manage.order_entry_container;
 
         let container_height = order_entry_container.offsetHeight;
-        let row_height = (container_height / this.items_count());
+        let row_height = (container_height / this.items_count);
         let position_row = (this.find_item_position(this.current_item) * row_height);
 
-        let container = $(this.order_manage.get_container()).find('.panel-order-items')[0];
+        let container = $(this.order_manage.container).find('.panel-order-items')[0];
         container.scrollTo({top: position_row, behavior: 'smooth'});
     }
 
