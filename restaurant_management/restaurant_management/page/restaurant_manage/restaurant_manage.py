@@ -104,10 +104,6 @@ def add_room(client=None):
         current_room=RestaurantManage().add_room().name,
         rooms=RestaurantManage().get_rooms()
     ))
-    #return {
-    #    "current_room": RestaurantManage().add_room().name,
-    #    "rooms": RestaurantManage().get_rooms()
-    #}
 
 
 @frappe.whitelist(allow_guest=True)
