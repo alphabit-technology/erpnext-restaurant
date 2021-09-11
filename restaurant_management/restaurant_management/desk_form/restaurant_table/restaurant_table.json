@@ -9,8 +9,8 @@
  "amount": 0.0,
  "amount_based_on_field": 0,
  "button_label": "Save",
- "creation": "2021-07-23 18:06:59.170254",
- "currency": "HNL",
+ "creation": "2021-09-10 15:26:35.290278",
+ "currency": "USD",
  "desk_form_fields": [
   {
    "allow_read_on_all_link_options": 1,
@@ -163,7 +163,7 @@
  "is_standard": 1,
  "login_required": 1,
  "max_attachment_size": 0,
- "modified": "2021-07-23 18:06:59.422887",
+ "modified": "2021-09-10 15:26:35.506589",
  "modified_by": "Administrator",
  "module": "Restaurant Management",
  "name": "restaurant-table",
