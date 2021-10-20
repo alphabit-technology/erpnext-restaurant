@@ -64,3 +64,13 @@ article {
 .food-command-container .product-notes.empty {
     display: none !important;
 }
+
+.food-command-container .alert-time {
+    animation: alerttime 2s linear infinite;
+}
+
+@keyframes alerttime {
+    50% {
+        opacity: 0.4;
+    }
+}

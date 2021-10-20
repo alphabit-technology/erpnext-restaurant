@@ -414,6 +414,8 @@ RestaurantObject = class RestaurantObject {
 
                 RM.current_process_manage = this.process_manage;
                 RM.object(this.process_manage.identifier, this.process_manage);
+
+                //console.log(RM.rooms)
             }, 0);
         }
     }

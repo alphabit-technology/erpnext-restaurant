@@ -1,12 +1,12 @@
-OrderManage = class OrderManage {
+OrderManage = class OrderManage extends ObjectManage {
     #objects = {};
     #components = {};
     #items = {};
-    #orders = {};
     #numpad = null;
 
     constructor(options) {
-        Object.assign(this, options);
+        super(options);
+
         this.modal = null;
         this.print_modal = null;
         this.current_order = null;
@@ -25,7 +25,7 @@ OrderManage = class OrderManage {
     get objects(){ return this.#objects}
     get components(){ return this.#components}
     get items(){ return this.#items}
-    get orders(){ return this.#orders}
+    get orders(){ return super.children}
     get numpad(){ return this.#numpad}
 
     get container() {return document.getElementById(this.identifier);}
@@ -509,18 +509,18 @@ OrderManage = class OrderManage {
         if (this.current_order == null) {
             this.disable_components();
             this.#components.new.enable().show();
-            if (typeof this.components.new_order != "undefined")
-                this.#components.new_order.enable().show();
+            if (typeof this.components.new_order_button != "undefined")
+                this.#components.new_order_button.enable().show();
             return;
         } else {
             if (RM.check_permissions("order", null, "create")) {
                 this.#components.new.enable().show();
-                if (typeof this.components.new_order != "undefined")
-                    this.#components.new_order.enable().show();
+                if (typeof this.components.new_order_button != "undefined")
+                    this.#components.new_order_button.enable().show();
             } else {
                 this.#components.new.disable().hide();
-                if (typeof this.components.new_order != "undefined")
-                    this.#components.new_order.disable().hide();
+                if (typeof this.components.new_order_button != "undefined")
+                    this.#components.new_order_button.disable().hide();
             }
         }
 
@@ -640,11 +640,9 @@ OrderManage = class OrderManage {
     }
 
     in_orders(f) {
-        let index = 0;
-        Object.keys(this.orders).forEach((k) => {
-            f(this.orders[k], k, index);
-            index++;
-        });
+        this.in_childs((child, key, index) => {
+            f(child, key, index);
+        })
     }
 
     check_permissions_status() {
@@ -662,40 +660,43 @@ OrderManage = class OrderManage {
     }
 
     check_data(data) {
-        let order = this.get_order(data.data.order.data.name);
-        if (order != null) {
-            if ([UPDATE, QUEUE, SPLIT].includes(data.action)) {
-                order.reset_data(data.data, data.action);
-            } else if ([DELETE, INVOICED, TRANSFER].includes(data.action)) {
-                this.delete_order(order.data.name);
+        const _data = data.data.order.data;
+        return super.append_child({
+            child: _data,
+            exist: o => {
+                if ([UPDATE, QUEUE, SPLIT].includes(data.action)) {
+                    o.reset_data(data.data, data.action);
+                } else if ([DELETE, INVOICED, TRANSFER].includes(data.action)) {
+                    this.delete_order(o.data.name);
+                }
+            },
+            not_exist: () => {
+                let new_order = new TableOrder({
+                    order_manage: this,
+                    data: Object.assign({}, _data)
+                });
+
+                if (RM.client === RM.request_client && new_order) {
+                    setTimeout(() => {
+                        new_order.select();
+                    }, 0);
+                }
+
+                return new_order;
             }
-        } else if ([ADD, TRANSFER].includes(data.action)) {
-            let new_order = this.append_order(data.data.order);
-            if (RM.client === RM.request_client) {
-                setTimeout(() => {
-                    new_order.select();
-                }, 0);
-            }
-        }
+        });
     }
 
     get_order(name) {
-        let order = this.orders[name];
-        return typeof order == "undefined" ? null : order;
+        return super.get_child(name);
     }
 
     make_orders(orders = [], current = null) {
-        let _orders = Object.keys(this.orders);
-
-        orders.forEach((order) => {
-            if (_orders.includes(order.name)) {
-                this.orders[order.name].data = order;
-            } else {
-                this.append_order(order, current);
-            }
+        orders.forEach(order => {
+            this.append_order(order, current);
         });
 
-        let new_order = frappe.jshtml({
+        let new_order_button = frappe.jshtml({
             tag: "button",
             properties: {
                 class: "btn btn-app btn-lg btn-order",
@@ -706,28 +707,30 @@ OrderManage = class OrderManage {
             this.add_order();
         }, DOUBLE_CLICK);
 
-        if (typeof this.components.new_order == "undefined") {
-            $(this.order_container).prepend(new_order.html());
+        if (typeof this.components.new_order_button == "undefined") {
+            $(this.order_container).prepend(new_order_button.html());
         }
 
-        this.#components.new_order = new_order;
+        this.#components.new_order_button = new_order_button;
     }
 
     append_order(order, current = null) {
-        let test_order = new TableOrder({
-            order_manage: this,
-            data: Object.assign({}, order.data)
+        return super.append_child({
+            child: order,
+            not_exist: () => {
+                return new TableOrder({
+                    order_manage: this,
+                    data: Object.assign({}, order.data)
+                });
+            },
+            always: o => {
+                if (current != null && current === o.data.name) {
+                    setTimeout(() => {
+                        o.select();
+                    }, 0);
+                }
+            }
         });
-
-        this.#orders[test_order.data.name] = test_order;
-
-        if (current != null && current === test_order.data.name) {
-            setTimeout(() => {
-                test_order.select();
-            }, 0);
-        }
-
-        return test_order;
     }
 
     delete_current_order() {
@@ -759,7 +762,8 @@ OrderManage = class OrderManage {
                 this.current_order = null;
                 this.clear_current_order();
             }
-            delete this.orders[order_name];
+            super.delete_child(order_name);
+
             order.button.remove();
             order.container.remove();
             this.check_buttons_status();

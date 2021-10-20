@@ -1,9 +1,10 @@
-class RestaurantRoom {
+class RestaurantRoom extends ObjectManage {
     constructor(data) {
+        super(data);
+
         this.identifier = data.identifier;
         this.edit_form = null;
         this.data = data;
-        this.tables = {};
         this.init_synchronize();
         this.render();
     }
@@ -15,11 +16,14 @@ class RestaurantRoom {
                 this.reset_html();
             } else if (data.action === ADD) {
                 if (this.data.name === RM.current_room.data.name) {
-                    this.append_table(data.table);
+                    this.append_table(data.table, true);
                 }
             } else if (data.action === DELETE) {
                 this.unselect_all_tables();
-                if (RM.current_room != null && RM.current_room.data.name === this.data.name) {
+                if (
+                    RM.current_room != null &&
+                    RM.current_room.data.name === this.data.name
+                ) {
                     RM.delete_current_room();
                 }
                 this.obj.remove();
@@ -30,53 +34,83 @@ class RestaurantRoom {
         });
     }
 
-    append_table(table) {
-        if (!Object.keys(this.tables).includes(table.identifier)) {
-            let t = new RestaurantObject(this, table);
-            if (RM.editing) {
-                setTimeout(() => {
-                    t.select();
-                    this.resize_container(t);
-                    this.tables[t.identifier] = t;
-                }, 0);
+    make_objects(tables = []) {
+        tables.forEach((table, index) => {
+            table.index = index;
+            
+            this.append_table(table);
+        });
+    }
+
+    append_table(table, adding = false) {
+        super.append_child({
+            child: table,
+            exist: t => {
+                t.reset_data(table);
+                if (!adding) t.show();
+            },
+            not_exist: () => {
+                return new RestaurantObject(this, table);
+            },
+            always: t => {
+                if (RM.editing && adding && t) {
+                    setTimeout(() => {
+                        t.select();
+                        this.resize_container(t);
+                    }, 0);
+                }
             }
-        }
+        });
     }
 
     resize_container(obj) {
         let dsy = this.obj_max_heigth;
         let dsx = this.obj_max_width;
 
-        if (dsx == null || (obj.absolute_width > dsx.absolute_width)) {
+        if (dsx == null || obj.absolute_width > dsx.absolute_width) {
             this.obj_max_width = obj;
             dsx = obj;
         }
 
-        if (dsy == null || (obj.absolute_height > dsy.absolute_height)) {
+        if (dsy == null || obj.absolute_height > dsy.absolute_height) {
             this.obj_max_heigth = obj;
             dsy = obj;
         }
 
-        obj.room.tables_container.css([
-            {prop: 'min-width', value: (dsx.absolute_width + 35) + 'px'},
-            {prop: 'min-height', value: dsy.absolute_height + 'px'}
+        obj.room.tables_container.css([{
+                prop: "min-width",
+                value: dsx.absolute_width + 35 + "px",
+            },
+            {
+                prop: "min-height",
+                value: dsy.absolute_height + "px",
+            },
         ]);
     }
 
     render() {
-        this.tables_container = frappe.jshtml({
-            tag: "div", properties: {class: "table-container"}
-        }).on("click", () => {
-            RM.unselect_all_tables();
-        });
+        this.tables_container = frappe
+            .jshtml({
+                tag: "div",
+                properties: {
+                    class: "table-container",
+                },
+            })
+            .on("click", () => {
+                RM.unselect_all_tables();
+            });
 
-        this.obj = frappe.jshtml({
-            tag: "div",
-            properties: {class: "btn-default button room"},
-            content: this.template
-        }).on("click", () => {
-            this.select();
-        });
+        this.obj = frappe
+            .jshtml({
+                tag: "div",
+                properties: {
+                    class: "btn-default button room",
+                },
+                content: this.template,
+            })
+            .on("click", () => {
+                this.select();
+            });
         RM.rooms_container.append(this.obj.html());
         RM.floor_map.append(this.tables_container.html());
     }
@@ -84,45 +118,44 @@ class RestaurantRoom {
     get template() {
         this.indicator = frappe.jshtml({
             tag: "span",
-            properties: {class: `badge ${this.data.orders_count > 0 ? 'bg-yellow' : 'bg-none'}`},
-            content: this.data.orders_count
+            properties: {
+                class: `badge ${this.data.orders_count > 0 ? "bg-yellow" : "bg-none"}`,
+            },
+            content: this.data.orders_count,
         });
 
         this.description = frappe.jshtml({
             tag: "span",
-            content: this.data.description
-        })
+            content: this.data.description,
+        });
 
-        return `<span class="fa"/> ${this.description.html()}${this.indicator.html()}`
+        return `<span class="fa"/> ${this.description.html()}${this.indicator.html()}`;
     }
 
     select() {
-        this.obj.toggle_common('button.room', 'active');
-        this.tables_container.toggle_common('table-container', 'active');
+        this.obj.toggle_common("button.room", "active");
+        this.tables_container.toggle_common("table-container", "active");
         RM.set_current_room(this);
         this.get_tables();
     }
 
     in_tables(f, condition = null) {
-        Object.keys(this.tables).forEach((table) => {
-            let t = this.tables[table];
-            if (typeof t != "undefined") {
-                if (condition == null || (condition.value === t.data[condition.field])) {
-                    f(t, table, this.tables);
-                }
+        super.in_childs((t, key) => {
+            if (condition == null || condition.value === t.data[condition.field]) {
+                f(t, key);
             }
         });
     }
 
     hide_tables() {
-        this.in_tables((table) => {
-            table.hide();
+        this.in_tables(t => {
+            t.hide();
         });
     }
 
     unselect_all_tables() {
-        this.in_tables((table) => {
-            table.unselect(true);
+        this.in_tables(t => {
+            t.unselect(true);
         });
     }
 
@@ -137,8 +170,10 @@ class RestaurantRoom {
                 },
                 title: __("Update Room"),
                 field_properties: {
-                    type: {read_only: true}
-                }
+                    type: {
+                        read_only: true,
+                    },
+                },
             });
         } else {
             this.edit_form.reload();
@@ -158,19 +193,19 @@ class RestaurantRoom {
             always: (r) => {
                 RM.ready();
             },
-            freeze: false
+            freeze: false,
         });
     }
 
     show_tables() {
-        this.in_tables((table) => {
-            table.show();
+        this.in_tables(t => {
+            t.show();
         });
     }
 
     get_tables() {
         RM.working("Loading Objects");
-        frappe.set_route(`/restaurant-manage?restaurant_room=${this.data.name}`)
+        frappe.set_route(`/restaurant-manage?restaurant_room=${this.data.name}`);
         frappeHelper.api.call({
             model: "Restaurant Object",
             name: this.data.name,
@@ -180,24 +215,7 @@ class RestaurantRoom {
                 this.make_objects(r.message);
                 RM.ready();
             },
-            freeze: false
-        });
-    }
-
-    make_objects(tables = []) {
-        let _tables = Object.keys(this.tables);
-
-        tables.forEach((table, index) => {
-            table.index = index;
-            if (_tables.includes(table.name)) {
-                this.tables[table.name].reset_data(table);
-            } else {
-                this.tables[table.name] = new RestaurantObject(this, table);
-            }
-            this.tables[table.name].show();
-            setTimeout(() => {
-                this.resize_container(this.tables[table.name]);
-            });
+            freeze: false,
         });
     }
 
@@ -207,10 +225,12 @@ class RestaurantRoom {
             model: "Restaurant Object",
             name: this.data.name,
             method: "add_object",
-            args: {t: t},
+            args: {
+                t: t,
+            },
             always: () => {
                 RM.ready();
-            }
+            },
         });
     }
 

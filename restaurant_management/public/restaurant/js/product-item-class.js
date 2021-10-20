@@ -245,6 +245,7 @@ class ProductItem {
             qty: 1,
             rate: item.price_list_rate,
             price_list_rate: item.price_list_rate,
+            ordered_time: null
         };
 
         if (this.order_manage.current_order != null) {

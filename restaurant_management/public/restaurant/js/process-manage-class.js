@@ -52,11 +52,11 @@ ProcessManage = class ProcessManage {
         return `
 		<div class=" process-manage">
 			<div id="${this.command_container_name}"></div>
-		</div>`
+		</div>`;
     }
 
     get_commands_food() {
-        RM.working("Load commands food")
+        RM.working("Load commands food");
         frappeHelper.api.call({
             model: "Restaurant Object",
             name: this.table.data.name,
@@ -88,6 +88,22 @@ ProcessManage = class ProcessManage {
         setTimeout(() => {
             this.debug_items();
         }, 100);
+
+        this.time_elapsed();
+    }
+
+    time_elapsed(){
+        setInterval(() => {
+            this.in_items(item => {
+                item.time_elapsed
+            });
+        }, 1000);
+    }
+
+    in_items(f){
+        Object.keys(this.items).forEach(k => {
+            f(this.items[k]);
+        })
     }
 
     check_items(items) {

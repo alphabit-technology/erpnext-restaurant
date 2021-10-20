@@ -3,6 +3,7 @@
 # For license information, please see license.txt
 
 from __future__ import unicode_literals
+from datetime import date
 import frappe
 from frappe import _
 from frappe.model.document import Document
@@ -241,7 +242,7 @@ class RestaurantObject(Document):
         }
 
         items = []
-        for entry in frappe.get_all("Order Entry Item", "*", filters=filters, order_by="creation"):
+        for entry in frappe.get_all("Order Entry Item", "*", filters=filters, order_by="ordered_time"):
             items.append(self.get_command_data(entry, last_status))
 
         return items
@@ -262,7 +263,7 @@ class RestaurantObject(Document):
             status=entry.status,
             last_status=las_status,
             notes=entry.notes,
-            creation=frappe.format_value(entry.creation, {"fieldtype": "Datetime"}),
+            ordered_time=entry.ordered_time or frappe.utils.now_datetime(),#frappe.format_value(entry.creation, {"fieldtype": "Datetime"}),
             process_status_data=self.process_status_data(entry)
         )
 

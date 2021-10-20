@@ -30,9 +30,22 @@ class FoodCommand {
                 content: `<i class="${this.data.process_status_data.icon} pull-left status-label-icon"/> ${this.data.process_status_data.status_message}`,
             });
 
+            this._time_elapsed = frappe.jshtml({
+                tag: "strong",
+                properties: {
+                    style: "font-size: 25px; left: 100%; position: sticky;"
+                },
+                content: ''
+            });
+
+            this.description = frappe.jshtml({
+                tag: "span",
+                content: `${this.data.table_description} | ${this.data.short_name}`,
+            });
+
             this.title = frappe.jshtml({
                 tag: "h5",
-                content: `${this.data.table_description} | ${this.data.short_name}`,
+                content: `${this.description.html()} ${this._time_elapsed.html()}`,
             });
 
             this.item = frappe.jshtml({
@@ -49,11 +62,16 @@ class FoodCommand {
 
             this.rendered = true;
             this.show_notes();
+
+            //console.log([this.data.ordered_time, this.data.creation])
+            //this.ordered_time = new Date(this.data.ordered_time);
+
+            this.time_elapsed;
         }
     }
 
     update_title() {
-        this.title.val(this.data.table_description + " | " + this.data.short_name);
+        this.description.val(this.data.table_description + " | " + this.data.short_name);
     }
 
     refresh_html() {
@@ -120,6 +138,82 @@ class FoodCommand {
 		`
     }
 
+    parseTime(time, format, step){
+        var time = this;
+        var post_meridiem = false;
+        var ante_meridiem = false;
+        var hours = 0;
+        var minutes = 0;
+
+        if (time != null) {
+            post_meridiem = time.match(/p/i) !== null;
+            ante_meridiem = time.match(/a/i) !== null;
+
+            // Preserve 2400h time by changing leading zeros to 24.
+            time = time.replace(/^00/, '24');
+
+            // Strip the string down to digits and convert to a number.
+            time = parseInt(time.replace(/\D/g, ''));
+        }
+        else {
+            time = 0;
+        }
+
+        if (time > 0 && time < 24) {
+            // 1 through 23 become hours, no minutes.
+            hours = time;
+        }
+        else if (time >= 100 && time <= 2359) {
+            // 100 through 2359 become hours and two-digit minutes.
+            hours = ~~(time / 100);
+            minutes = time % 100;
+        }
+        else if (time >= 2400) {
+            // After 2400, it's midnight again.
+            minutes = (time % 100);
+            post_meridiem = false;
+        }
+
+        if (hours == 12 && ante_meridiem === false) {
+            post_meridiem = true;
+        }
+
+        if (hours > 12) {
+            post_meridiem = true;
+            hours -= 12;
+        }
+
+        if (minutes > 59) {
+            minutes = 59;
+        }
+
+        var result =
+            ("" + hours).padStart(2, "0") + ":" + ("" + minutes).padStart(2, "0") +
+            (post_meridiem ? "PM" : "AM");
+
+        return result;
+    }
+
+    get time_elapsed(){
+        console.log(this.data.ordered_time)
+        this._time_elapsed.val(RMHelper.prettyDate(this.data.ordered_time, true, time_elapsed => this.show_alert_time_elapsed(time_elapsed)));
+    }
+
+    show_alert_time_elapsed(time_elapsed){
+        let five_minuts = 60 * 5;
+        let fifteen_minuts = 60 * 15;
+
+        if (time_elapsed <= five_minuts) {
+            this._time_elapsed.css('color', 'green');
+        } else if (time_elapsed > five_minuts && time_elapsed <= fifteen_minuts) {
+            this._time_elapsed.css('color', 'orange');
+        } else if (time_elapsed > fifteen_minuts) {
+            this._time_elapsed.css('color', 'red');
+            this._time_elapsed.add_class('alert-time');
+        }
+    }
+
+
     get template() {
         this.detail = frappe.jshtml({
             tag: "div",
@@ -146,7 +240,6 @@ class FoodCommand {
 				<h3 style="width: 100%">${this.data.item_name}</h3>
 			</div>
 			<div class="row" style="height: auto">
-				<h6 style="width: 100%">${this.data.creation}</h6>
 			</div>
 			${this.notes.html()}
 			<div class="food-command-footer">

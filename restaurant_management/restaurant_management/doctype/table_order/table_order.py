@@ -80,7 +80,7 @@ class TableOrder(Document):
                     status=item.status,
                     identifier=item.identifier if rest == 0 else divide_item["identifier"],
                     notes=item.notes,
-                    creation=item.creation,
+                    ordered_time=item.ordered_time,
                     table_description=f'{self.room_description} ({self.table_description})'
                 ))
 
@@ -354,7 +354,8 @@ class TableOrder(Document):
                 status="Attending" if entry["status"] in ["Pending", "", None] else entry["status"],
                 identifier=entry["identifier"],
                 notes=entry["notes"],
-                table_description=f'{self.room_description} ({self.table_description})'
+                table_description=f'{self.room_description} ({self.table_description})',
+                ordered_time=entry["ordered_time"] or frappe.utils.now_datetime()
             )
 
             if frappe.db.count("Order Entry Item", {"identifier": entry["identifier"]}) == 0:
@@ -387,6 +388,7 @@ class TableOrder(Document):
                 status="Attending" if entry_item["status"] in ["Pending", "", None] else entry_item["status"],
                 identifier=entry_item["identifier"],
                 notes=entry_item["notes"],
+                ordered_time=entry_item["ordered_time"],
                 table_description=f'{self.room_description} ({self.table_description})'
             ))
             item.serial_no = None
@@ -447,7 +449,7 @@ class TableOrder(Document):
                     "table_description",
                     "status",
                     "notes",
-                    "creation"
+                    "ordered_time"
                 ]}
 
                 row["order_name"] = item.parent
@@ -469,6 +471,7 @@ class TableOrder(Document):
                 items_to_return.append(i.identifier)
 
                 item.status = "Sent"
+                item.ordered_time = frappe.utils.now_datetime()
                 item.save()
 
                 data_to_send.append(table.get_command_data(item))
@@ -511,7 +514,7 @@ class TableOrder(Document):
                     status=item.status,
                     identifier=item.identifier,
                     notes=item.notes,
-                    creation=item.notes,
+                    ordered_time=item.ordered_time,
                 ))
         self.save()
 
