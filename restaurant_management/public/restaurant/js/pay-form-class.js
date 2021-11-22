@@ -99,7 +99,7 @@ PayForm = class PayForm {
             },
         }).on("click", (obj) => {
             this.num_pad.input = obj;
-        }).val(this.form.form.doc.dinners).float();
+        }).val(this.form.form.doc.dinners).int();
 
         $(this.wrapper_form.dinners_number.wrapper).empty().append(
             this.form_tag("Dinners", this.dinners)
