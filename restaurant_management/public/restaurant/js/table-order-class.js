@@ -128,7 +128,6 @@ TableOrder = class TableOrder {
     }
 
     push_item(new_item) {
-        console.log(new_item)
         let test_item = null;
         this.in_items((item) => {
             if (item.data.item_code === new_item.item_code) {

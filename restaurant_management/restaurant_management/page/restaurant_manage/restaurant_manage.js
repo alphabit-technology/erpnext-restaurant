@@ -375,9 +375,7 @@ RestaurantManage = class RestaurantManage {
 
 		let check_items_in_process_manage = (items, item_removed=null) =>{
 			this.in_rooms(room => {
-				console.log(['Room', room.data.description])
 				room.in_tables(table => {
-					console.log(["Table", table.data.description])
 					if(table.process_manage != null){
 						table.process_manage.check_items(items);
 						if(item_removed){
@@ -441,11 +439,8 @@ RestaurantManage = class RestaurantManage {
 		});
 
 		frappe.realtime.on("check_rooms", (r) => {
-			//console.log(this.rooms);
 			this.rooms = r.rooms;
 			this.render_rooms(r.client === RM.client ? r.current_room : false);
-
-			//console.log(this.rooms)
 		});
 
 		frappe.realtime.on("pos_profile_update", (r) => {

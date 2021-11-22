@@ -176,9 +176,9 @@ OrderManage = class OrderManage extends ObjectManage {
     }
 
     empty_inputs() {
-        this.in_objects((object) => {
-            if (object.tag === "input") {
-                object.val("", false);
+        this.in_objects(obj => {
+            if (["qty", "discount", "rate"].includes(obj.properties.name)) {
+                obj.val("", false);
             }
         });
     }
@@ -202,8 +202,8 @@ OrderManage = class OrderManage extends ObjectManage {
             },
             {
                 name: "Qty",
-                tag: 'input', label: 'Qty',
-                properties: {name: 'qty', type: 'text', class: default_class},
+                tag: 'button', label: 'Qty',
+                properties: {name: 'qty', type: 'text', class: default_class, input_type: "number"},
                 on: {
                     'click': (obj) => {
                         this.num_pad.input = obj;
@@ -212,8 +212,8 @@ OrderManage = class OrderManage extends ObjectManage {
             },
             {
                 name: "Discount",
-                tag: 'input', label: 'Discount',
-                properties: {name: 'discount', type: 'text', class: default_class},
+                tag: 'button', label: 'Discount',
+                properties: { name: 'discount', type: 'text', class: default_class, input_type: "number"},
                 on: {
                     'click': (obj) => {
                         this.num_pad.input = obj;
@@ -222,8 +222,8 @@ OrderManage = class OrderManage extends ObjectManage {
             },
             {
                 name: "Rate",
-                tag: 'input', label: 'Rate',
-                properties: {name: 'rate', type: 'text', class: default_class},
+                tag: 'button', label: 'Rate',
+                properties: { name: 'rate', type: 'text', class: default_class, input_type: "number"},
                 on: {
                     'click': (obj) => {
                         this.num_pad.input = obj;
@@ -266,6 +266,7 @@ OrderManage = class OrderManage extends ObjectManage {
 
         let container = "#" + this.editor_container_name;
         let base_html = "<thead><tr>";
+        let width = [10,20,20,20,10,10];
 
         objs.forEach((_obj) => {
             base_html += `
@@ -276,7 +277,7 @@ OrderManage = class OrderManage extends ObjectManage {
         base_html += "</thead><tbody><tr class='edit-values'>";
 
         objs.forEach((element, index) => {
-            base_html += `<td class='${this.table_name}-${index}'>`;
+            base_html += `<td class='${this.table_name}-${index}' style='width: ${width[index]}%;'>`;
 
             this.#objects[element.name] = frappe.jshtml({
                 tag: element.tag,
@@ -290,8 +291,8 @@ OrderManage = class OrderManage extends ObjectManage {
         });
         $(container).empty().append(base_html + "</tr></tbody>");
 
-        this.#objects.Qty.float();
-        this.#objects.Discount.float();
+        this.#objects.Qty.int();
+        this.#objects.Discount.float(2);
         this.#objects.Rate.float();
     }
 
@@ -299,15 +300,13 @@ OrderManage = class OrderManage extends ObjectManage {
         if (RM.busy) return;
 
         let set_data = (item, qty, discount, rate) => {
-            if (input.val() !== "") {
-                item.data.qty = qty;
-                item.data.discount_percentage = discount;
-                item.data.rate = rate;
-                item.data.status = "Pending";
-                item.update();
-                if (qty > 0) {
-                    item.select();
-                }
+            item.data.qty = qty;
+            item.data.discount_percentage = discount;
+            item.data.rate = rate;
+            item.data.status = "Pending";
+            item.update();
+            if (qty > 0) {
+                item.select();
             }
         }
 
