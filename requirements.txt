@@ -1,3 +1,0 @@
-frappe
-frappe_helper
-erpnext
