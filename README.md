@@ -2,7 +2,7 @@
     <img src = "https://raw.githubusercontent.com/frappe/erpnext/develop/erpnext/public/images/erpnext-logo.png" height = "128">
     <h2> ERPNext </h2>
     <p align = "center">
-        <h2>Restaurant Management</h2>
+        <h2>Restaurant Management BETA</h2>
     </p>
 </div>
 
