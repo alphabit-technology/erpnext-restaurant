@@ -205,7 +205,7 @@ PayForm = class PayForm {
             model: "Sales Invoice",
             model_name: invoice_name,
             args: {
-                format: RM.pos_profile.print_format_for_online,
+                format: RM.pos_profile.print_format,
                 _lang: RM.lang,
                 no_letterhead: RM.pos_profile.letter_head ? RM.pos_profile.letter_head : 1,
                 letterhead: RM.pos_profile.letter_head ? RM.pos_profile.letter_head : 'No%20Letterhead'
