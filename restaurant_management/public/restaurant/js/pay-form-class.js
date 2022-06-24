@@ -207,8 +207,8 @@ PayForm = class PayForm {
             args: {
                 format: RM.pos_profile.print_format,
                 _lang: RM.lang,
-                no_letterhead: RM.pos_profile.letter_head ? RM.pos_profile.letter_head : 1,
-                letterhead: RM.pos_profile.letter_head ? RM.pos_profile.letter_head : 'No%20Letterhead'
+                no_letterhead: RM.pos_profile.letter_head || 1,
+                letterhead: RM.pos_profile.letter_head || 'No%20Letterhead'
             },
             from_server: true,
             set_buttons: true,
@@ -232,7 +232,7 @@ PayForm = class PayForm {
         setTimeout(() => {
             Object.keys(this.payment_methods).forEach((payment_method) => {
                 total += this.payment_methods[payment_method].float_val;
-            })
+            });
 
             this.form.form.set_value("total_payment", total);
             this.form.form.set_value("change_amount", (total - this.order.amount));
