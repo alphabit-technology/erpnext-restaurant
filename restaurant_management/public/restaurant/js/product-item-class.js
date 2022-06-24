@@ -62,7 +62,7 @@ class ProductItem {
             df: {
                 fieldtype: 'Data',
                 label: __('Search Item (Ctrl + i)'),
-                placeholder: __('Search by item code, serial number, batch no or barcode')
+                placeholder: __('Search by item code, serial number, batch no or barcode'),
             },
             parent: this.wrapper.find('.search-field'),
             render_input: true,
@@ -78,8 +78,7 @@ class ProductItem {
                 const search_term = e.target.value;
                 const item_group = this.item_group_field ?
                     this.item_group_field.get_value() : '';
-
-                this.filter_items({search_term: search_term, item_group: item_group});
+                    this.filter_items({search_term: search_term, item_group: item_group});
             }, 300);
         });
 
@@ -136,13 +135,21 @@ class ProductItem {
     }
 
     filter_items({search_term = '', item_group = this.parent_item_group} = {}) {
+        const result_arr = [];
         if (search_term) {
             search_term = search_term.toLowerCase();
 
             // memoize
             this.search_index = this.search_index || {};
             if (this.search_index[search_term]) {
-                const items = this.search_index[search_term];
+                this.search_index[search_term].forEach(item => {
+                    if (`${item.item_code}`.toLowerCase().includes(search_term)) {
+                        result_arr.push(item)
+                    } else if (`${item.item_name}`.toLowerCase().includes(search_term)) {
+                        result_arr.push(item);
+                    }
+                })
+                const items = result_arr;
                 this.items = items;
                 this.render_items(items);
                 this.set_item_in_the_cart(items);
@@ -152,13 +159,21 @@ class ProductItem {
             this.items = this.all_items;
             return this.render_items(this.all_items);
         }
-
-        this.get_items({search_value: search_term, item_group})
-            .then(({items, serial_no, batch_no, barcode}) => {
+        this.get_items({search_value: search_term, page_length: 9999, item_group})
+            .then(({ items, serial_no, batch_no, barcode }) => {
+                items.forEach(item => {
+                    if (`${item.item_code}`.toLowerCase().includes(search_term)) {
+                        result_arr.push(item)
+                    } else if (`${item.item_name}`.toLowerCase().includes(search_term)) {
+                        result_arr.push(item);
+                    }
+                })
+                if (result_arr.length > 0) {
+                    items = result_arr;
+                }
                 if (search_term && !barcode) {
                     this.search_index[search_term] = items;
                 }
-
                 this.items = items;
                 this.render_items(items);
                 this.set_item_in_the_cart(items, serial_no, batch_no, barcode);
@@ -205,20 +220,20 @@ class ProductItem {
     }
 
     get_item_html(item) {
-        const price_list_rate = format_currency(item.price_list_rate, this.currency);
-        const {item_code, item_name, item_image} = item;
-        const item_title = item_name || item_code;
+            const price_list_rate = format_currency(item.price_list_rate, this.currency);
+            const {item_code, item_name, item_image} = item;
+            const item_title = item_name || item_code;
 
-        return frappe.jshtml({
-            tag: "article",
-            properties: {class: "pos-item-wrapper product non-selectable"},
-            content: template()
-        }).on("click", () => {
-            this.add_item_cart(item);
-        }).html();
+            return frappe.jshtml({
+                tag: "article",
+                properties: {class: "pos-item-wrapper product non-selectable"},
+                content: template()
+            }).on("click", () => {
+                this.add_item_cart(item);
+            }).html();
 
-        function template() {
-            return `<div class="product-img">
+            function template() {
+                return `<div class="product-img">
 				${!item_image ? `<span class="placeholder-text" style="font-size: 72px; color: #d1d8dd;"> ${frappe.get_abbr(item_title)}</span>` : ''}
 				${item_image ? `<img src="${item_image}" alt="${item_title}">` : ''}
 				<span class="price-tag">
