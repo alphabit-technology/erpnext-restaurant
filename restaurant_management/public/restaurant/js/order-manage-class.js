@@ -118,7 +118,7 @@ OrderManage = class OrderManage extends ObjectManage {
 
         this.modal.container.append(this.template());
 
-        this.#components.new = RMHelper.default_button("New", 'add', () => this.add_order(), DOUBLE_CLICK);
+        this.#components.new = RMHelper.default_button("New", 'add', () => this.add_order(), !RM.restrictions.to_new_order ? DOUBLE_CLICK : null);
         this.#components.edit = RMHelper.default_button("Edit", 'edit', () => this.update_current_order());
         this.#components.delete = RMHelper.default_button("Delete", 'trash', () => this.delete_current_order(), DOUBLE_CLICK);
 
@@ -446,7 +446,7 @@ OrderManage = class OrderManage extends ObjectManage {
                         }
                         setTimeout(`RM.object('${this.identifier}').current_order.${col.action}()`, 0);
                     }
-                }, (["order", "transfer"].includes(col.action) ? DOUBLE_CLICK : ""));
+                }, (["order", "transfer"].includes(col.action) ? (!RM.restrictions.to_transfer_order ? DOUBLE_CLICK : null) : ""));
 
                 base_html += this.components[col.name].html();
             });
@@ -704,7 +704,7 @@ OrderManage = class OrderManage extends ObjectManage {
             content: `<span class="fa fa-plus"/>`
         }).on("click", () => {
             this.add_order();
-        }, DOUBLE_CLICK);
+        }, !RM.restrictions.to_new_order ? DOUBLE_CLICK : null);
 
         if (typeof this.components.new_order_button == "undefined") {
             $(this.order_container).prepend(new_order_button.html());

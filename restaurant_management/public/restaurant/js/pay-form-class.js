@@ -121,6 +121,7 @@ PayForm = class PayForm {
     }
 
     make_payment_button() {
+        console.log(RM.restrictions.to_pay)
         this.button_payment = frappe.jshtml({
             tag: "button",
             wrapper: this.wrapper_form.payment_button.wrapper,
@@ -135,7 +136,7 @@ PayForm = class PayForm {
             if (!RM.can_pay) return;
             this.button_payment.disable().val(__("Paying"));
             this.send_payment();
-        }, DOUBLE_CLICK).prop("disabled", !RM.can_pay);
+        }, !RM.restrictions.to_pay ? DOUBLE_CLICK : null).prop("disabled", !RM.can_pay);
     }
 
     get payments_values() {

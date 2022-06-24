@@ -13,6 +13,14 @@
   "color",
   "column_break_7",
   "print_format",
+  "double_click_events_section",
+  "double_click_events_info",
+  "column_break_10",
+  "to_new_order",
+  "to_pay",
+  "column_break_13",
+  "to_transfer_order",
+  "to_change_status_order",
   "section_break_11",
   "restaurant_permissions_info",
   "restaurant_permissions"
@@ -72,12 +80,53 @@
    "fieldtype": "Link",
    "label": "Print Format",
    "options": "Print Format"
+  },
+  {
+   "fieldname": "double_click_events_section",
+   "fieldtype": "Section Break",
+   "label": "One Click Events"
+  },
+  {
+   "fieldname": "column_break_10",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "1",
+   "fieldname": "to_new_order",
+   "fieldtype": "Check",
+   "label": "To new Order"
+  },
+  {
+   "default": "1",
+   "fieldname": "to_pay",
+   "fieldtype": "Check",
+   "label": "To Pay"
+  },
+  {
+   "fieldname": "column_break_13",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "1",
+   "fieldname": "to_transfer_order",
+   "fieldtype": "Check",
+   "label": "To transfer Order"
+  },
+  {
+   "default": "0",
+   "fieldname": "to_change_status_order",
+   "fieldtype": "Check",
+   "label": "To Change status Order"
+  },
+  {
+   "fieldname": "double_click_events_info",
+   "fieldtype": "HTML"
   }
  ],
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2021-07-23 17:31:16.232784",
+ "modified": "2022-06-23 21:13:47.362298",
  "modified_by": "Administrator",
  "module": "Restaurant Management",
  "name": "Restaurant Settings",

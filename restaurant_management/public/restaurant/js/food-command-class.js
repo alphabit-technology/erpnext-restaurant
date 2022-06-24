@@ -19,7 +19,7 @@ class FoodCommand {
                 text: this.data.process_status_data.next_action_message,
             }).on("click", () => {
                 this.execute();
-            }, DOUBLE_CLICK)
+            }, !RM.restrictions.to_change_status_order ? DOUBLE_CLICK : null)
 
             this.status_label = frappe.jshtml({
                 tag: "h5",
