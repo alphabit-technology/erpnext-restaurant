@@ -117,8 +117,9 @@ class OrderItem {
 
     update(server = true) {
         if(this.data.qty === 0 && !this.is_enabled_to_delete){
-            frappe.msgprint(__("You do not have permissions to delete Items"));
-            return;
+            frappe.throw(__("You do not have permissions to delete Items"));
+            //frappe.msgprint(__("You do not have permissions to delete Items"));
+            //return;
         }
 
         if (this.data.qty === 0) {
@@ -130,9 +131,8 @@ class OrderItem {
         this.order.aggregate(true);
         if (!server) return;
 
-
-
         RM.working("Update Item", false);
+
         window.saving = true;
         frappeHelper.api.call({
             model: "Table Order",

@@ -17,9 +17,18 @@ class RestaurantManage:
 
     @staticmethod
     def get_rooms():
-        rooms = frappe.get_list("Restaurant Object", "name, description", filters={
-            "type": "Room"
-        })
+        if frappe.session.user == "Administrator":
+            rooms = frappe.get_list("Restaurant Object", "name, description", {
+                "type": "Room",
+            })
+        else:
+            restaurant_settings = frappe.get_single("Restaurant Settings")
+            rooms_enabled = restaurant_settings.get_restaurant_permissions()
+
+            rooms = frappe.get_list("Restaurant Object", "name, description", {
+                "type": "Room",
+                "name": ("in", rooms_enabled)
+            })
 
         for room in rooms:
             t = frappe.get_doc("Restaurant Object", room.name)
