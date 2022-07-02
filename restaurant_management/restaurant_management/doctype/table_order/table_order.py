@@ -289,6 +289,9 @@ class TableOrder(Document):
         self.synchronize(dict(action="queue"))
 
     def push_item(self, item):
+        if self.customer is None:
+            frappe.throw(_("Please set a Customer"))
+            
         from restaurant_management.restaurant_management.restaurant_manage import check_exceptions
         check_exceptions(
             dict(name="Table Order", short_name="order", action="write", data=self),

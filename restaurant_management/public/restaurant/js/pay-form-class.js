@@ -55,6 +55,8 @@ PayForm = class PayForm {
             }
         });
 
+        console.log(['numpad wrapper', this.wrapper_form.num_pad])
+
         $(this.wrapper_form.num_pad.wrapper).empty().append(
             `<div style="width: 100% !important; height: 200px !important; padding: 0">
                 ${this.num_pad.html}
@@ -121,7 +123,6 @@ PayForm = class PayForm {
     }
 
     make_payment_button() {
-        console.log(RM.restrictions.to_pay)
         this.button_payment = frappe.jshtml({
             tag: "button",
             wrapper: this.wrapper_form.payment_button.wrapper,
@@ -171,6 +172,7 @@ PayForm = class PayForm {
 
         RM.working("Generating Invoice");
         this.order.data.dinners = this.dinners.val();
+
         frappeHelper.api.call({
             model: "Table Order",
             name: this.order.data.name,
@@ -200,9 +202,10 @@ PayForm = class PayForm {
     print(invoice_name) {
         if (!RM.can_pay) return;
 
-        let title = invoice_name + " (" + __("Print") + ")";
-        let order_manage = this.order.order_manage;
-        let props = {
+        const title = invoice_name + " (" + __("Print") + ")";
+        const order_manage = this.order.order_manage;
+        
+        const props = {
             model: "Sales Invoice",
             model_name: invoice_name,
             args: {

@@ -45,9 +45,16 @@ class RestaurantObject(Document):
             ):
                 frappe.throw(_("The table {0} is Assigned to another User").format(self.description))
 
+    def validate_table(self):
+        restaurant_settings = frappe.get_single("Restaurant Settings")
+        if not restaurant_settings.multiple_pending_order and self.orders_count > 0:
+            frappe.throw(_("Complete pending orders"))
+
     def add_order(self, client=None):
         # last_user = self.current_user
         self.validate_transaction()
+
+        self.validate_table()
 
         from erpnext.stock.get_item_details import get_pos_profile
         # from erpnext.controllers.accounts_controller import get_default_taxes_and_charges
