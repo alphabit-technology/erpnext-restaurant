@@ -9,6 +9,8 @@
   "restricted_to_owner_table",
   "for_orders_section",
   "restricted_to_owner_order",
+  "column_break_5",
+  "multiple_pending_order",
   "section_break_12",
   "color",
   "column_break_7",
@@ -23,7 +25,7 @@
   "to_change_status_order",
   "section_break_11",
   "restaurant_permissions_info",
-  "restaurant_permissions"
+  "restaurant_exceptions"
  ],
  "fields": [
   {
@@ -39,12 +41,6 @@
    "fieldname": "section_break_11",
    "fieldtype": "Section Break",
    "label": "Exceptions"
-  },
-  {
-   "fieldname": "restaurant_permissions",
-   "fieldtype": "Table",
-   "label": "Restaurant Permissions",
-   "options": "Restaurant Permissions"
   },
   {
    "fieldname": "restaurant_permissions_info",
@@ -121,12 +117,28 @@
   {
    "fieldname": "double_click_events_info",
    "fieldtype": "HTML"
+  },
+  {
+   "fieldname": "restaurant_exceptions",
+   "fieldtype": "Table",
+   "label": "Restaurant Exceptions",
+   "options": "Restaurant Exceptions"
+  },
+  {
+   "fieldname": "column_break_5",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "multiple_pending_order",
+   "fieldtype": "Check",
+   "label": "Multiple pending order"
   }
  ],
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2022-06-23 21:13:47.362298",
+ "modified": "2022-06-30 18:42:23.260665",
  "modified_by": "Administrator",
  "module": "Restaurant Management",
  "name": "Restaurant Settings",

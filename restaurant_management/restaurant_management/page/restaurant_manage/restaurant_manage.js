@@ -334,6 +334,7 @@ RestaurantManage = class RestaurantManage {
 		this.#exceptions = r.exceptions;
 		this.#restrictions = r.restrictions;
 		this.#lang = r.lang;
+		this.restaurant_permissions = r.pos.restaurant_permissions;
 
 		if(r.pos.has_pos){
 			this.#pos_profile = r.pos.pos;

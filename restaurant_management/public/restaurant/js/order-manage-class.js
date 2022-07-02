@@ -36,7 +36,7 @@ OrderManage = class OrderManage extends ObjectManage {
         frappe.realtime.on("pos_profile_update", () => {
             setTimeout(() => {
                 this.check_buttons_status();
-            }, 0)
+            }, 0);
         });
     }
 
@@ -88,6 +88,7 @@ OrderManage = class OrderManage extends ObjectManage {
         this.make_items();
         this.make_edit_input();
         this.make_pad();
+        
         if (this.transferring_order && this.current_order != null) {
             this.current_order.edit_form = null;
             this.current_order.divide_account_modal = null;
@@ -118,8 +119,8 @@ OrderManage = class OrderManage extends ObjectManage {
 
         this.modal.container.append(this.template());
 
-        this.#components.new = RMHelper.default_button("New", 'add', () => this.add_order(), !RM.restrictions.to_new_order ? DOUBLE_CLICK : null);
-        this.#components.edit = RMHelper.default_button("Edit", 'edit', () => this.update_current_order());
+        this.#components.customer = RMHelper.default_button("Customer", 'people', () => this.update_current_order('customer'));
+        this.#components.dinners = RMHelper.default_button("Dinners", 'peoples', () => this.update_current_order('dinners'));
         this.#components.delete = RMHelper.default_button("Delete", 'trash', () => this.delete_current_order(), DOUBLE_CLICK);
 
         this.modal.title_container.empty().append(
@@ -128,8 +129,8 @@ OrderManage = class OrderManage extends ObjectManage {
 
         this.modal.buttons_container.prepend(`
 			${this.components.delete.html()}
-			${this.components.edit.html()}
-			${this.components.new.html()}
+            ${this.components.customer.html()}
+			${this.components.dinners.html()}
 		`);
     }
 
@@ -507,17 +508,17 @@ OrderManage = class OrderManage extends ObjectManage {
     check_buttons_status() {
         if (this.current_order == null) {
             this.disable_components();
-            this.#components.new.enable().show();
+            //this.#components.customer.enable().show();
             if (typeof this.components.new_order_button != "undefined")
                 this.#components.new_order_button.enable().show();
             return;
         } else {
             if (RM.check_permissions("order", null, "create")) {
-                this.#components.new.enable().show();
+                ///this.#components.new.enable().show();
                 if (typeof this.components.new_order_button != "undefined")
                     this.#components.new_order_button.enable().show();
             } else {
-                this.#components.new.disable().hide();
+                //this.#components.new.disable().hide();
                 if (typeof this.components.new_order_button != "undefined")
                     this.#components.new_order_button.disable().hide();
             }
@@ -554,10 +555,12 @@ OrderManage = class OrderManage extends ObjectManage {
                 }
 
                 this.#components.Divide.prop("disabled", this.current_order.items_count === 0);
-                this.#components.edit.enable().show();
+                this.#components.customer.enable().show();
+                this.#components.dinners.enable().show();
                 this.#components.Transfer.enable();
             } else {
-                this.#components.edit.disable().hide();
+                this.#components.customer.disable().hide();
+                this.#components.dinners.disable().hide();
                 this.#components.Transfer.disable();
                 this.#components.Order.disable();
                 this.#components.Divide.disable();
@@ -738,9 +741,9 @@ OrderManage = class OrderManage extends ObjectManage {
         }
     }
 
-    update_current_order() {
+    update_current_order(type) {
         if (this.current_order != null) {
-            this.current_order.edit();
+            this.current_order.edit(type);
         }
     }
 

@@ -128,6 +128,11 @@ TableOrder = class TableOrder {
     }
 
     push_item(new_item) {
+        if (!this.data.customer) {
+            this.order_manage.components.customer.highlight();
+            frappe.throw(__("Please set a Customer"));
+        }
+
         let test_item = null;
         this.in_items((item) => {
             if (item.data.item_code === new_item.item_code) {
@@ -546,27 +551,26 @@ TableOrder = class TableOrder {
         }
     }
 
-    edit() {
+    edit(type) {
         if (RM.busy_message()) {
             return;
         }
 
-        if (this.edit_form == null) {
-            this.edit_form = new DeskForm({
+        if(this[type + "_form"]){
+            this[type + "_form"].reload().show();
+        }else{
+            this[type + "_form"] = new DeskForm({
                 doctype: "Table Order",
                 docname: this.data.name,
-                form_name: "restaurant-order",
-                call_back: () => {
-                    this.edit_form.hide();
+                form_name: `restaurant-order-${type}`,
+                call_back: (self) => {
+                    self.hide();
                     RM.sound_submit();
-                    this.data.customer = this.edit_form.form.get_value("customer");
-                    this.data.dinners = this.edit_form.form.get_value("dinners");
+                    console.log([this.data[type], self.get_value(type)]);
+                    this.data[type] = self.get_value(type);
                 },
-                title: __("Update Order"),
+                title: __(`Set ${type}`)
             });
-        } else {
-            this.edit_form.reload();
-            this.edit_form.show();
         }
     }
 

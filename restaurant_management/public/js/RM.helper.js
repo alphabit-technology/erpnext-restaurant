@@ -6,7 +6,9 @@ class RMHelperClass {
             add: `<span class='fa fa-plus' style="padding-right: 5px"/>`,
             trash: `<span class='fa fa-trash' style="padding-right: 5px"/>`,
             edit: `<span class='fa fa-pencil' style="padding-right: 5px"/>`,
-            ok: `<span class='fa fa-check' style="padding-right: 5px"/>`
+            ok: `<span class='fa fa-check' style="padding-right: 5px"/>`,
+            people: `<span class='fa fa-user' style="padding-right: 5px"/>`,
+            peoples: `<span class='fa fa-users' style="padding-right: 5px"/>`,
         }
     }
 

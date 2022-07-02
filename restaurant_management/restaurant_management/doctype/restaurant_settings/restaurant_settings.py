@@ -25,18 +25,45 @@ class RestaurantSettings(Document):
                 restaurant_object=frappe.permissions.get_doc_permissions(frappe.new_doc("Restaurant Object")),
             ),
             restrictions=restaurant_settings,
-            exceptions=[item for item in restaurant_settings.restaurant_permissions if item.role_profile == profile],
+            exceptions=[item for item in restaurant_settings.restaurant_exceptions  if item.role_profile == profile],
             lang=frappe.session.data.lang
         )
 
-    @staticmethod
-    def pos_profile_data():
-        pos_profile = get_pos_profile(frappe.defaults.get_user_default('company'))
+    def pos_profile_data(self):
+        pos_profile_name = self.get_current_pos_profile_name()
 
         return dict(
-            has_pos=pos_profile is not None,
-            pos=None if pos_profile is None else frappe.get_doc("POS Profile", pos_profile.name)
+            has_pos=pos_profile_name is not None,
+            pos=frappe.get_doc(
+                "POS Profile", pos_profile_name) if pos_profile_name is not None else None,
+            restaurant_permissions=self.get_restaurant_permissions()
         )
+
+    def get_current_pos_profile_name(self):
+        pos_profile = get_pos_profile(frappe.defaults.get_user_default('company'))
+        return pos_profile.name if pos_profile else None
+
+    def get_restaurant_permissions(self):
+        pos_profile_name = self.get_current_pos_profile_name()
+
+        if pos_profile_name is not None:
+            permission_parent = frappe.db.get_value(
+                "POS Profile User",
+                filters={"parenttype": "POS Profile",
+                         "parent": pos_profile_name, "user": frappe.session.user},
+                fieldname="name"
+            )
+
+            restaurant_permissions = frappe.db.get_list("Restaurant Permission", fields=("room"),
+                                                        filters={
+                    "parenttype": "POS Profile User",
+                    "parent": permission_parent,
+                }
+            )
+
+            return (item.room for item in restaurant_permissions)
+
+        return {}
 
 
 @frappe.whitelist()
