@@ -45,7 +45,7 @@ desk_forms_fields = {
             dict(fieldtype="Column Break"),
             dict(label="User", options="User"),
             dict(fieldtype="Section Break"),
-            dict(fieldtype="Table", label="Restaurant Permission", options="Restaurant Permission")
+            dict(fieldtype="Table", fieldname="restaurant_permissions", label="Restaurant Permission", options="Restaurant Permission")
         ]
     ),
     "Restaurant Table": dict(
