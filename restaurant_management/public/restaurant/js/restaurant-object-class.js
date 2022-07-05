@@ -350,19 +350,21 @@ RestaurantObject = class RestaurantObject {
                 return;
             }
 
-            let open = () => {
-                setTimeout(() => {
-                    if (this.order_manage == null) {
-                        this.order_manage = new OrderManage({
-                            table: this,
-                            identifier: RM.OMName(this.data.name)
-                        })
-                    } else {
-                        this.order_manage.show();
-                    }
+            const open = () => {
+                RM.pos.check_opening_entry().then(() => {
+                    setTimeout(() => {
+                        if (this.order_manage == null) {
+                            this.order_manage = new OrderManage({
+                                table: this,
+                                identifier: RM.OMName(this.data.name)
+                            })
+                        } else {
+                            this.order_manage.show();
+                        }
 
-                    RM.object(this.order_manage.identifier, this.order_manage);
-                }, 0);
+                        RM.object(this.order_manage.identifier, this.order_manage);
+                    }, 0);
+                });
             }
 
             if (RM.transfer_order && RM.transfer_order.order_manage.table_name !== this.data.name) {

@@ -3,6 +3,6 @@
         "public/restaurant/css/action-button.less"
     ],
     "js/restaurant_management.min.js": [
-        "public/restaurant/js/restaurant-object-class.js"
+        "restaurant_management/page/restaurant_manage/pos_restaurant_controller.js"
     ]
 }

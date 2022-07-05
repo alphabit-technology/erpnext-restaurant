@@ -1,6 +1,7 @@
 TableOrder = class TableOrder {
     constructor(options) {
         Object.assign(this, options);
+        
         this.items = [];
         this.edit_form = null;
         this.divide_account_modal = null;
@@ -11,6 +12,11 @@ TableOrder = class TableOrder {
         this.make();
 
         RM.object(this.data.name, this);
+        window.test_order =this;
+    }
+
+    make_invoice() {
+        //this.invoice = new Invoice(this.data);
     }
 
     reset_data(data, action) {
@@ -99,6 +105,10 @@ TableOrder = class TableOrder {
             } else {
                 this.order_manage.order_status_message("from select order");
                 this.order_manage.check_buttons_status();
+            }
+
+            if(this.data.customer) {
+                this.make_invoice();
             }
         }, 0);
 
@@ -524,9 +534,9 @@ TableOrder = class TableOrder {
     }
 
     print_account() {
-        let title = this.data.name + " (" + __("Account") + ")";
-        let order_manage = this.order_manage;
-        let props = {
+        const title = this.data.name + " (" + __("Account") + ")";
+        const order_manage = this.order_manage;
+        const props = {
             model: "Table Order",
             model_name: this.data.name,
             from_server: true,
@@ -566,8 +576,8 @@ TableOrder = class TableOrder {
                 call_back: (self) => {
                     self.hide();
                     RM.sound_submit();
-                    console.log([this.data[type], self.get_value(type)]);
                     this.data[type] = self.get_value(type);
+                    this.make_invoice();
                 },
                 title: __(`Set ${type}`)
             });

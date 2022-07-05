@@ -1,6 +1,7 @@
 /**RestaurantManagement**/
 var RM = null;
 const [TRANSFER, UPDATE, DELETE, INVOICED, ADD, QUEUE, SPLIT] = ["Transfer", "Update", "Delete", "Invoiced", "Add", "queue", "Split"];
+frappe.provide('erpnext.PointOfSale');
 
 frappe.pages['restaurant-manage'].on_page_load = function(wrapper) {
 	frappe.ui.make_app_page({
@@ -11,12 +12,25 @@ frappe.pages['restaurant-manage'].on_page_load = function(wrapper) {
 
 	$("body").hide();
 
+	/*frappe.require('assets/js/restaurant_management.min.js', function () {
+		wrapper.pos = new erpnext.PointOfSale.RestaurantController(wrapper);
+		window.cur_pos = wrapper.pos;
+	});*/
+
 	frappe.db.get_value('POS Settings', {name: 'POS Settings'}, 'is_online', (r) => {
 		if (r && !cint(r.use_pos_in_offline_mode)) {
 			RM = new RestaurantManage(wrapper);
 		}
 	});
 }
+
+/*frappe.pages['restaurant-manage'].refresh = function (wrapper) {
+	if (document.scannerDetectionData) {
+		onScan.detachFrom(document);
+		wrapper.pos.wrapper.html("");
+		wrapper.pos.check_opening_entry();
+	}
+};*/
 
 RestaurantManage = class RestaurantManage {
 	#pos_profile = null;
@@ -62,6 +76,7 @@ RestaurantManage = class RestaurantManage {
 			base_assets + 'js/food-command-class.js',
 			base_assets + 'js/table-order-class.js',
 			base_assets + 'js/pay-form-class.js',
+			base_assets + 'js/invoice-class.js',
 
 			base_assets + 'css/restaurant-room.css',
 			base_assets + 'css/action-buttons.css',
@@ -88,10 +103,16 @@ RestaurantManage = class RestaurantManage {
 			() => {
 				this.working("Set settings");
 				this.settings_data.then(() => {
-					this.make_rooms().then(() => {
-						setTimeout(() => {
-							this.check_permissions_status();
-						}, 100);
+					frappe.require('assets/js/restaurant_management.min.js', () => {
+						this.pos = new erpnext.PointOfSale.RestaurantController(this.wrapper);
+						window.cur_pos = this.pos;
+
+						this.make_rooms().then(() => {
+							setTimeout(() => {
+								this.check_permissions_status();
+								//this.set_pos_controller();
+							}, 100);
+						});
 					});
 				});
 			},
