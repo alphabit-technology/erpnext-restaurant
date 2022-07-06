@@ -1,6 +1,7 @@
 /**RestaurantManagement**/
 var RM = null;
 const [TRANSFER, UPDATE, DELETE, INVOICED, ADD, QUEUE, SPLIT] = ["Transfer", "Update", "Delete", "Invoiced", "Add", "queue", "Split"];
+frappe.provide('erpnext.PointOfSale');
 
 frappe.pages['restaurant-manage'].on_page_load = function(wrapper) {
 	frappe.ui.make_app_page({
@@ -17,7 +18,6 @@ frappe.pages['restaurant-manage'].on_page_load = function(wrapper) {
 		}
 	});
 }
-
 RestaurantManage = class RestaurantManage {
 	#pos_profile = null;
 	#permissions = null;
@@ -26,6 +26,7 @@ RestaurantManage = class RestaurantManage {
 	#company = null;
 	#components = [];
 	#lang = null;
+	currency_precision = 2;
 
 	constructor(wrapper) {
 		this.base_wrapper = wrapper;
@@ -62,6 +63,7 @@ RestaurantManage = class RestaurantManage {
 			base_assets + 'js/food-command-class.js',
 			base_assets + 'js/table-order-class.js',
 			base_assets + 'js/pay-form-class.js',
+			base_assets + 'js/invoice-class.js',
 
 			base_assets + 'css/restaurant-room.css',
 			base_assets + 'css/action-buttons.css',
@@ -88,10 +90,16 @@ RestaurantManage = class RestaurantManage {
 			() => {
 				this.working("Set settings");
 				this.settings_data.then(() => {
-					this.make_rooms().then(() => {
-						setTimeout(() => {
-							this.check_permissions_status();
-						}, 100);
+					frappe.require('assets/js/restaurant_management.min.js', () => {
+						this.pos = new erpnext.PointOfSale.RestaurantController(this.wrapper);
+						window.cur_pos = this.pos;
+
+						this.make_rooms().then(() => {
+							setTimeout(() => {
+								this.check_permissions_status();
+								//this.set_pos_controller();
+							}, 100);
+						});
 					});
 				});
 			},
@@ -268,16 +276,29 @@ RestaurantManage = class RestaurantManage {
 	}
 
 	make_rooms(){
+		const currents_rooms = Object.values(this.rooms || {}).map(room => room.name);
 		this.working("Loading Rooms");
+
 		return new Promise(res => {
 			frappe.call({
 				method: this.url_manage + "get_rooms"
 			}).then(r => {
 				$("body").show();
 				this.rooms = r.message;
+				this.clear_rooms(currents_rooms)
 				this.render_rooms();
 				this.ready();
 				res();
+			});
+		});
+	}
+
+	clear_rooms(currents_rooms=[]){
+		currents_rooms.forEach(room => {
+			Object.values(this.rooms || {}).forEach(room => {
+				if(!currents_rooms.includes(room.name)){
+					this.object(room) ? this.object(room).remove() : null;
+				}
 			});
 		});
 	}
@@ -289,32 +310,44 @@ RestaurantManage = class RestaurantManage {
 
 	render_rooms(current=false){
 		let room_from_url = null;
-		this.rooms.forEach((room, index, rooms) => {
-			if(RM.object(room.name) == null){
-				RM.object(room.name, new RestaurantRoom(room))
-			}else{
-				RM.object(room.name).data = room;
-			}
 
-			if(current === false){
-				if (this.current_room == null) {
-					if(RM.object(this.room_from_url) == null){
-						room_from_url = rooms[0].name;
-					}else{
-						room_from_url = this.room_from_url;
-					}
-				}else{
-					room_from_url = this.current_room.data.name;
+		this.rooms.forEach((room, index, rooms) => {
+			if(this.object(room.name) == null){
+				if (this.permissions.restaurant_object.create || this.permissions.restaurant_object.write || this.permissions.rooms_access.includes(room.name)) {
+					this.object(room.name, new RestaurantRoom(room))
 				}
 			}else{
+				if (!this.permissions.rooms_access.includes(room.name)) {
+					RM.object(room.name).remove();
+				}else{
+					RM.object(room.name).data = room;
+				}
+			}
+
+			if (current === false) {
+				if (this.current_room == null) {
+					if (RM.object(this.room_from_url) == null) {
+						room_from_url = rooms[0].name;
+					} else {
+						room_from_url = this.room_from_url;
+					}
+				} else {
+					room_from_url = this.current_room.data.name;
+				}
+			} else {
 				room_from_url = current;
 			}
 		});
 
 		setTimeout(() => {
 			this.current_room = RM.object(room_from_url);
+
 			if (this.current_room != null) {
-				this.current_room.select();
+				if (this.permissions.rooms_access.includes(this.current_room.data.name)) {
+					this.current_room.select();
+				} else {
+					this.delete_current_room();
+				}
 			}
 		}, 0);
 	}
@@ -435,13 +468,19 @@ RestaurantManage = class RestaurantManage {
 
 		frappe.realtime.on("update_settings", () => {
 			this.settings_data.then(() => {
+				this.make_rooms();
 				this.check_permissions_status();
 			});
 		});
 
 		frappe.realtime.on("check_rooms", (r) => {
 			this.rooms = r.rooms;
-			this.render_rooms(r.client === RM.client ? r.current_room : false);
+
+			this.settings_data.then(() => {
+				this.rooms = this.rooms.filter(room => this.permissions.rooms_access.includes(room.name));
+				
+				this.render_rooms(r.client === RM.client ? r.current_room : false);
+			});
 		});
 
 		frappe.realtime.on("pos_profile_update", (r) => {
@@ -587,7 +626,7 @@ RestaurantManage = class RestaurantManage {
 	}
 
 	format_currency(value){
-		let val = isNaN(parseFloat(value)) ? 0 : parseFloat(value);
+		const val = isNaN(parseFloat(value)) ? 0 : parseFloat(value);
 		return format_currency(parseFloat(val), this.pos_profile.currency);
 	}
 

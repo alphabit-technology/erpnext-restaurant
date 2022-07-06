@@ -5,8 +5,8 @@ from restaurant_management.setup.desk_form_fields import desk_forms_fields
 from itertools import chain
 
 def after_install():
-    create_desk_forms()
     update_fields()
+    create_desk_forms()
     set_custom_scripts()
 
 
@@ -38,6 +38,7 @@ def format_value(value):
         return 0
 
     return value
+    
 
 def create_desk_forms():
     for form in desk_forms_fields:
@@ -74,19 +75,23 @@ def create_desk_forms():
 def update_fields():
     docs = {
         "POS Profile User": dict(
-            restaurant_permission=dict(label="Restaurant Permission", fieldtype="Button", options="Restaurant Permission", insert_after="User"),
+            restaurant_permission=dict(label="Restaurant Permission", fieldtype="Button", options="Restaurant Permission", insert_after="User", in_list_view=1, read_only=1),
             parent=dict(label="Parent", fieldtype="Data", hidden=1),
             parenttype=dict(label="Parent Type", fieldtype="Data", hidden=1),
             restaurant_permissions=dict(label="Restaurant Permissions", fieldtype="Table", options="Restaurant Permission", hidden=1, insert_after="Restaurant Permission"),
         ),
     }
     for doc in docs:
-        for field in docs[doc]:
-            for attr in docs[doc][field]:
-                frappe.db.set_value("DocField", {
-                    "fieldname": field, "parentType": "DocType", "parent": doc
-                }, attr, docs[doc][field][attr])
+        for field_name in docs[doc]:
+            test_field = frappe.get_value("Custom Field", doc + "-" + field_name)
+            CF = frappe.new_doc("Custom Field") if test_field is None else frappe.get_doc("Custom Field", test_field)
 
+            _values = dict(chain.from_iterable(d.items() for d in (docs[doc][field_name], dict(dt=doc, fieldname=field_name))))
+            
+            for key in _values:
+                CF.set(key, _values[key])
+                
+            CF.insert() if test_field is None else CF.save()
 
 def set_custom_scripts():
     for doc in ["POS Profile"]:
@@ -104,6 +109,10 @@ refresh(frm) {
 
 frappe.ui.form.on('POS Profile User', {
     restaurant_permission(frm, cdt, cdn) {
+        if(cdn.includes('new')){
+            frappe.show_alert(__("Save the record before assigning permissions"));
+            return;
+        }
         new DeskForm({
             doctype: "POS Profile User",
             docname: cdn,

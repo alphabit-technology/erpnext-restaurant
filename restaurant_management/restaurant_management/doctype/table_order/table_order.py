@@ -268,12 +268,14 @@ class TableOrder(Document):
             if tax is not None:
                 for t in json.loads(tax):
                     in_invoice_taxes.append(t)
+        
+        included_in_print_rate = frappe.db.get_value("POS Profile", self.pos_profile, "posa_tax_inclusive")
 
         for t in set(in_invoice_taxes):
             invoice.append('taxes', {
-                "charge_type": "On Net Total", "account_head": t, "rate": 0, "description": t
+                "charge_type": "On Net Total", "account_head": t, "rate": 0, "description": t, "included_in_print_rate": included_in_print_rate
             })
-
+            
         invoice.run_method("set_missing_values")
         invoice.run_method("calculate_taxes_and_totals")
 

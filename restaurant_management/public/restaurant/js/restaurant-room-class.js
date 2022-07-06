@@ -34,6 +34,11 @@ class RestaurantRoom extends ObjectManage {
         });
     }
 
+    remove() {
+        this.obj.remove();
+        this.tables_container.remove();
+    }
+
     make_objects(tables = []) {
         tables.forEach((table, index) => {
             table.index = index;

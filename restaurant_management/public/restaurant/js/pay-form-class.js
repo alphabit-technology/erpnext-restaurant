@@ -1,4 +1,4 @@
-PayForm = class PayForm {
+class PayForm {
     constructor(options) {
         Object.assign(this, options);
         this.modal = null;
@@ -54,9 +54,7 @@ PayForm = class PayForm {
                 this.update_paid_value();
             }
         });
-
-        console.log(['numpad wrapper', this.wrapper_form.num_pad])
-
+        
         $(this.wrapper_form.num_pad.wrapper).empty().append(
             `<div style="width: 100% !important; height: 200px !important; padding: 0">
                 ${this.num_pad.html}
@@ -103,7 +101,7 @@ PayForm = class PayForm {
             this.num_pad.input = obj;
         }).val(this.form.form.doc.dinners).int();
 
-        $(this.wrapper_form.dinners_number.wrapper).empty().append(
+        $(this.wrapper_form.dinners.wrapper).empty().append(
             this.form_tag("Dinners", this.dinners)
         );
 

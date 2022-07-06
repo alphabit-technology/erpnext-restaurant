@@ -14,8 +14,12 @@ source_link = "https://github.com/joepa37/restaurant_management"
 
 doc_events = {
     "POS Profile": {
-        "on_create": "restaurant_management.restaurant_management.page.restaurant_manage.restaurant_manage.set_pos_profile",
-        "on_update": "restaurant_management.restaurant_management.page.restaurant_manage.restaurant_manage.set_pos_profile"
+        "on_create": "restaurant_management.restaurant_management.page.restaurant_manage.restaurant_manage.set_settings_data",
+        "on_update": "restaurant_management.restaurant_management.page.restaurant_manage.restaurant_manage.set_settings_data"
+    },
+    "POS Profile User": {
+        "on_create": "restaurant_management.restaurant_management.page.restaurant_manage.restaurant_manage.set_settings_data",
+        "on_update": "restaurant_management.restaurant_management.page.restaurant_manage.restaurant_manage.set_settings_data"
     },
 }
 
