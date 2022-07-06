@@ -1,6 +1,7 @@
 class OrderItem {
     constructor(options) {
         Object.assign(this, options);
+
         this.edit_form = null;
         this.attending_status = this.order.data.attending_status;
         this.status_enabled_for_edit = [this.attending_status, "Pending", null, undefined, ""];
@@ -36,7 +37,7 @@ class OrderItem {
     }
 
     reset_html() {
-        let ps = this.data.process_status_data;
+        const ps = this.data.process_status_data;
         this.amount.val(RM.format_currency(this.data.amount));
         this.detail.val(this.html_detail);
         this.notes.val(this.data.notes);
@@ -70,6 +71,7 @@ class OrderItem {
         this.order.current_item = this;
         this.order.order_manage.check_item_editor_status(this);
         this.row.toggle_common('media.event', 'selected');
+
         if(scroller) this.order.scroller();
     }
 
@@ -118,8 +120,6 @@ class OrderItem {
     update(server = true) {
         if(this.data.qty === 0 && !this.is_enabled_to_delete){
             frappe.throw(__("You do not have permissions to delete Items"));
-            //frappe.msgprint(__("You do not have permissions to delete Items"));
-            //return;
         }
 
         if (this.data.qty === 0) {
@@ -147,21 +147,25 @@ class OrderItem {
     }
 
     calculate() {
-        let tax_percentage = RMHelper.JSONparse(this.data.item_tax_rate);
-        let base_amount = parseFloat(this.data.qty) * parseFloat(this.data.rate);
-        let tax_amount = 0;
-        if (tax_percentage != null) {
-            tax_percentage = Object.keys(tax_percentage).map((key) => tax_percentage[key]);
-            tax_percentage.forEach((tax) => {
-                tax_amount += base_amount * (tax / 100);
-            });
-        }
+        const base_amount = flt(this.data.qty) * flt(this.data.rate);
+        const tax_inclusive = RM.pos_profile.posa_tax_inclusive;
+
+        const tax_amount = Object.values(RMHelper.JSONparse(this.data.item_tax_rate) || {}).reduce((acc, cur) => {
+            if(tax_inclusive) {
+                const base_without_tax = base_amount / (1 + (cur / 100));
+                return acc + (base_without_tax * (cur / 100));
+            }else{
+                return acc + (base_amount * cur / 100);
+            }
+        }, 0);
+
         this.data.tax_amount = tax_amount;
-        this.data.amount = (base_amount + tax_amount);
+        this.data.amount = base_amount + (tax_inclusive ? 0 : tax_amount);
     }
 
     get template() {
-        let psd = this.data.process_status_data;
+        const psd = this.data.process_status_data;
+
         this.icon = frappe.jshtml({
             tag: "a",
             properties: {class: "pull-left border-aero profile_thumb"},
@@ -194,7 +198,7 @@ class OrderItem {
             content: RM.format_currency(this.data.amount)
         });
 
-        let edit_note_button = (
+        const edit_note_button = (
             RM.check_permissions('order', this.order, 'write')
         ) ? this.edit_note_button.on("click", () => {
             this.edit_notes();

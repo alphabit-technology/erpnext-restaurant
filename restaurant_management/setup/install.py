@@ -88,7 +88,9 @@ def update_fields():
 
             _values = dict(chain.from_iterable(d.items() for d in (docs[doc][field_name], dict(dt=doc, fieldname=field_name))))
             
-            CF.update(_values)
+            for key in _values:
+                CF.set(key, _values[key])
+                
             CF.insert() if test_field is None else CF.save()
 
 def set_custom_scripts():

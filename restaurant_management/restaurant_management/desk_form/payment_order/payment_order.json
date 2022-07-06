@@ -227,7 +227,7 @@
  "is_standard": 1,
  "login_required": 1,
  "max_attachment_size": 0,
- "modified": "2022-07-04 21:32:04.045867",
+ "modified": "2022-07-05 19:22:03.775363",
  "modified_by": "Administrator",
  "module": "Restaurant Management",
  "name": "payment-order",

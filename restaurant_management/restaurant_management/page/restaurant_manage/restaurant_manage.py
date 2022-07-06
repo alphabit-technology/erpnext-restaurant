@@ -17,13 +17,16 @@ class RestaurantManage:
 
     @staticmethod
     def get_rooms():
-        if frappe.session.user == "Administrator":
+        user_perm = frappe.permissions.get_doc_permissions(
+            frappe.new_doc("Restaurant Object"))
+
+        if frappe.session.user == "Administrator" or user_perm.get("write") or user_perm.get("create"):
             rooms = frappe.get_list("Restaurant Object", "name, description", {
                 "type": "Room",
             })
         else:
             restaurant_settings = frappe.get_single("Restaurant Settings")
-            rooms_enabled = restaurant_settings.get_restaurant_permissions()
+            rooms_enabled = restaurant_settings.rooms_access()
 
             rooms = frappe.get_list("Restaurant Object", "name, description", {
                 "type": "Room",
@@ -142,6 +145,8 @@ def pos_profile_data():
     restaurant_settings = frappe.get_single("Restaurant Settings")
     return restaurant_settings.pos_profile_data()
 
+def set_settings_data(doc, method=None):
+    frappe.publish_realtime("update_settings")
 
 def set_pos_profile(doc, method=None):
     frappe.publish_realtime("pos_profile_update", pos_profile_data())

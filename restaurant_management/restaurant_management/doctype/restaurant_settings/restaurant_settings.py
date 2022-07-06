@@ -23,6 +23,7 @@ class RestaurantSettings(Document):
                 invoice=frappe.permissions.get_doc_permissions(frappe.new_doc("Sales Invoice")),
                 order=frappe.permissions.get_doc_permissions(frappe.new_doc("Table Order")),
                 restaurant_object=frappe.permissions.get_doc_permissions(frappe.new_doc("Restaurant Object")),
+                rooms_access=self.rooms_access()
             ),
             restrictions=restaurant_settings,
             exceptions=[item for item in restaurant_settings.restaurant_exceptions  if item.role_profile == profile],
@@ -35,15 +36,14 @@ class RestaurantSettings(Document):
         return dict(
             has_pos=pos_profile_name is not None,
             pos=frappe.get_doc(
-                "POS Profile", pos_profile_name) if pos_profile_name is not None else None,
-            restaurant_permissions=self.get_restaurant_permissions()
+                "POS Profile", pos_profile_name) if pos_profile_name is not None else None
         )
 
     def get_current_pos_profile_name(self):
         pos_profile = get_pos_profile(frappe.defaults.get_user_default('company'))
         return pos_profile.name if pos_profile else None
 
-    def get_restaurant_permissions(self):
+    def rooms_access(self):
         pos_profile_name = self.get_current_pos_profile_name()
 
         if pos_profile_name is not None:
