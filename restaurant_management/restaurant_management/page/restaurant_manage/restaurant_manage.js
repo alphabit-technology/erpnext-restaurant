@@ -313,11 +313,11 @@ RestaurantManage = class RestaurantManage {
 
 		this.rooms.forEach((room, index, rooms) => {
 			if(this.object(room.name) == null){
-				if (this.permissions.restaurant_object.create || this.permissions.restaurant_object.write || this.permissions.rooms_access.includes(room.name)) {
+				if (this.permissions.restaurant_object.create || this.permissions.restaurant_object.write || this.rooms_access.includes(room.name)) {
 					this.object(room.name, new RestaurantRoom(room))
 				}
 			}else{
-				if (!this.permissions.rooms_access.includes(room.name)) {
+				if (!this.rooms_access.includes(room.name)) {
 					RM.object(room.name).remove();
 				}else{
 					RM.object(room.name).data = room;
@@ -343,7 +343,7 @@ RestaurantManage = class RestaurantManage {
 			this.current_room = RM.object(room_from_url);
 
 			if (this.current_room != null) {
-				if (this.permissions.rooms_access.includes(this.current_room.data.name)) {
+				if (this.rooms_access.includes(this.current_room.data.name)) {
 					this.current_room.select();
 				} else {
 					this.delete_current_room();
@@ -477,7 +477,7 @@ RestaurantManage = class RestaurantManage {
 			this.rooms = r.rooms;
 
 			this.settings_data.then(() => {
-				this.rooms = this.rooms.filter(room => this.permissions.rooms_access.includes(room.name));
+				this.rooms = this.rooms.filter(room => this.rooms_access.includes(room.name));
 				
 				this.render_rooms(r.client === RM.client ? r.current_room : false);
 			});
@@ -491,6 +491,10 @@ RestaurantManage = class RestaurantManage {
 				this.raise_exception_for_pos_profile();
 			}
 		});
+	}
+
+	get rooms_access(){
+		return (this.permissions || {}).rooms_access || []
 	}
 
 	check_permissions_status(){
