@@ -63,7 +63,7 @@ class RestaurantSettings(Document):
 
             return (item.room for item in restaurant_permissions)
 
-        return {}
+        return []
 
 
 @frappe.whitelist()
