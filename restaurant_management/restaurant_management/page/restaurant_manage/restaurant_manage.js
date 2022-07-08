@@ -494,7 +494,7 @@ RestaurantManage = class RestaurantManage {
 	}
 
 	get rooms_access(){
-		return (this.permissions || {}).rooms_access || [];
+		return Object.values((this.permissions || {}).rooms_access || []);
 	}
 
 	check_permissions_status(){
