@@ -5,13 +5,17 @@ from restaurant_management.setup.desk_form_fields import desk_forms_fields
 from itertools import chain
 
 def after_install():
-    update_fields()
+    set_custom_fields()
     create_desk_forms()
     set_custom_scripts()
 
+    
+def to_route(txt):
+    return txt.replace(' ', '-').replace('_', '-').lower()
+    
 
-def default_fields():
-    return dict(
+def create_desk_forms():
+    field_structure = dict(
         idx=0,
         fieldname=None,
         fieldtype="Data",
@@ -26,21 +30,7 @@ def default_fields():
         default=""
 
     )
-    
-def to_route(txt):
-    return txt.replace(' ', '-').replace('_', '-').lower()
 
-def format_value(value):
-    if value == "None":
-        return None
-    
-    if value == "0":
-        return 0
-
-    return value
-    
-
-def create_desk_forms():
     for form in desk_forms_fields:
         form_props = desk_forms_fields[form]
 
@@ -67,12 +57,12 @@ def create_desk_forms():
 
         for fields in form_props["fields"]:
             cf.append("desk_form_fields", dict(chain.from_iterable(d.items()
-                      for d in (default_fields(), fields))))
+                      for d in (field_structure, fields))))
 
         cf.save()
 
 
-def update_fields():
+def set_custom_fields():
     docs = {
         "POS Profile User": dict(
             restaurant_permission=dict(label="Restaurant Permission", fieldtype="Button", options="Restaurant Permission", insert_after="User", in_list_view=1, read_only=1),
@@ -80,29 +70,34 @@ def update_fields():
             parenttype=dict(label="Parent Type", fieldtype="Data", hidden=1),
             restaurant_permissions=dict(label="Restaurant Permissions", fieldtype="Table", options="Restaurant Permission", hidden=1, insert_after="Restaurant Permission"),
         ),
+        "POS Profile": dict(
+            posa_tax_inclusive=dict(label="Tax Inclusive", fieldtype="Check", insert_after="tax_category", default_value=1)
+        )
     }
     for doc in docs:
         for field_name in docs[doc]:
             test_field = frappe.get_value("Custom Field", doc + "-" + field_name)
-            CF = frappe.new_doc("Custom Field") if test_field is None else frappe.get_doc("Custom Field", test_field)
 
-            _values = dict(chain.from_iterable(d.items() for d in (docs[doc][field_name], dict(dt=doc, fieldname=field_name))))
-            
-            for key in _values:
-                CF.set(key, _values[key])
+            if test_field is None or field_name != "posa_tax_inclusive":
+                CF = frappe.new_doc("Custom Field") if test_field is None else frappe.get_doc("Custom Field", test_field)
+
+                _values = dict(chain.from_iterable(d.items() for d in (docs[doc][field_name], dict(dt=doc, fieldname=field_name))))
                 
-            CF.insert() if test_field is None else CF.save()
+                for key in _values:
+                    CF.set(key, _values[key])
+                    
+                CF.insert() if test_field is None else CF.save()
 
 def set_custom_scripts():
-    for doc in ["POS Profile"]:
-        if frappe.get_value("Client Script", {"dt": doc}) is None:
-            CS = frappe.new_doc("Client Script")
-            CS.enabled = "1"
-            CS.applicable_for = "Form"
-            CS.dt = doc
-            CS.script = """
+    test_script = frappe.get_value("Client Script", "POS Profile-Form")
+    CS = frappe.new_doc("Client Script") if test_script is None else frappe.get_doc("Client Script", test_script)
+
+    CS.set("enabled", 1)
+    CS.set("view", "Form")
+    CS.set("dt", "POS Profile")
+    CS.set("script", """
 frappe.ui.form.on('POS Profile', {
-refresh(frm) {
+    refresh(frm) {
         frm.fields_dict['applicable_for_users'].grid.wrapper.find('.btn-open-row').hide();
 	}
 });
@@ -138,4 +133,5 @@ frappe.ui.form.on('POS Profile User', {
         });
     }
 });"""
-            CS.save()
+    )
+    CS.insert() if test_script is None else CS.save()

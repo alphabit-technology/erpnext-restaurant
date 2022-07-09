@@ -18,8 +18,11 @@ frappe.ui.form.on('Restaurant Settings', {
 		frm.add_custom_button(__('Reinstall'), () => {
 	        frappe.call({
 				method: "restaurant_management.restaurant_management.doctype.restaurant_settings.restaurant_settings.reinstall",
-				always: function(r) {
+				success: function(r) {
 					frappe.msgprint(__("Completed"));
+				},
+				error: function(r) {
+					frappe.msgprint(__("Failed"));
 				}
 			});
 		});
