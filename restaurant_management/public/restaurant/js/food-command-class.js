@@ -72,7 +72,7 @@ class FoodCommand {
     }
 
     refresh_html() {
-        let psd = this.data.process_status_data;
+        const psd = this.data.process_status_data;
         this.update_title();
         this.detail.val(this.html_detail);
         this.action_button.val(psd.next_action_message);
@@ -108,7 +108,7 @@ class FoodCommand {
     remove() {
         this.item.remove();
 
-        let items = Object.keys(this.process_manage.items);
+        const items = Object.keys(this.process_manage.items);
 
         items.forEach((item) => {
             if (this.process_manage.items[item].data.identifier === this.data.identifier) {
@@ -140,8 +140,8 @@ class FoodCommand {
     }
 
     show_alert_time_elapsed(time_elapsed){
-        let five_minuts = 60 * 5;
-        let fifteen_minuts = 60 * 15;
+        const five_minuts = 60 * 5;
+        const fifteen_minuts = 60 * 15;
 
         if (time_elapsed <= five_minuts) {
             this._time_elapsed.css('color', 'green');

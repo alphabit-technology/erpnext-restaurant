@@ -12,6 +12,8 @@
   "column_break_5",
   "multiple_pending_order",
   "section_break_12",
+  "pos_profile",
+  "column_break_9",
   "color",
   "column_break_7",
   "print_format",
@@ -133,12 +135,22 @@
    "fieldname": "multiple_pending_order",
    "fieldtype": "Check",
    "label": "Multiple pending order"
+  },
+  {
+   "fieldname": "pos_profile",
+   "fieldtype": "Link",
+   "label": "POS Profile",
+   "options": "POS Profile"
+  },
+  {
+   "fieldname": "column_break_9",
+   "fieldtype": "Column Break"
   }
  ],
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2022-06-30 18:42:23.260665",
+ "modified": "2022-07-13 21:07:25.854704",
  "modified_by": "Administrator",
  "module": "Restaurant Management",
  "name": "Restaurant Settings",

@@ -67,7 +67,7 @@
    "fieldname": "link_invoice",
    "fieldtype": "Link",
    "label": "Invoice",
-   "options": "Sales Invoice",
+   "options": "POS Invoice",
    "read_only": 1
   },
   {
@@ -147,7 +147,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2021-07-21 20:05:45.277924",
+ "modified": "2022-07-13 21:04:18.440680",
  "modified_by": "Administrator",
  "module": "Restaurant Management",
  "name": "Table Order",

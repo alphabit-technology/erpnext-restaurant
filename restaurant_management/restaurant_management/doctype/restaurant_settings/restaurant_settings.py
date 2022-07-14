@@ -40,8 +40,9 @@ class RestaurantSettings(Document):
         )
 
     def get_current_pos_profile_name(self):
-        pos_profile = get_pos_profile(frappe.defaults.get_user_default('company'))
-        return pos_profile.name if pos_profile else None
+        return self.pos_profile
+        """pos_profile = get_pos_profile(frappe.defaults.get_user_default('company'))
+        return pos_profile.name if pos_profile else None"""
 
     def rooms_access(self):
         pos_profile_name = self.get_current_pos_profile_name()

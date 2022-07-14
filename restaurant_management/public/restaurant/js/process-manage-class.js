@@ -70,7 +70,7 @@ ProcessManage = class ProcessManage {
     }
 
     make_food_commands(items = []) {
-        let _items = Object.keys(this.items);
+        const _items = Object.keys(this.items);
         this.new_items_keys = [];
 
         items.forEach((item) => {
@@ -114,7 +114,7 @@ ProcessManage = class ProcessManage {
 
     check_item(item) {
         if (Object.keys(this.items).includes(item.identifier)) {
-            let _item = this.items[item.identifier];
+            const _item = this.items[item.identifier];
             if (this.include_status(item.status)) {
                 _item.data = item;
                 _item.refresh_html();
