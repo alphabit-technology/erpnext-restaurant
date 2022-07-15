@@ -1,4 +1,4 @@
-TableOrder = class TableOrder {
+class TableOrder {
     constructor(options) {
         Object.assign(this, options);
         
@@ -73,7 +73,7 @@ TableOrder = class TableOrder {
     }
 
     get content() {
-        let background_color = `background-color: ${RM.check_permissions("order", this, "write") ? '' : RM.restrictions.color};`;
+        const background_color = `background-color: ${RM.check_permissions("order", this, "write") ? '' : RM.restrictions.color};`;
         return `<span class='badge' style="${background_color}">{{text}}</span>${this.data.short_name}`;
     }
 
@@ -163,7 +163,7 @@ TableOrder = class TableOrder {
     }
 
     add_locale_item(item) {
-        let identifier = item.identifier;
+        const identifier = item.identifier;
         this.items[identifier] = new OrderItem({
             identifier: identifier,
             order: this,
@@ -198,9 +198,9 @@ TableOrder = class TableOrder {
     }
 
     check_items(options={}){
-        let items = options.hasOwnProperty("items") ? options.items : [];
+        const items = options.hasOwnProperty("items") ? options.items : [];
         let current = options.hasOwnProperty("current") ? options.current : null;
-        let action = options.hasOwnProperty("action") ? options.action : null;
+        const action = options.hasOwnProperty("action") ? options.action : null;
 
         current = current || this.current_item;
         let test_item = null, current_item = null;
@@ -243,7 +243,7 @@ TableOrder = class TableOrder {
     }
 
     debug_items(items) {
-        let test_items = items.map(item => item.identifier);
+        const test_items = items.map(item => item.identifier);
 
         Object.keys(this.items).filter(x => !test_items.includes(x)).forEach((r) => {
             this.delete_item(r);
@@ -251,7 +251,7 @@ TableOrder = class TableOrder {
     }
 
     get_item(identifier) {
-        let item = this.items[identifier];
+        const item = this.items[identifier];
         return typeof item == "undefined" ? null : item;
     }
 
@@ -264,13 +264,13 @@ TableOrder = class TableOrder {
     }
 
     scroller() {
-        let order_entry_container = this.order_manage.order_entry_container;
+        const order_entry_container = this.order_manage.order_entry_container;
 
-        let container_height = order_entry_container.offsetHeight;
-        let row_height = (container_height / this.items_count);
-        let position_row = (this.find_item_position(this.current_item) * row_height);
+        const container_height = order_entry_container.offsetHeight;
+        const row_height = (container_height / this.items_count);
+        const position_row = (this.find_item_position(this.current_item) * row_height);
 
-        let container = $(this.order_manage.container).find('.panel-order-items')[0];
+        const container = $(this.order_manage.container).find('.panel-order-items')[0];
         container.scrollTo({top: position_row, behavior: 'smooth'});
     }
 
@@ -363,14 +363,14 @@ TableOrder = class TableOrder {
         }
 
         Object.keys(this.items).forEach((index) => {
-            let item = this.items[index];
+            const item = this.items[index];
 
             item.in_current_order = item.data.qty;
             item.in_new_order = 0;
 
-            let item_base_name = `${this.data.name}-${item.data.entry_name}`;
+            const item_base_name = `${this.data.name}-${item.data.entry_name}`;
 
-            let adds = document.getElementsByClassName(`${item_base_name}-add-item`);
+            const adds = document.getElementsByClassName(`${item_base_name}-add-item`);
 
             Object.keys(adds).forEach((key) => {
                 let add = adds[key];
@@ -394,10 +394,10 @@ TableOrder = class TableOrder {
                 });
             });
 
-            let all_minus = document.getElementsByClassName(`${item_base_name}-minus-item`);
+            const all_minus = document.getElementsByClassName(`${item_base_name}-minus-item`);
 
             Object.keys(all_minus).forEach((key) => {
-                let minus = all_minus[key];
+                const minus = all_minus[key];
                 minus.addEventListener("click", (event) => {
                     event.preventDefault();
                     event.stopPropagation();
@@ -452,7 +452,7 @@ TableOrder = class TableOrder {
     }
 
     _divide() {
-        let update_data = {};
+        const update_data = {};
 
         if (RM.busy_message()) return;
 
@@ -600,7 +600,7 @@ TableOrder = class TableOrder {
     }
 
     delete_item(identifier) {
-        let item = this.get_item(identifier);
+        const item = this.get_item(identifier);
         if(item){
             if(this.is_some_item(this.current_item, item)){
                 this.delete_current_item();

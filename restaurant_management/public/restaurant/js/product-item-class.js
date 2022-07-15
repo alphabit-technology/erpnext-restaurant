@@ -117,10 +117,10 @@ class ProductItem {
     }
 
     render_items(items) {
-        let _items = items || this.items;
+        const _items = items || this.items;
 
         const all_items = Object.values(_items).map(item => this.get_item_html(item));
-        let row_items = [];
+        const row_items = [];
 
         let curr_row = "";
 
@@ -249,7 +249,7 @@ class ProductItem {
 
     add_item_cart(item) {
         const {item_code, item_name} = item;
-        let _item = {
+        const _item = {
             discount_percentage: 0,
             entry_name: null,
             item_code: item_code,
@@ -276,7 +276,7 @@ class ProductItem {
             _item.pos_profile = RM.pos_profile.name;
 
             this.set_items_detail(_item).then((data) => {
-                let item_to_push = Object.assign({}, data, _item);
+                const item_to_push = Object.assign({}, data, _item);
 
                 item_to_push.identifier = RM.uuid("entry");
                 item_to_push.status = "Pending";

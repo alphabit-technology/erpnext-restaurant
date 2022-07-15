@@ -51,7 +51,7 @@ RestaurantObject = class RestaurantObject {
 
     remove() {
         this.obj.remove();
-        let tables = Object.keys(this.room.tables);
+        const tables = Object.keys(this.room.tables);
 
         tables.forEach((table) => {
             if (this.room.tables[table].data.identifier === this.data.identifier) {
@@ -128,10 +128,10 @@ RestaurantObject = class RestaurantObject {
     }
 
     set_data_style(x = null, y = null, data = null, color = null) {
-        let ts = this.css_style;
+        const ts = this.css_style;
         let origin_data_style = {};
 
-        let update_data_style = (data) => {
+        const update_data_style = (data) => {
             for (let k in this.data_style_keys) {
                 if (!this.data_style_keys.hasOwnProperty(k)) continue;
                 if (this.data_style_keys[k] in data) {
@@ -158,9 +158,9 @@ RestaurantObject = class RestaurantObject {
     }
 
     get style_structure() {
-        let fix_prop = (k) => {
-            let val = this.data_style[k];
-            let fix = ['height', 'width'].includes(k) ? 100 : 0
+        const fix_prop = (k) => {
+            const val = this.data_style[k];
+            const fix = ['height', 'width'].includes(k) ? 100 : 0
             return (typeof val == "undefined" || val == null || val < 0) ? fix : val;
         }
         let styleText = "";
@@ -168,7 +168,7 @@ RestaurantObject = class RestaurantObject {
         this.data_style_keys.forEach((prop) => {
             this.data_style[prop] = fix_prop(prop);
             if (prop !== 'x' && prop !== 'y') {
-                let prop_value = this.data_style[prop];
+                const prop_value = this.data_style[prop];
                 styleText += prop !== 'transform' ? (typeof prop_value != "undefined" ? `${prop}:${prop_value};` : '') : '';
             }
         });
@@ -178,8 +178,8 @@ RestaurantObject = class RestaurantObject {
 
     render() {
         this.set_data_style(null, null, this.data.data_style);
-        let class_type = this.data.type === 'Table' ? '' : 'p-center';
-        let class_shape = this.data.shape === 'Round' && this.data.type === "Table" ? 'round-type' : '';
+        const class_type = this.data.type === 'Table' ? '' : 'p-center';
+        const class_shape = this.data.shape === 'Round' && this.data.type === "Table" ? 'round-type' : '';
 
         this.obj = frappe.jshtml({
             caller: this,
@@ -203,13 +203,15 @@ RestaurantObject = class RestaurantObject {
 
     draggable() {
         /*DRAG AND RESIZE USING INTERACT JS*/
-        let self = this;
-        let initDrag = () => {
+        const self = this;
+        
+        const initDrag = () => {
             if (!this.is_selected) return;
             self.drag = true;
             self.obj.add_class("drag");
         }
-        let endDrag = () => {
+
+        const endDrag = () => {
             self.save_config();
             self.obj.remove_class("drag");
         }
@@ -351,7 +353,7 @@ RestaurantObject = class RestaurantObject {
             }
 
             const open = () => {
-                RM.pos.check_opening_entry().then(() => {
+                RM.pos.check_opening_entry(RM.pos_profile.name).then(() => {
                     setTimeout(() => {
                         if (this.order_manage == null) {
                             this.order_manage = new OrderManage({

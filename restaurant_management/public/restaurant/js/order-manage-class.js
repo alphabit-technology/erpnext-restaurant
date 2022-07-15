@@ -1,4 +1,4 @@
-OrderManage = class OrderManage extends ObjectManage {
+class OrderManage extends ObjectManage {
     #objects = {};
     #components = {};
     #items = {};
@@ -187,7 +187,7 @@ OrderManage = class OrderManage extends ObjectManage {
     make_edit_input() {
         const default_class = `input input-edit-values input-with-feedback center`;
 
-        let objs = [
+        const objs = [
             {
                 name: "Minus",
                 tag: 'button',
@@ -251,7 +251,7 @@ OrderManage = class OrderManage extends ObjectManage {
                 content: '<span class="fa fa-trash">',
                 on: {
                     'click': () => {
-                        let current_item =  this.current_order ? this.current_order.current_item : null;
+                        const current_item =  this.current_order ? this.current_order.current_item : null;
 
                         if (current_item != null){
                             if(current_item.is_enabled_to_delete){
@@ -265,9 +265,9 @@ OrderManage = class OrderManage extends ObjectManage {
             }
         ];
 
-        let container = "#" + this.editor_container_name;
+        const container = "#" + this.editor_container_name;
         let base_html = "<thead><tr>";
-        let width = [10,20,20,20,10,10];
+        const width = [10,20,20,20,10,10];
 
         objs.forEach((_obj) => {
             base_html += `
@@ -300,7 +300,7 @@ OrderManage = class OrderManage extends ObjectManage {
     update_detail(input) {
         if (RM.busy) return;
 
-        let set_data = (item, qty, discount, rate) => {
+        const set_data = (item, qty, discount, rate) => {
             item.data.qty = qty;
             item.data.discount_percentage = discount;
             item.data.rate = rate;
@@ -312,15 +312,15 @@ OrderManage = class OrderManage extends ObjectManage {
         }
 
         if (this.current_order != null && this.current_order.current_item != null) {
-            let current_item = this.current_order.current_item;
+            const current_item = this.current_order.current_item;
             if (!current_item.is_enabled_to_edit) {
                 return;
             }
 
-            let qty = parseFloat(this.objects.Qty.val());
-            let discount = parseFloat(this.objects.Discount.val());
-            let rate = parseFloat(this.objects.Rate.val());
-            let base_rate = parseFloat(current_item.data.price_list_rate);
+            const qty = flt(this.objects.Qty.val());
+            let discount = flt(this.objects.Discount.val());
+            let rate = flt(this.objects.Rate.val());
+            const base_rate = flt(current_item.data.price_list_rate);
 
             if (input.properties.name === "qty") {
                 if (input.val() === 0 && current_item.is_enabled_to_delete) {
@@ -335,7 +335,7 @@ OrderManage = class OrderManage extends ObjectManage {
                 set_data(current_item, qty, discount, rate);
             }
             if (input.properties.name === "rate") {
-                let _discount = (((base_rate - rate) / base_rate) * 100);
+                const _discount = (((base_rate - rate) / base_rate) * 100);
                 discount = _discount >= 0 ? _discount : 0
                 set_data(current_item, qty, discount, rate);
             }
@@ -351,7 +351,7 @@ OrderManage = class OrderManage extends ObjectManage {
             text: 0
         });
 
-        let num_pads_components = [
+        const num_pads_components = [
             [
                 [
                     {
@@ -425,7 +425,7 @@ OrderManage = class OrderManage extends ObjectManage {
 
         let base_html = "<tbody>";
         num_pads_components.forEach((row) => {
-            let props = typeof row[1] != "undefined" ? row[1] : {};
+            const props = typeof row[1] != "undefined" ? row[1] : {};
             base_html += `<tr style='${typeof props["style"] != "undefined" ? props["style"] : ""}'>`;
 
             row[0].forEach((col) => {
@@ -508,17 +508,14 @@ OrderManage = class OrderManage extends ObjectManage {
     check_buttons_status() {
         if (this.current_order == null) {
             this.disable_components();
-            //this.#components.customer.enable().show();
             if (typeof this.components.new_order_button != "undefined")
                 this.#components.new_order_button.enable().show();
             return;
         } else {
             if (RM.check_permissions("order", null, "create")) {
-                ///this.#components.new.enable().show();
                 if (typeof this.components.new_order_button != "undefined")
                     this.#components.new_order_button.enable().show();
             } else {
-                //this.#components.new.disable().hide();
                 if (typeof this.components.new_order_button != "undefined")
                     this.#components.new_order_button.disable().hide();
             }
@@ -540,7 +537,7 @@ OrderManage = class OrderManage extends ObjectManage {
                 if (this.current_order.has_queue_items()) {
                     this.#components.Order.enable().add_class("btn-danger").val(__("Add"));
                 } else {
-                    let orders_count = this.current_order.data.products_not_ordered;
+                    const orders_count = this.current_order.data.products_not_ordered;
 
                     if (orders_count > 0) {
                         this.orders_count_badge.val(""+orders_count+"");
@@ -577,7 +574,7 @@ OrderManage = class OrderManage extends ObjectManage {
 
     check_item_editor_status(item = null) {
         /** item OrderItem class **/
-        let objects = this.#objects;
+        const objects = this.#objects;
         if (item == null) {
             this.empty_inputs();
             this.in_objects((input) => {
@@ -585,9 +582,9 @@ OrderManage = class OrderManage extends ObjectManage {
             });
             return;
         }
-        let pos_profile = RM.pos_profile
-        let data = item.data;
-        let item_is_enabled_to_edit = item.is_enabled_to_edit;
+        const pos_profile = RM.pos_profile
+        const data = item.data;
+        const item_is_enabled_to_edit = item.is_enabled_to_edit;
 
         objects.Qty.prop(
             "disabled", !item_is_enabled_to_edit
@@ -673,7 +670,7 @@ OrderManage = class OrderManage extends ObjectManage {
                 }
             },
             not_exist: () => {
-                let new_order = new TableOrder({
+                const new_order = new TableOrder({
                     order_manage: this,
                     data: Object.assign({}, _data)
                 });
@@ -698,7 +695,7 @@ OrderManage = class OrderManage extends ObjectManage {
             this.append_order(order, current);
         });
 
-        let new_order_button = frappe.jshtml({
+        const new_order_button = frappe.jshtml({
             tag: "button",
             properties: {
                 class: "btn btn-app btn-lg btn-order",
@@ -757,7 +754,7 @@ OrderManage = class OrderManage extends ObjectManage {
     }
 
     delete_order(order_name) {
-        let order = this.get_order(order_name);
+        const order = this.get_order(order_name);
         if (order != null) {
             order.delete_items();
             if (this.is_same_order(order)){
@@ -774,7 +771,7 @@ OrderManage = class OrderManage extends ObjectManage {
     }
 
     order_status_message() {
-        let container = $("#" + this.identifier);
+        const container = $("#" + this.identifier);
         if (this.current_order == null) {
             container.removeClass("has-order");
             container.removeClass("has-items");

@@ -59,19 +59,20 @@ erpnext.PointOfSale.RestaurantController = class {
 		}
 		const pos_profile_query = {
 			query: 'erpnext.accounts.doctype.pos_profile.pos_profile.pos_profile_query',
-			filters: { company: frappe.defaults.get_default('company') }
+			filters: { company: RM.pos_profile.company }
 		}
 		const dialog = new frappe.ui.Dialog({
 			title: __('Create POS Opening Entry'),
 			static: true,
 			fields: [
 				{
-					fieldtype: 'Link', label: __('Company'), default: frappe.defaults.get_default('company'),
-					options: 'Company', fieldname: 'company', reqd: 1
+					fieldtype: 'Link', label: __('Company'), default: RM.pos_profile.company,
+					options: 'Company', fieldname: 'company', reqd: 1, read_only: 1
 				},
 				{
 					fieldtype: 'Link', label: __('POS Profile'),
-					options: 'POS Profile', fieldname: 'pos_profile', reqd: 1,
+					options: 'POS Profile', fieldname: 'pos_profile', reqd: 1, read_only: 1,
+					default: RM.pos_profile.name,
 					get_query: () => pos_profile_query,
 					onchange: () => fetch_pos_payment_methods()
 				},

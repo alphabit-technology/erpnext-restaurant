@@ -90,7 +90,7 @@ class OrderItem {
                 after_load: () => {
                     this.edit_form.form.set_value("notes", this.data.notes);
                     this.edit_form.modal.set_primary_action(__("Save"), () => {
-                        let notes = this.edit_form.form.get_value("notes");
+                        const notes = this.edit_form.form.get_value("notes");
                         this.edit_form.hide();
 
                         if (notes !== this.data.notes) {

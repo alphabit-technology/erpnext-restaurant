@@ -129,7 +129,7 @@ RestaurantManage = class RestaurantManage {
 	}
 
 	prepare_dom() {
-		let self = this;
+		const self = this;
 		this.rooms_container = frappe.jshtml({
 			tag: "div",
 			properties: {
@@ -266,10 +266,11 @@ RestaurantManage = class RestaurantManage {
 	}
 
 	close_pos(){
-		let voucher = frappe.model.get_new_doc('POS Closing Entry');
-		voucher.pos_profile = RM.pos_profile;
+		const voucher = frappe.model.get_new_doc('POS Closing Entry');
+		voucher.pos_profile = this.pos.pos_profile;
 		voucher.user = frappe.session.user;
-		voucher.company = RM.company;
+		voucher.company = this.pos.company;
+		voucher.pos_opening_entry = this.pos.pos_opening;
 		voucher.period_end_date = frappe.datetime.now_datetime();
 		voucher.posting_date = frappe.datetime.now_date();
 		frappe.set_route('Form', 'POS Closing Entry', voucher.name);
@@ -395,7 +396,7 @@ RestaurantManage = class RestaurantManage {
 	}
 
 	object(name, object=null){
-		let obj = this.objects[name];
+		const obj = this.objects[name];
 		if(typeof obj == "undefined" && object != null){
 			this.objects[name] = object;
 		}
@@ -407,7 +408,7 @@ RestaurantManage = class RestaurantManage {
 			console.log(data);
 		});
 
-		let check_items_in_process_manage = (items, item_removed=null) =>{
+		const check_items_in_process_manage = (items, item_removed=null) =>{
 			this.in_rooms(room => {
 				room.in_tables(table => {
 					if(table.process_manage != null){
@@ -421,17 +422,17 @@ RestaurantManage = class RestaurantManage {
 		}
 
 		frappe.realtime.on("synchronize_order_data", (r) => {
-			let data = r.data;
-			let order = data.order;
+			const data = r.data;
+			const order = data.order;
 
 			this.request_client = r.client;
 			check_items_in_process_manage(data.items, r.item_removed);
 
-			let table = RM.object(order.data.table);
+			const table = RM.object(order.data.table);
 			if(this.current_room == null || table == null) return;
 
 			if(r.action === TRANSFER){
-				let last_table = RM.object(order.data.last_table);
+				const last_table = RM.object(order.data.last_table);
 				if(last_table != null && last_table.order_manage != null){
 					last_table.order_manage.check_data(r)
 				}
@@ -656,8 +657,8 @@ RestaurantManage = class RestaurantManage {
 	}
 
 	uuid(prefix='obj') {
-		let id = 'xxxx-xx-4xx-yxx-xxxxx'.replace(/[xy]/g, function (c) {
-			let r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+		const id = 'xxxx-xx-4xx-yxx-xxxxx'.replace(/[xy]/g, function (c) {
+			const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
 			return v.toString(16);
 		});
 
@@ -675,7 +676,7 @@ RestaurantManage = class RestaurantManage {
 				r = this.permissions[model][action];
 			}
 
-			let exception = () => {
+			const exception = () => {
 				r = false;
 				this.exceptions.map(e => {
 					r = e[model + "_" + action] === 1;

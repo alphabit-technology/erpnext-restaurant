@@ -220,7 +220,7 @@ class TableOrder(Document):
         new_order.save()
 
     def get_invoice(self, entry_items=None, make=False):
-        invoice = frappe.new_doc("Sales Invoice")
+        invoice = frappe.new_doc("POS Invoice")
         self.set_invoice_values(invoice)
 
         invoice.items = []
@@ -248,15 +248,6 @@ class TableOrder(Document):
                     margin_rate_or_amount=0 if margin_rate_or_amount < 0 else margin_rate_or_amount,
                     # conversion_factor=1,
                 ))
-
-                # for payment in frappe.get_list("POS Payment Method", {
-                #    "parenttype": "POS Profile",
-                #    "parent": self.pos_profile
-                # }):
-                #    invoice.append('payments', dict(
-                #        mode_of_payment=payment.mode_of_payment,
-                #        amount=0
-                #    ))
 
                 if "item_tax_rate" in item:
                     if not item["item_tax_rate"] in taxes:

@@ -139,7 +139,7 @@ class PayForm {
     }
 
     get payments_values() {
-        let payment_values = {};
+        const payment_values = {};
         RM.pos_profile.payments.forEach((mode_of_payment) => {
             let value = this.payment_methods[mode_of_payment.mode_of_payment].float_val;
             if (value > 0) {
@@ -166,7 +166,7 @@ class PayForm {
 
     _send_payment() {
         if (!RM.can_pay) return;
-        let order_manage = this.order.order_manage;
+        const order_manage = this.order.order_manage;
 
         RM.working("Generating Invoice");
         this.order.data.dinners = this.dinners.val();
@@ -204,7 +204,7 @@ class PayForm {
         const order_manage = this.order.order_manage;
         
         const props = {
-            model: "Sales Invoice",
+            model: "POS Invoice",
             model_name: invoice_name,
             args: {
                 format: RM.pos_profile.print_format,
