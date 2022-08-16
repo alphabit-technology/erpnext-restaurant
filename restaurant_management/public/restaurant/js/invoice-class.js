@@ -1,20 +1,20 @@
-class Invoice{
+class Invoice {
     #discount_amount = 0;
     #additional_discount_percentage = 0;
     invoice_doc = {};
 
-    constructor(data={}){
+    constructor(data = {}) {
         Object.assign(this, data);
         //this.customer = data.customer || null;
 
-        if(!this.customer){
+        if (!this.customer) {
             throw new Error("Customer is required");
         }
 
         //this.make();
     }
 
-    make(data={}){
+    make(data = {}) {
         //evntBus.$emit('set_customer_readonly', false);
         this.expanded = [];
         this.posa_offers = [];
@@ -176,15 +176,15 @@ class Invoice{
         //return this.invoice_doc;
     }
 
-    get discount_amount(){
+    get discount_amount() {
         return flt(this.#discount_amount);
     }
 
-    get additional_discount_percentage(){
+    get additional_discount_percentage() {
         return flt(this.#additional_discount_percentage);
     }
 
-    update_items_details(items=this.items) {
+    update_items_details(items = this.items) {
         if (!items.length > 0) {
             return;
         }
@@ -242,7 +242,6 @@ class Invoice{
                     tax_category: '',
                     transaction_type: 'selling',
                     update_stock: this.pos_profile.update_stock,
-                    price_list: this.get_price_list(),
                     has_batch_no: item.has_batch_no,
                     serial_no: item.serial_no,
                     batch_no: item.batch_no,
