@@ -69,7 +69,7 @@ RestaurantObject = class RestaurantObject {
             model: "Restaurant Object",
             name: this.data.name,
             method: "set_style",
-            args: {data: shape ? this.data.shape : JSON.stringify(this.data_style), shape: shape},
+            args: { data: shape ? this.data.shape : JSON.stringify(this.data_style), shape: shape },
             always: () => {
                 window.saving = false;
             },
@@ -94,7 +94,7 @@ RestaurantObject = class RestaurantObject {
     }
 
     get size() {
-        return this.css_style == null ? {width: 0, height: 0} : {
+        return this.css_style == null ? { width: 0, height: 0 } : {
             height: parseFloat(this.css_style.height),
             width: parseFloat(this.css_style.width)
         };
@@ -143,16 +143,20 @@ RestaurantObject = class RestaurantObject {
         if (data != null) {
             try {
                 origin_data_style = JSON.parse(data) == null ? {} : JSON.parse(data);
-            } catch (e) {}
+            } catch (e) { }
             update_data_style(origin_data_style);
 
         } else if (x != null && y != null) {
             this.data_style.x = x;
             this.data_style.y = y;
 
-            ts.forEach((k) => {
-                if (this.data_style_keys.includes(k)) this.data_style[k] = ts[k];
-            });
+            if (ts) {
+                Object.entries(ts).forEach(([key, value]) => {
+                    if (this.data_style_keys.includes(key) && !['x', 'y'].includes(key)) {
+                        this.data_style[key] = value;
+                    }
+                });
+            }
         }
         this.data_style['background-color'] = color || this.data.color;
     }
@@ -204,7 +208,7 @@ RestaurantObject = class RestaurantObject {
     draggable() {
         /*DRAG AND RESIZE USING INTERACT JS*/
         const self = this;
-        
+
         const initDrag = () => {
             if (!this.is_selected) return;
             self.drag = true;
@@ -234,7 +238,7 @@ RestaurantObject = class RestaurantObject {
             },
             modifiers: [
                 interact.modifiers.restrictSize({
-                    min: {width: this.data.min_size, height: this.data.min_size}
+                    min: { width: this.data.min_size, height: this.data.min_size }
                 })
             ]
         }).draggable({
@@ -268,52 +272,52 @@ RestaurantObject = class RestaurantObject {
                 class: `order-count ${hide_class}`,
                 style: `background-color: ${block_style}`
             },
-            content: '<span class="fa fa-cutlery" style="font-size: 12px"/> {{text}}',
+            content: '<span class="fa fa-cutlery" style="font-size: 12px"></span> {{text}}',
             text: this.data.orders_count
         });
 
         this.edit_button = frappe.jshtml({
             tag: "button",
-            properties: {class: "btn d-table-btn btn-default btn-flat btn-sm"},
-            content: '<span class="fa fa-trash"/>'
+            properties: { class: "btn d-table-btn btn-default btn-flat btn-sm" },
+            content: '<span class="fa fa-trash"></span>'
         }).on("click", () => {
             this.delete();
         }, DOUBLE_CLICK);
 
         this.delete_button = frappe.jshtml({
             tag: "button",
-            properties: {class: "btn d-table-btn btn-default btn-flat btn-sm"},
-            content: '<span class="fa fa-gear"/>'
+            properties: { class: "btn d-table-btn btn-default btn-flat btn-sm" },
+            content: '<span class="fa fa-gear"></span>'
         }).on("click", () => {
             this.edit();
         });
 
         this.shape_type_button = frappe.jshtml({
             tag: "button",
-            properties: {class: "btn d-table-btn btn-default btn-flat btn-sm shape-button"},
-            content: `<span class="fa fa-${this.data.shape === 'Round' ? 'square-o' : 'circle-o'}"/>`,
+            properties: { class: "btn d-table-btn btn-default btn-flat btn-sm shape-button" },
+            content: `<span class="fa fa-${this.data.shape === 'Round' ? 'square-o' : 'circle-o'}"></span>`,
         }).on("click", () => {
             if (this.data.type === "Table") this.toggle_shape();
         });
 
         this.description = frappe.jshtml({
             tag: "span",
-            properties: {class: "d-label"},
+            properties: { class: "d-label" },
             content: "{{text}}",
             text: this.data.description
         });
 
         this.no_of_seats = frappe.jshtml({
             tag: "span",
-            properties: {class: "d-table-seats"},
-            content: `<span class="fa fa-user" style="font-size: 14px"/> {{text}}`,
+            properties: { class: "d-table-seats" },
+            content: `<span class="fa fa-user" style="font-size: 14px"></span> {{text}}`,
             text: this.data.no_of_seats
         });
 
         return `
         <div class="resize-handle-container">
-            <div class="resize-handle c ne"/><div class="resize-handle c nw"/><div class="resize-handle c sw"/><div class="resize-handle c se"/>
-		    <div class="resize-handle b v w"/> <div class="resize-handle b v e"/> <div class="resize-handle b h n"/> <div class="resize-handle b h s"/>
+            <div class="resize-handle c ne"></div><div class="resize-handle c nw"></div><div class="resize-handle c sw"></div><div class="resize-handle c se"></div>
+		    <div class="resize-handle b v w"></div><div class="resize-handle b v e"></div><div class="resize-handle b h n"></div><div class="resize-handle b h s"></div>
             ${this.indicator.html()}
             ${this.description.html()}
 		</div>
@@ -374,7 +378,7 @@ RestaurantObject = class RestaurantObject {
                     model: "Table Order",
                     name: RM.transfer_order.data.name,
                     method: "transfer",
-                    args: {table: this.data.name, client: RM.client},
+                    args: { table: this.data.name, client: RM.client },
                     always: (r) => {
                         if (r.message) {
                             if (RM.transfer_order != null) {
@@ -450,8 +454,8 @@ RestaurantObject = class RestaurantObject {
                 },
                 title: __(`Update ${this.data.type}`),
                 field_properties: {
-                    type: {read_only: true},
-                    room: {read_only: true, hidden: true},
+                    type: { read_only: true },
+                    room: { read_only: true, hidden: true },
                 }
             });
         } else {
@@ -464,7 +468,7 @@ RestaurantObject = class RestaurantObject {
         this.obj.prop("style", this.style_structure);
         this.obj.remove_class("round-type").add_class(this.is_table && this.is_round ? 'round-type' : '');
         this.shape_type_button.val(
-            `<span class="fa fa-${this.data.shape === 'Round' ? 'square-o' : 'circle-o'}"/>`
+            `<span class="fa fa-${this.data.shape === 'Round' ? 'square-o' : 'circle-o'}"></span>`
         )
         this.description.val(this.data.description);
         this.no_of_seats.val(this.data.no_of_seats);
@@ -484,6 +488,6 @@ RestaurantObject = class RestaurantObject {
         }
     }
 
-    get is_table(){return this.data.type === "Table"}
-    get is_round(){return this.data.shape === 'Round'}
+    get is_table() { return this.data.type === "Table" }
+    get is_round() { return this.data.shape === 'Round' }
 }

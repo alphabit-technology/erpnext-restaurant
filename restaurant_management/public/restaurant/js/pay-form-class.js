@@ -54,7 +54,7 @@ class PayForm {
                 this.update_paid_value();
             }
         });
-        
+
         $(this.wrapper_form.num_pad.wrapper).empty().append(
             `<div style="width: 100% !important; height: 200px !important; padding: 0">
                 ${this.num_pad.html}
@@ -202,7 +202,7 @@ class PayForm {
 
         const title = invoice_name + " (" + __("Print") + ")";
         const order_manage = this.order.order_manage;
-        
+
         const props = {
             model: "POS Invoice",
             model_name: invoice_name,
@@ -219,11 +219,11 @@ class PayForm {
             title: title
         };
 
-        if(order_manage.print_modal){
+        if (order_manage.print_modal) {
             order_manage.print_modal.set_props(props);
             order_manage.print_modal.set_title(title);
             order_manage.print_modal.reload().show();
-        }else{
+        } else {
             order_manage.print_modal = new DeskModal(props);
         }
     }

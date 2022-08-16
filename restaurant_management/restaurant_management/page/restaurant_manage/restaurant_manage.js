@@ -3,7 +3,7 @@ var RM = null;
 const [TRANSFER, UPDATE, DELETE, INVOICED, ADD, QUEUE, SPLIT] = ["Transfer", "Update", "Delete", "Invoiced", "Add", "queue", "Split"];
 frappe.provide('erpnext.PointOfSale');
 
-frappe.pages['restaurant-manage'].on_page_load = function(wrapper) {
+frappe.pages['restaurant-manage'].on_page_load = function (wrapper) {
 	frappe.ui.make_app_page({
 		parent: wrapper,
 		title: '',
@@ -12,7 +12,7 @@ frappe.pages['restaurant-manage'].on_page_load = function(wrapper) {
 
 	$("body").hide();
 
-	frappe.db.get_value('POS Settings', {name: 'POS Settings'}, 'is_online', (r) => {
+	frappe.db.get_value('POS Settings', { name: 'POS Settings' }, 'is_online', (r) => {
 		if (r && !cint(r.use_pos_in_offline_mode)) {
 			RM = new RestaurantManage(wrapper);
 		}
@@ -50,8 +50,7 @@ RestaurantManage = class RestaurantManage {
 		const base_assets = "assets/restaurant_management/restaurant/";
 
 		const assets = [
-			"assets/frappe/js/lib/clusterize.min.js",
-
+			base_assets + 'js/pos_restaurant_controller.js',
 			base_assets + 'js/restaurant-room-class.js',
 			base_assets + 'js/restaurant-object-class.js',
 
@@ -90,17 +89,17 @@ RestaurantManage = class RestaurantManage {
 			() => {
 				this.working("Set settings");
 				this.settings_data.then(() => {
-					frappe.require('assets/js/restaurant_management.min.js', () => {
-						this.pos = new erpnext.PointOfSale.RestaurantController(this.wrapper);
-						window.cur_pos = this.pos;
+					//frappe.require('assets/js/restaurant_management.min.js', () => {
+					this.pos = new erpnext.PointOfSale.RestaurantController(this.wrapper);
+					window.cur_pos = this.pos;
 
-						this.make_rooms().then(() => {
-							setTimeout(() => {
-								this.check_permissions_status();
-								//this.set_pos_controller();
-							}, 100);
-						});
+					this.make_rooms().then(() => {
+						setTimeout(() => {
+							this.check_permissions_status();
+							//this.set_pos_controller();
+						}, 100);
 					});
+					//});
 				});
 			},
 			() => {
@@ -112,19 +111,19 @@ RestaurantManage = class RestaurantManage {
 		]);
 	}
 
-	test_pos(){
-		if(this.loaded && this.pos_profile == null){
+	test_pos() {
+		if (this.loaded && this.pos_profile == null) {
 			this.raise_exception_for_pos_profile();
 		}
 	}
 
 	raise_exception_for_pos_profile() {
-		if($(this.base_wrapper).is(":visible")){
+		if ($(this.base_wrapper).is(":visible")) {
 			frappe.throw(this.not_has_pos_profile_message);
 		}
 	}
 
-	get not_has_pos_profile_message(){
+	get not_has_pos_profile_message() {
 		return __("POS Profile is required to use Point-of-Sale");
 	}
 
@@ -138,40 +137,40 @@ RestaurantManage = class RestaurantManage {
 		});
 
 		this.floor_map = frappe.jshtml({
-			tag: "div", properties: {class: "table-container-scroll"}
+			tag: "div", properties: { class: "table-container-scroll" }
 		}).on("click", () => {
 			RM.unselect_all_tables();
 		});
 
 		this.#components.add_table = frappe.jshtml({
-			tag: "button", properties: {class: "btn btn-default btn-flat"},
-			content: `<span class="fa fa-plus"/> ${__("Table")}</span>`
+			tag: "button", properties: { class: "btn btn-default btn-flat" },
+			content: `<span class="fa fa-plus"></span> ${__("Table")}`
 		}).on("click", () => {
 			this.add_object("Table");
 		});
 
 		this.#components.add_production_center = frappe.jshtml({
-			tag: "button", properties: {class: "btn btn-default btn-flat"},
-			content: `<span class="fa fa-plus"/> ${__("P Center")}</span>`
+			tag: "button", properties: { class: "btn btn-default btn-flat" },
+			content: `<span class="fa fa-plus"></span> ${__("P Center")}`
 		}).on("click", () => {
 			this.add_object("Production Center");
 		});
 
 		this.#components.edit_room = frappe.jshtml({
 			tag: "button",
-			properties: {class: "btn btn-default btn-flat"},
-			content: `<span class="fa fa-pencil"/> ${__("Edit")}</span>`
+			properties: { class: "btn btn-default btn-flat" },
+			content: `<span class="fa fa-pencil"></span> ${__("Edit")}`
 		}).on("click", () => {
-			if(this.current_room != null) this.current_room.edit();
+			if (this.current_room != null) this.current_room.edit();
 		});
 
 		this.#components.delete_room = frappe.jshtml({
 			tag: "button",
-			properties: {class: "btn btn-default btn-flat"},
-			content: `<span class="fa fa-trash"/> {{text}}</span>`,
-			text:__('Delete')
+			properties: { class: "btn btn-default btn-flat" },
+			content: `<span class="fa fa-trash"></span> {{text}}`,
+			text: __('Delete')
 		}).on("click", () => {
-			if(this.current_room != null) this.current_room.delete();
+			if (this.current_room != null) this.current_room.delete();
 		}, DOUBLE_CLICK);
 
 		this.general_edit_button = frappe.jshtml({
@@ -179,7 +178,7 @@ RestaurantManage = class RestaurantManage {
 			properties: {
 				class: 'btn-default button general-editor-button'
 			},
-			content: `<span class="fa fa-pencil"/>`
+			content: `<span class="fa fa-pencil"></span>`
 		}).on("click", () => {
 			this.set_edit_status();
 		});
@@ -189,7 +188,7 @@ RestaurantManage = class RestaurantManage {
 			properties: {
 				class: 'btn-default button general-editor-button add-room'
 			},
-			content: `<span class="fa fa-plus"/>`
+			content: `<span class="fa fa-plus"></span>`
 		}).on("click", () => {
 			this.add_object("Room");
 		});
@@ -200,7 +199,7 @@ RestaurantManage = class RestaurantManage {
 				class: `btn-default button general-editor-button setting`,
 				style: 'display: none'
 			},
-			content: '<span class="fa fa-gears">'
+			content: '<span class="fa fa-gears"></span>'
 		}).on("click", () => {
 
 		});
@@ -211,7 +210,7 @@ RestaurantManage = class RestaurantManage {
 		}).on("click", () => {
 			frappe.confirm(
 				'Close the POS?',
-				function(){
+				function () {
 					self.close_pos();
 				},
 			);
@@ -227,7 +226,7 @@ RestaurantManage = class RestaurantManage {
 		}).on("click", () => {
 			frappe.confirm(
 				'Close the POS?',
-				function(){
+				function () {
 					self.close_pos();
 				},
 			);
@@ -265,7 +264,7 @@ RestaurantManage = class RestaurantManage {
 		this.pull_alert("left");
 	}
 
-	close_pos(){
+	close_pos() {
 		const voucher = frappe.model.get_new_doc('POS Closing Entry');
 		voucher.pos_profile = this.pos.pos_profile;
 		voucher.user = frappe.session.user;
@@ -276,7 +275,7 @@ RestaurantManage = class RestaurantManage {
 		frappe.set_route('Form', 'POS Closing Entry', voucher.name);
 	}
 
-	make_rooms(){
+	make_rooms() {
 		const currents_rooms = Object.values(this.rooms || {}).map(room => room.name);
 		this.working("Loading Rooms");
 
@@ -294,33 +293,33 @@ RestaurantManage = class RestaurantManage {
 		});
 	}
 
-	clear_rooms(currents_rooms=[]){
+	clear_rooms(currents_rooms = []) {
 		currents_rooms.forEach(room => {
 			Object.values(this.rooms || {}).forEach(room => {
-				if(!currents_rooms.includes(room.name)){
+				if (!currents_rooms.includes(room.name)) {
 					this.object(room) ? this.object(room).remove() : null;
 				}
 			});
 		});
 	}
 
-	set_current_room(room){
+	set_current_room(room) {
 		this.current_room = room;
 		this.test_components();
 	}
 
-	render_rooms(current=false){
+	render_rooms(current = false) {
 		let room_from_url = null;
 
 		this.rooms.forEach((room, index, rooms) => {
-			if(this.object(room.name) == null){
+			if (this.object(room.name) == null) {
 				if (this.permissions.restaurant_object.create || this.permissions.restaurant_object.write || this.rooms_access.includes(room.name)) {
 					this.object(room.name, new RestaurantRoom(room))
 				}
-			}else{
+			} else {
 				if (!this.rooms_access.includes(room.name)) {
 					RM.object(room.name).remove();
-				}else{
+				} else {
 					RM.object(room.name).data = room;
 				}
 			}
@@ -362,7 +361,7 @@ RestaurantManage = class RestaurantManage {
 		});
 	}
 
-	set_settings_data(r){
+	set_settings_data(r) {
 		this.loaded = true;
 		this.#permissions = r.permissions;
 		this.#exceptions = r.exceptions;
@@ -370,24 +369,24 @@ RestaurantManage = class RestaurantManage {
 		this.#lang = r.lang;
 		this.restaurant_permissions = r.pos.restaurant_permissions;
 
-		if(r.pos.has_pos){
+		if (r.pos.has_pos) {
 			this.#pos_profile = r.pos.pos;
-			if(this.pos_profile != null){
+			if (this.pos_profile != null) {
 				this.pos_profile_description.val(this.pos_profile.name);
 			}
 		}
 		this.ready();
 	}
 
-	get pos_profile() {return this.#pos_profile}
-	get permissions() {return this.#permissions}
-	get exceptions() {return this.#exceptions}
-	get restrictions() {return this.#restrictions}
-	get company() {return this.#company}
-	get components() {return this.#components}
-	get lang() {return this.#lang}
+	get pos_profile() { return this.#pos_profile }
+	get permissions() { return this.#permissions }
+	get exceptions() { return this.#exceptions }
+	get restrictions() { return this.#restrictions }
+	get company() { return this.#company }
+	get components() { return this.#components }
+	get lang() { return this.#lang }
 
-	in_rooms(f){
+	in_rooms(f) {
 		this.rooms.forEach((room, index, rooms) => {
 			if (RM.object(room.name) != null) {
 				f(RM.object(room.name), index, rooms)
@@ -395,25 +394,25 @@ RestaurantManage = class RestaurantManage {
 		});
 	}
 
-	object(name, object=null){
+	object(name, object = null) {
 		const obj = this.objects[name];
-		if(typeof obj == "undefined" && object != null){
+		if (typeof obj == "undefined" && object != null) {
 			this.objects[name] = object;
 		}
 		return typeof this.objects[name] != "undefined" ? this.objects[name] : null;
 	}
 
-	init_synchronize(){
+	init_synchronize() {
 		frappe.realtime.on("debug_data", (data) => {
 			console.log(data);
 		});
 
-		const check_items_in_process_manage = (items, item_removed=null) =>{
+		const check_items_in_process_manage = (items, item_removed = null) => {
 			this.in_rooms(room => {
 				room.in_tables(table => {
-					if(table.process_manage != null){
+					if (table.process_manage != null) {
 						table.process_manage.check_items(items);
-						if(item_removed){
+						if (item_removed) {
 							table.process_manage.remove_item(item_removed);
 						}
 					}
@@ -429,11 +428,11 @@ RestaurantManage = class RestaurantManage {
 			check_items_in_process_manage(data.items, r.item_removed);
 
 			const table = RM.object(order.data.table);
-			if(this.current_room == null || table == null) return;
+			if (this.current_room == null || table == null) return;
 
-			if(r.action === TRANSFER){
+			if (r.action === TRANSFER) {
 				const last_table = RM.object(order.data.last_table);
-				if(last_table != null && last_table.order_manage != null){
+				if (last_table != null && last_table.order_manage != null) {
 					last_table.order_manage.check_data(r)
 				}
 
@@ -453,12 +452,12 @@ RestaurantManage = class RestaurantManage {
 				} else {
 					setTimeout(() => {
 						table.order_manage.check_data(r);
-						if(table.room.data.name === RM.current_room.data.name && RM.client === r.client) {
+						if (table.room.data.name === RM.current_room.data.name && RM.client === r.client) {
 							table.order_manage.show();
 						}
 					});
 				}
-			}else{
+			} else {
 				if (table.order_manage != null) {
 					setTimeout(() => {
 						table.order_manage.check_data(r);
@@ -479,66 +478,66 @@ RestaurantManage = class RestaurantManage {
 
 			this.settings_data.then(() => {
 				this.rooms = this.rooms.filter(room => this.rooms_access.includes(room.name));
-				
+
 				this.render_rooms(r.client === RM.client ? r.current_room : false);
 			});
 		});
 
 		frappe.realtime.on("pos_profile_update", (r) => {
-			if(r && r.has_pos){
+			if (r && r.has_pos) {
 				this.#pos_profile = r.pos;
-			}else{
+			} else {
 				this.#pos_profile = null;
 				this.raise_exception_for_pos_profile();
 			}
 		});
 	}
 
-	get rooms_access(){
+	get rooms_access() {
 		return Object.values((this.permissions || {}).rooms_access || []);
 	}
 
-	check_permissions_status(){
+	check_permissions_status() {
 		this.in_rooms((Room) => {
 			Room.in_tables((Table) => {
-				if(Table.order_manage != null){
+				if (Table.order_manage != null) {
 					Table.order_manage.check_permissions_status();
 				}
 				Table.set_orders_count();
 			}, "Table");
 		});
 
-		if(!this.permissions.restaurant_object.write){
+		if (!this.permissions.restaurant_object.write) {
 			this.general_edit_button.disable().hide();
 		}
 	}
 
-	add_object(t){
-		if(t === "Room"){
+	add_object(t) {
+		if (t === "Room") {
 			this.add_room();
-		}else if(this.current_room != null){
+		} else if (this.current_room != null) {
 			this.current_room.add_object(t);
 		}
 	}
 
-	add_room(){
+	add_room() {
 		this.working("Add Room");
 		frappe.call({
 			method: this.url_manage + "add_room",
-			args: {client: RM.client},
+			args: { client: RM.client },
 			always: () => {
 				this.ready();
 			},
 		});
 	}
 
-	set_edit_status(){
-		if(!this.permissions.restaurant_object.write) return;
-		if(this.editing){
+	set_edit_status() {
+		if (!this.permissions.restaurant_object.write) return;
+		if (this.editing) {
 			this.editing = false;
 			$(".restaurant-manage").removeClass("editing");
 			this.unselect_all_tables();
-		}else{
+		} else {
 			this.editing = true;
 			$(".restaurant-manage").addClass("editing");
 			Object.keys(this.components).forEach(k => {
@@ -548,9 +547,9 @@ RestaurantManage = class RestaurantManage {
 		}
 	}
 
-	test_components(){
+	test_components() {
 		Object.keys(this.components).forEach(k => {
-			if(this.current_room == null){
+			if (this.current_room == null) {
 				this.#components[k].hide();
 			} else {
 				this.#components[k].show();
@@ -558,17 +557,17 @@ RestaurantManage = class RestaurantManage {
 		});
 	}
 
-	get room_from_url(){
+	get room_from_url() {
 		return frappe.urllib.get_arg("restaurant_room");
 	}
 
-	unselect_all_tables(){
+	unselect_all_tables() {
 		this.in_rooms((room) => {
 			room.unselect_all_tables();
 		});
 	}
 
-	pull_alert(position="right", max_width="calc(100% - 410px)"){
+	pull_alert(position = "right", max_width = "calc(100% - 410px)") {
 		$("#customize-alert-message").empty().append(`
 			<style>
 				#alert-container{
@@ -584,36 +583,36 @@ RestaurantManage = class RestaurantManage {
 		)
 	}
 
-	delete_current_room(){
+	delete_current_room() {
 		this.current_room = null;
 		frappe.set_route(`/restaurant-manage?restaurant_room=?`);
 		this.test_components();
 	}
 
-	working(text, busy=true){
+	working(text, busy = true) {
 		this.busy = busy;
 		this.wrapper.find(".restaurant-manage-status").empty().append(__(text));
 	}
 
-	ready(message=false, sound=false){
+	ready(message = false, sound = false) {
 		this.busy = false;
-		if(RM.transfer_order != null){
+		if (RM.transfer_order != null) {
 			this.working("Transferring Order");
-		}else{
+		} else {
 			this.wrapper.find(".restaurant-manage-status").empty().append(__("Ready"))
 		}
 
-		if(message !== false){
+		if (message !== false) {
 			frappe.show_alert(message);
 		}
 
-		if(sound !== false){
+		if (sound !== false) {
 			setTimeout(`window['RM'].sound_${sound}()`, 0)
 		}
 	}
 
-	busy_message(){
-		if(this.busy){
+	busy_message() {
+		if (this.busy) {
 			frappe.show_alert({
 				indicator: 'red',
 				message: __("Please wait for an operation to complete")
@@ -623,40 +622,40 @@ RestaurantManage = class RestaurantManage {
 		return false;
 	}
 
-	notification(indicator="red", message=""){
+	notification(indicator = "red", message = "") {
 		frappe.show_alert({
 			indicator: indicator,
 			message: __(message)
 		});
 	}
 
-	format_currency(value){
+	format_currency(value) {
 		const val = isNaN(parseFloat(value)) ? 0 : parseFloat(value);
 		return format_currency(parseFloat(val), this.pos_profile.currency);
 	}
 
-	sound_delete(message=false){
-		if(this.sounds) $("#sound-delete").trigger('play');
-		if(message !== false){
+	sound_delete(message = false) {
+		if (this.sounds) $("#sound-delete").trigger('play');
+		if (message !== false) {
 			frappe.show_alert(message);
 		}
 	}
-	sound_submit(message=false){
-		if(this.sounds) $("#sound-submit").trigger('play');
+	sound_submit(message = false) {
+		if (this.sounds) $("#sound-submit").trigger('play');
 
-		if(message !== false){
+		if (message !== false) {
 			frappe.show_alert(message);
 		}
 	}
-	sound_success(message=false){
-		if(this.sounds) $("#sound-submit").trigger('play');
+	sound_success(message = false) {
+		if (this.sounds) $("#sound-submit").trigger('play');
 
-		if(message !== false){
+		if (message !== false) {
 			frappe.show_alert(message);
 		}
 	}
 
-	uuid(prefix='obj') {
+	uuid(prefix = 'obj') {
 		const id = 'xxxx-xx-4xx-yxx-xxxxx'.replace(/[xy]/g, function (c) {
 			const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
 			return v.toString(16);
@@ -665,14 +664,14 @@ RestaurantManage = class RestaurantManage {
 		return prefix + "_" + id;
 	}
 
-	check_permissions(model=null, record=null, action){
-		if(frappe.session.user === "Administrator") return true;
+	check_permissions(model = null, record = null, action) {
+		if (frappe.session.user === "Administrator") return true;
 
 		let r = false;
 
-		if(model != null){
+		if (model != null) {
 			let model_in_permissions = this.permissions[model];
-			if(typeof model_in_permissions != "undefined" && typeof model_in_permissions[action] !== "undefined"){
+			if (typeof model_in_permissions != "undefined" && typeof model_in_permissions[action] !== "undefined") {
 				r = this.permissions[model][action];
 			}
 
@@ -684,15 +683,15 @@ RestaurantManage = class RestaurantManage {
 			}
 
 			if (record == null) {
-				if(!r){
+				if (!r) {
 					exception();
 				}
 			} else {
 				if (record.data.owner !== frappe.session.user) {
-					if(model === "order" && this.restrictions.restricted_to_owner_order) {
+					if (model === "order" && this.restrictions.restricted_to_owner_order) {
 						exception();
 					}
-					if(model === "table" && this.restrictions.restricted_to_owner_table) {
+					if (model === "table" && this.restrictions.restricted_to_owner_table) {
 						exception();
 					}
 				}
@@ -706,15 +705,15 @@ RestaurantManage = class RestaurantManage {
 		return r;
 	}
 
-	get can_pay(){
+	get can_pay() {
 		return this.check_permissions("invoice", null, "create");
 	}
 
-	can_open_order_manage(table){
-		if(frappe.session.user === "Administrator" || this.can_pay) return true;
+	can_open_order_manage(table) {
+		if (frappe.session.user === "Administrator" || this.can_pay) return true;
 
-		if(table.data.current_user !== frappe.session.user && table.data.orders_count > 0){
-			if(this.restrictions.restricted_to_owner_table){
+		if (table.data.current_user !== frappe.session.user && table.data.orders_count > 0) {
+			if (this.restrictions.restricted_to_owner_table) {
 				return this.check_permissions("order", null, "manage");
 			}
 		}
@@ -722,6 +721,6 @@ RestaurantManage = class RestaurantManage {
 		return true;
 	}
 
-	PMName(process_manage){return "process_manage" + process_manage;}
-	OMName(order_manage){return "order_manage" + order_manage;}
+	PMName(process_manage) { return "process_manage" + process_manage; }
+	OMName(order_manage) { return "order_manage" + order_manage; }
 }

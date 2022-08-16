@@ -1,7 +1,7 @@
 class TableOrder {
     constructor(options) {
         Object.assign(this, options);
-        
+
         this.items = [];
         this.edit_form = null;
         this.divide_account_modal = null;
@@ -12,7 +12,7 @@ class TableOrder {
         this.make();
 
         RM.object(this.data.name, this);
-        window.test_order =this;
+        window.test_order = this;
     }
 
     make_invoice() {
@@ -64,7 +64,7 @@ class TableOrder {
 
             this.container = frappe.jshtml({
                 tag: "div",
-                properties: {style: "display: none;", class: `order-entry-container hide`},
+                properties: { style: "display: none;", class: `order-entry-container hide` },
                 wrapper: this.order_manage.order_entry_container
             });
 
@@ -107,7 +107,7 @@ class TableOrder {
                 this.order_manage.check_buttons_status();
             }
 
-            if(this.data.customer) {
+            if (this.data.customer) {
                 this.make_invoice();
             }
         }, 0);
@@ -167,7 +167,7 @@ class TableOrder {
         this.items[identifier] = new OrderItem({
             identifier: identifier,
             order: this,
-            data: Object.assign({identifier: identifier}, item)
+            data: Object.assign({ identifier: identifier }, item)
         });
 
         return this.get_item(identifier);
@@ -197,7 +197,7 @@ class TableOrder {
         }
     }
 
-    check_items(options={}){
+    check_items(options = {}) {
         const items = options.hasOwnProperty("items") ? options.items : [];
         let current = options.hasOwnProperty("current") ? options.current : null;
         const action = options.hasOwnProperty("action") ? options.action : null;
@@ -230,13 +230,13 @@ class TableOrder {
                 this.order_manage.check_buttons_status();
                 if (current_item == null) {
 
-                    if(this.items_count){
+                    if (this.items_count) {
                         this.select_first_item();
-                    }else{
+                    } else {
                         this.order_manage.check_item_editor_status();
                     }
                 } else {
-                    current_item.select(action==null);
+                    current_item.select(action == null);
                 }
             }, 0);
         }
@@ -271,7 +271,7 @@ class TableOrder {
         const position_row = (this.find_item_position(this.current_item) * row_height);
 
         const container = $(this.order_manage.container).find('.panel-order-items')[0];
-        container.scrollTo({top: position_row, behavior: 'smooth'});
+        container.scrollTo({ top: position_row, behavior: 'smooth' });
     }
 
     find_item_position(test_item) {
@@ -289,7 +289,7 @@ class TableOrder {
                 if (typeof r.message != "undefined") {
                     this.data = r.message.order.data;
                     this.render();
-                    this.check_items({items: r.message.items});
+                    this.check_items({ items: r.message.items });
                 }
             },
         });
@@ -474,7 +474,7 @@ class TableOrder {
                 model: "Table Order",
                 name: this.data.name,
                 method: "divide",
-                args: {"items": update_data, client: RM.client},
+                args: { "items": update_data, client: RM.client },
                 always: (r) => {
                     RM.ready();
                     if (typeof r.message != "undefined") {
@@ -503,7 +503,7 @@ class TableOrder {
                 RM.ready(false, "success");
                 this.data = r.message.order.data;
                 this.render();
-                this.check_items({items: r.message.items});
+                this.check_items({ items: r.message.items });
             },
         });
     }
@@ -552,11 +552,11 @@ class TableOrder {
             title: title
         }
 
-        if(order_manage.print_modal){
+        if (order_manage.print_modal) {
             order_manage.print_modal.set_props(props);
             order_manage.print_modal.set_title(title);
             order_manage.print_modal.reload().show();
-        }else{
+        } else {
             order_manage.print_modal = new DeskModal(props);
         }
     }
@@ -566,9 +566,9 @@ class TableOrder {
             return;
         }
 
-        if(this[type + "_form"]){
+        if (this[type + "_form"]) {
             this[type + "_form"].reload().show();
-        }else{
+        } else {
             this[type + "_form"] = new DeskForm({
                 doctype: "Table Order",
                 docname: this.data.name,
@@ -601,8 +601,8 @@ class TableOrder {
 
     delete_item(identifier) {
         const item = this.get_item(identifier);
-        if(item){
-            if(this.is_some_item(this.current_item, item)){
+        if (item) {
+            if (this.is_some_item(this.current_item, item)) {
                 this.delete_current_item();
             }
             item.remove();

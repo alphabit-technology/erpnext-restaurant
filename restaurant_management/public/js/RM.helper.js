@@ -3,12 +3,12 @@ let DOUBLE_CLICK = 'double_click';
 class RMHelperClass {
     constructor() {
         this.icons = {
-            add: `<span class='fa fa-plus' style="padding-right: 5px"/>`,
-            trash: `<span class='fa fa-trash' style="padding-right: 5px"/>`,
-            edit: `<span class='fa fa-pencil' style="padding-right: 5px"/>`,
-            ok: `<span class='fa fa-check' style="padding-right: 5px"/>`,
-            people: `<span class='fa fa-user' style="padding-right: 5px"/>`,
-            peoples: `<span class='fa fa-users' style="padding-right: 5px"/>`,
+            add: `<span class='fa fa-plus' style="padding-right: 5px"></span`,
+            trash: `<span class='fa fa-trash' style="padding-right: 5px"></span`,
+            edit: `<span class='fa fa-pencil' style="padding-right: 5px"></span>`,
+            ok: `<span class='fa fa-check' style="padding-right: 5px"></span>`,
+            people: `<span class='fa fa-user' style="padding-right: 5px"><span`,
+            peoples: `<span class='fa fa-users' style="padding-right: 5px"><span`,
         }
     }
 
@@ -16,7 +16,7 @@ class RMHelperClass {
         return `
         <div class="col-md-12" style="color: var(--gray-500)">
             <div class="col-md-12" style="font-size: 5em; text-align: center !important;">
-                <span class="fa fa-shopping-cart"/><br>
+                <span class="fa fa-shopping-cart"></span><br>
             </div>
             <div class="col-md-12" style="font-size: 25px; text-align: center">
                 <em>${__(message)}</em>
@@ -28,8 +28,8 @@ class RMHelperClass {
         return frappe.jshtml({
             tag: "button",
             wrapper: wrapper,
-            properties: {class: "btn btn-default btn-flat"},
-            content: "<span class='fa fa-reply' style='padding-right: 5px'/> {{text}}",
+            properties: { class: "btn btn-default btn-flat" },
+            content: "<span class='fa fa-reply' style='padding-right: 5px'></span> {{text}}",
             text: title
         }).on("click", () => f());
     }
@@ -38,7 +38,7 @@ class RMHelperClass {
         return frappe.jshtml({
             tag: "button",
             wrapper: wrapper,
-            properties: {class: "btn btn-default btn-flat", style: 'display: none;'},
+            properties: { class: "btn btn-default btn-flat", style: 'display: none;' },
             content: `${this.icons[icon]} {{text}}`,
             text: __(text)
         }).on("click", () => f(), method);
@@ -66,7 +66,7 @@ class RMHelperClass {
         }
     }
 
-    prettyDate(date, mini, f=null) {
+    prettyDate(date, mini, f = null) {
         if (!date) return '';
 
         if (typeof (date) == "string") {
@@ -78,8 +78,8 @@ class RMHelperClass {
         let day_diff = Math.floor(diff / 86400);
 
         if (isNaN(day_diff) || day_diff < 0) return '';
-        
-        if(f) f(diff);
+
+        if (f) f(diff);
 
         if (mini) {
             // Return short format of time difference

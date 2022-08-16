@@ -15,7 +15,7 @@ class FoodCommand {
                     class: `btn btn-default btn-flat btn-food-command`,
                     style: 'border-radius: 0 !important'
                 },
-                content: '{{text}}<i class="fa fa-chevron-right pull-right" style="font-size: 16px; padding-top: 2px;"/>',
+                content: '{{text}}<i class="fa fa-chevron-right pull-right" style="font-size: 16px; padding-top: 2px;"></i>',
                 text: this.data.process_status_data.next_action_message,
             }).on("click", () => {
                 this.execute();
@@ -27,7 +27,7 @@ class FoodCommand {
                     class: "btn btn-flat btn-food-command status-label",
                     style: `background-color: ${this.data.process_status_data.color};`
                 },
-                content: `<i class="${this.data.process_status_data.icon} pull-left status-label-icon"/> ${this.data.process_status_data.status_message}`,
+                content: `<i class="${this.data.process_status_data.icon} pull-left status-label-icon"></i> ${this.data.process_status_data.status_message}`,
             });
 
             this._time_elapsed = frappe.jshtml({
@@ -80,9 +80,9 @@ class FoodCommand {
         this.show_notes();
 
         this.status_label.val(
-            `<i class="${psd.icon} pull-left" style="font-size: 22px"/> ${psd.status_message}`
+            `<i class="${psd.icon} pull-left" style="font-size: 22px"></i> ${psd.status_message}`
         ).css([
-            {prop: "background-color", value: psd.color}
+            { prop: "background-color", value: psd.color }
         ]);
     }
 
@@ -135,11 +135,11 @@ class FoodCommand {
 		`
     }
 
-    get time_elapsed(){
+    get time_elapsed() {
         this._time_elapsed.val(RMHelper.prettyDate(this.data.ordered_time, true, time_elapsed => this.show_alert_time_elapsed(time_elapsed)));
     }
 
-    show_alert_time_elapsed(time_elapsed){
+    show_alert_time_elapsed(time_elapsed) {
         const five_minuts = 60 * 5;
         const fifteen_minuts = 60 * 15;
 
@@ -165,7 +165,7 @@ class FoodCommand {
 
         this.notes = frappe.jshtml({
             tag: "div",
-            properties: {class: "row product-notes", style: "display: none;"},
+            properties: { class: "row product-notes", style: "display: none;" },
             content: '<h6 style="width: 100%;">{{text}}</h6>',
             text: ""
         });

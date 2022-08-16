@@ -92,7 +92,7 @@ ProcessManage = class ProcessManage {
         this.time_elapsed();
     }
 
-    time_elapsed(){
+    time_elapsed() {
         setInterval(() => {
             this.in_items(item => {
                 item.time_elapsed
@@ -100,7 +100,7 @@ ProcessManage = class ProcessManage {
         }, 1000);
     }
 
-    in_items(f){
+    in_items(f) {
         Object.keys(this.items).forEach(k => {
             f(this.items[k]);
         })
@@ -135,9 +135,9 @@ ProcessManage = class ProcessManage {
         });
     }
 
-    remove_item(item){
-        if(this.items[item]){
-             this.items[item].remove();
+    remove_item(item) {
+        if (this.items[item]) {
+            this.items[item].remove();
         }
     }
 

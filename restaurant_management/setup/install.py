@@ -90,7 +90,11 @@ def set_custom_fields():
 
 def set_custom_scripts():
     test_script = frappe.get_value("Client Script", "POS Profile-Form")
-    CS = frappe.new_doc("Client Script") if test_script is None else frappe.get_doc("Client Script", test_script)
+    if test_script is None:
+        CS = frappe.new_doc("Client Script")
+        CS.set("name", "POS Profile-Form")
+    else:
+        CS = frappe.get_doc("Client Script", test_script)
 
     CS.set("enabled", 1)
     CS.set("view", "Form")

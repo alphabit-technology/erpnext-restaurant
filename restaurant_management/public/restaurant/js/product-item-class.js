@@ -1,11 +1,11 @@
 class ProductItem {
-    constructor({wrapper, order_manage}) {
+    constructor({ wrapper, order_manage }) {
         this.wrapper = wrapper;
         this.order_manage = order_manage;
         this.items = {};
         this.currency = RM.pos_profile.currency;
 
-        frappe.db.get_value("Item Group", {lft: 1, is_group: 1}, "name", (r) => {
+        frappe.db.get_value("Item Group", { lft: 1, is_group: 1 }, "name", (r) => {
             this.parent_item_group = r.name;
             this.make_dom();
             this.make_fields();
@@ -15,7 +15,7 @@ class ProductItem {
     }
 
     load_items_data() {
-        this.get_items().then(({items}) => {
+        this.get_items().then(({ items }) => {
             this.all_items = items;
             this.items = items;
             this.render_items(items);
@@ -43,7 +43,7 @@ class ProductItem {
 					</td>
 				</tr>
 				<tr>
-					<td class="items-wrapper" style="height: 100%"/>
+					<td class="items-wrapper" style="height: 100%"></td>
 				</tr>
 				</tbody>
 			</table>
@@ -78,7 +78,7 @@ class ProductItem {
                 const search_term = e.target.value;
                 const item_group = this.item_group_field ?
                     this.item_group_field.get_value() : '';
-                    this.filter_items({search_term: search_term, item_group: item_group});
+                this.filter_items({ search_term: search_term, item_group: item_group });
             }, 300);
         });
 
@@ -91,7 +91,7 @@ class ProductItem {
                 onchange: () => {
                     const item_group = this.item_group_field.get_value();
                     if (item_group) {
-                        this.filter_items({item_group: item_group});
+                        this.filter_items({ item_group: item_group });
                     }
                 },
                 get_query: () => {
@@ -134,7 +134,7 @@ class ProductItem {
         this.clusterize.update(row_items);
     }
 
-    filter_items({search_term = '', item_group = this.parent_item_group} = {}) {
+    filter_items({ search_term = '', item_group = this.parent_item_group } = {}) {
         const result_arr = [];
         if (search_term) {
             search_term = search_term.toLowerCase();
@@ -159,7 +159,7 @@ class ProductItem {
             this.items = this.all_items;
             return this.render_items(this.all_items);
         }
-        this.get_items({search_value: search_term, page_length: 9999, item_group})
+        this.get_items({ search_value: search_term, page_length: 9999, item_group })
             .then(({ items, serial_no, batch_no, barcode }) => {
                 items.forEach(item => {
                     if (`${item.item_code}`.toLowerCase().includes(search_term)) {
@@ -220,20 +220,20 @@ class ProductItem {
     }
 
     get_item_html(item) {
-            const price_list_rate = format_currency(item.price_list_rate, this.currency);
-            const {item_code, item_name, item_image} = item;
-            const item_title = item_name || item_code;
+        const price_list_rate = format_currency(item.price_list_rate, this.currency);
+        const { item_code, item_name, item_image } = item;
+        const item_title = item_name || item_code;
 
-            return frappe.jshtml({
-                tag: "article",
-                properties: {class: "pos-item-wrapper product non-selectable"},
-                content: template()
-            }).on("click", () => {
-                this.add_item_cart(item);
-            }).html();
+        return frappe.jshtml({
+            tag: "article",
+            properties: { class: "pos-item-wrapper product non-selectable" },
+            content: template()
+        }).on("click", () => {
+            this.add_item_cart(item);
+        }).html();
 
-            function template() {
-                return `<div class="product-img">
+        function template() {
+            return `<div class="product-img">
 				${!item_image ? `<span class="placeholder-text" style="font-size: 72px; color: #d1d8dd;"> ${frappe.get_abbr(item_title)}</span>` : ''}
 				${item_image ? `<img src="${item_image}" alt="${item_title}">` : ''}
 				<span class="price-tag">
@@ -248,7 +248,7 @@ class ProductItem {
 
 
     add_item_cart(item) {
-        const {item_code, item_name} = item;
+        const { item_code, item_name } = item;
         const _item = {
             discount_percentage: 0,
             entry_name: null,
@@ -302,7 +302,7 @@ class ProductItem {
                 frappe.call({
                     method: 'erpnext.stock.get_item_details.get_item_details',
                     freeze: true,
-                    args: {args: item}
+                    args: { args: item }
                 }).then(r => {
                     RM.store.items[r.message.item_code] = r.message;
                     res(r.message);
@@ -311,7 +311,7 @@ class ProductItem {
         });
     }
 
-    get_items({start = 0, page_length = 40, search_value = '', item_group = this.parent_item_group} = {}) {
+    get_items({ start = 0, page_length = 40, search_value = '', item_group = this.parent_item_group } = {}) {
         const price_list = RM.pos_profile.selling_price_list;
         return new Promise(res => {
             frappe.call({
@@ -349,25 +349,25 @@ class ProductItem {
 }
 
 /*let item = {
-	"item_code": "cafe",
-	"barcode": null,
-	"customer": "Ethan Acosta",
-	"currency": "HNL",
-	"update_stock": 1,
-	"conversion_rate": 1,
-	"price_list": "Standard Selling",
-	"price_list_currency": "HNL",
-	"plc_conversion_rate": 1,
-	"company": "Development",
-	"is_pos": 1,
-	"transaction_date": "2020-05-26",
-	"ignore_pricing_rule": 0,
-	"doctype": "Sales Invoice",
-	"name": "New Sales Invoice 1",
-	"qty": 1,
-	"stock_uom": "Nos",
-	"pos_profile": "POS Restaurant",
-	"cost_center": "Main - DEV",
-	"tax_category": "",
-	"child_docname": "New Sales Invoice Item 2"
+    "item_code": "cafe",
+    "barcode": null,
+    "customer": "Ethan Acosta",
+    "currency": "HNL",
+    "update_stock": 1,
+    "conversion_rate": 1,
+    "price_list": "Standard Selling",
+    "price_list_currency": "HNL",
+    "plc_conversion_rate": 1,
+    "company": "Development",
+    "is_pos": 1,
+    "transaction_date": "2020-05-26",
+    "ignore_pricing_rule": 0,
+    "doctype": "Sales Invoice",
+    "name": "New Sales Invoice 1",
+    "qty": 1,
+    "stock_uom": "Nos",
+    "pos_profile": "POS Restaurant",
+    "cost_center": "Main - DEV",
+    "tax_category": "",
+    "child_docname": "New Sales Invoice Item 2"
 }*/

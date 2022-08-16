@@ -42,7 +42,7 @@ class RestaurantRoom extends ObjectManage {
     make_objects(tables = []) {
         tables.forEach((table, index) => {
             table.index = index;
-            
+
             this.append_table(table);
         });
     }
@@ -83,39 +83,35 @@ class RestaurantRoom extends ObjectManage {
         }
 
         obj.room.tables_container.css([{
-                prop: "min-width",
-                value: dsx.absolute_width + 35 + "px",
-            },
-            {
-                prop: "min-height",
-                value: dsy.absolute_height + "px",
-            },
+            prop: "min-width",
+            value: dsx.absolute_width + 35 + "px",
+        },
+        {
+            prop: "min-height",
+            value: dsy.absolute_height + "px",
+        }
         ]);
     }
 
     render() {
-        this.tables_container = frappe
-            .jshtml({
-                tag: "div",
-                properties: {
-                    class: "table-container",
-                },
-            })
-            .on("click", () => {
-                RM.unselect_all_tables();
-            });
+        this.tables_container = frappe.jshtml({
+            tag: "div",
+            properties: {
+                class: "table-container",
+            }
+        }).on("click", () => {
+            RM.unselect_all_tables();
+        });
 
-        this.obj = frappe
-            .jshtml({
-                tag: "div",
-                properties: {
-                    class: "btn-default button room",
-                },
-                content: this.template,
-            })
-            .on("click", () => {
-                this.select();
-            });
+        this.obj = frappe.jshtml({
+            tag: "div",
+            properties: {
+                class: "btn-default button room",
+            },
+            content: this.template,
+        }).on("click", () => {
+            this.select();
+        });
         RM.rooms_container.append(this.obj.html());
         RM.floor_map.append(this.tables_container.html());
     }
@@ -134,7 +130,7 @@ class RestaurantRoom extends ObjectManage {
             content: this.data.description,
         });
 
-        return `<span class="fa"/> ${this.description.html()}${this.indicator.html()}`;
+        return `<span class="fa"></span> ${this.description.html()}${this.indicator.html()}`;
     }
 
     select() {

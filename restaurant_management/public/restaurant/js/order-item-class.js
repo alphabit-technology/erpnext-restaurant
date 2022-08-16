@@ -29,7 +29,7 @@ class OrderItem {
 
     get is_enabled_to_delete() {
         return (
-                this.status_enabled_for_delete.includes(this.data.status)) &&
+            this.status_enabled_for_delete.includes(this.data.status)) &&
             (
                 RM.check_permissions("order", this.order, "write")// &&
                 //RM.check_permissions("pos", null, "delete")
@@ -41,7 +41,7 @@ class OrderItem {
         this.amount.val(RM.format_currency(this.data.amount));
         this.detail.val(this.html_detail);
         this.notes.val(this.data.notes);
-        this.icon.val(`<i class="${ps.icon}" style="color: ${ps.color}"/>`);
+        this.icon.val(`<i class="${ps.icon}" style="color: ${ps.color}"></i>`);
     }
 
     delete() {
@@ -57,7 +57,7 @@ class OrderItem {
     render() {
         this.row = frappe.jshtml({
             tag: "li",
-            properties: {class: "media event"},
+            properties: { class: "media event" },
             content: this.template
         }).on("click", () => {
             RM.pull_alert("left");
@@ -67,12 +67,12 @@ class OrderItem {
         this.order.container.append(this.row.html());
     }
 
-    select(scroller=false) {
+    select(scroller = false) {
         this.order.current_item = this;
         this.order.order_manage.check_item_editor_status(this);
         this.row.toggle_common('media.event', 'selected');
 
-        if(scroller) this.order.scroller();
+        if (scroller) this.order.scroller();
     }
 
     active_editor() {
@@ -101,7 +101,7 @@ class OrderItem {
                                 model: "Table Order",
                                 name: this.order.data.name,
                                 method: "set_item_note",
-                                args: {item: this.data.identifier, notes: notes},
+                                args: { item: this.data.identifier, notes: notes },
                                 always: () => {
                                     window.saving = false;
                                 },
@@ -118,7 +118,7 @@ class OrderItem {
     }
 
     update(server = true) {
-        if(this.data.qty === 0 && !this.is_enabled_to_delete){
+        if (this.data.qty === 0 && !this.is_enabled_to_delete) {
             frappe.throw(__("You do not have permissions to delete Items"));
         }
 
@@ -138,7 +138,7 @@ class OrderItem {
             model: "Table Order",
             name: this.order.data.name,
             method: this.data.qty > 0 ? "push_item" : "delete_item",
-            args: {item: this.data.qty > 0 ? this.data : this.data.identifier},
+            args: { item: this.data.qty > 0 ? this.data : this.data.identifier },
             always: () => {
                 window.saving = false;
                 RM.ready();
@@ -151,10 +151,10 @@ class OrderItem {
         const tax_inclusive = RM.pos_profile.posa_tax_inclusive;
 
         const tax_amount = Object.values(RMHelper.JSONparse(this.data.item_tax_rate) || {}).reduce((acc, cur) => {
-            if(tax_inclusive) {
+            if (tax_inclusive) {
                 const base_without_tax = base_amount / (1 + (cur / 100));
                 return acc + (base_without_tax * (cur / 100));
-            }else{
+            } else {
                 return acc + (base_amount * cur / 100);
             }
         }, 0);
@@ -168,8 +168,8 @@ class OrderItem {
 
         this.icon = frappe.jshtml({
             tag: "a",
-            properties: {class: "pull-left border-aero profile_thumb"},
-            content: `<i class="${psd.icon}" style="color: ${psd.color}"/>`
+            properties: { class: "pull-left border-aero profile_thumb" },
+            content: `<i class="${psd.icon}" style="color: ${psd.color}"></i>`
         });
 
         this.edit_note_button = frappe.jshtml({
@@ -178,12 +178,12 @@ class OrderItem {
                 class: "edit-note pull-right",
                 style: "display: none"
             },
-            content: `<i class="fa fa-pencil"/> ${__("Notes")}`
+            content: `<i class="fa fa-pencil"></i> ${__("Notes")}`
         });
 
         this.notes = frappe.jshtml({
             tag: "small",
-            properties: {class: "notes"},
+            properties: { class: "notes" },
             content: (typeof this.data.notes == "object" ? "" : this.data.notes)
         });
 
@@ -194,7 +194,7 @@ class OrderItem {
 
         this.amount = frappe.jshtml({
             tag: 'a',
-            properties: {class: 'pull-right'},
+            properties: { class: 'pull-right' },
             content: RM.format_currency(this.data.amount)
         });
 
@@ -223,7 +223,7 @@ class OrderItem {
         if (this.data.discount_percentage) {
             discount_data = `
 			<small style="color:green">
-				<strong>${this.data.discount_percentage}%<span class="fa fa-tags"/></strong>
+				<strong>${this.data.discount_percentage}%<span class="fa fa-tags"></span></strong>
 			</small>`
         }
         let discount = isNaN(parseFloat(this.data.discount_percentage)) ? 0 : parseFloat(this.data.discount_percentage);
