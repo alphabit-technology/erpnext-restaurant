@@ -71,8 +71,6 @@ desk_forms_fields = {
     "Restaurant Room": dict(
         doc_type='Restaurant Object',
         fields=[
-            dict(fieldtype="Link", label="Restaurant", options="Restaurant", fieldname="restaurant"),
-            dict(fieldtype="Section Break"),
             dict(fieldtype="Select", label="Type", fieldname='type', options="Dine In\nTake Away\nDelivery\nTake Away Delivery"),
             dict(fieldtype="Section Break"),
             dict(label="Description", fieldname="description"),

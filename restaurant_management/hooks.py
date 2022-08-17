@@ -30,7 +30,9 @@ after_install = "restaurant_management.setup.install.after_install"
 
 # include js, css files in header of desk.html
 # app_include_css = "/assets/{app_name}/css/{app_name}.css"
+
 app_include_js = [
+    '/assets/restaurant_management/js/clusterize.min.js',
     '/assets/restaurant_management/js/interact.min.js',
     '/assets/restaurant_management/js/drag.js',
     '/assets/restaurant_management/js/RM.helper.js',
