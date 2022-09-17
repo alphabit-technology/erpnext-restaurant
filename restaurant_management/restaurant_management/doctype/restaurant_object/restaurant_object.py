@@ -30,6 +30,27 @@ class RestaurantObject(Document):
 
         self.synchronize()
 
+    def synchronize(self):
+        if self.type == "Production Center":
+            frappe.publish_realtime(self.name, dict(
+                action="Notifications",
+                orders_count=self.orders_count_in_production_center,
+                current_user=self.current_user
+            ))
+        else:
+            frappe.publish_realtime(self.name, dict(
+                action="Notifications",
+                orders_count=self.orders_count,
+                current_user=self.current_user
+            ))
+
+            if self.type != "Room":
+                frappe.publish_realtime(self._room.name, dict(
+                    action="Notifications",
+                    orders_count=self._room.orders_count,
+                    current_user=self.current_user
+                ))
+                
     def validate_transaction(self, user=frappe.session.user):
         if self.current_user is None or self.current_user == "Administrator" or self.orders_count == 0:
             frappe.db.set_value("Restaurant Object", self.name, "current_user", user)
@@ -84,27 +105,6 @@ class RestaurantObject(Document):
 
         # if last_user != frappe.session.user:
         #    self._on_update()
-
-    def synchronize(self):
-        if self.type == "Production Center":
-            frappe.publish_realtime(self.name, dict(
-                action="Notifications",
-                orders_count=self.orders_count_in_production_center,
-                current_user=self.current_user
-            ))
-        else:
-            frappe.publish_realtime(self.name, dict(
-                action="Notifications",
-                orders_count=self.orders_count,
-                current_user=self.current_user
-            ))
-
-            if self.type != "Room":
-                frappe.publish_realtime(self._room.name, dict(
-                    action="Notifications",
-                    orders_count=self._room.orders_count,
-                    current_user=self.current_user
-                ))
 
     @property
     def orders_count(self):

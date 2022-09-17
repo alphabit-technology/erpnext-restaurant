@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
+
 from . import __version__ as app_version
 
 app_name = "restaurant_management"
@@ -23,6 +24,7 @@ doc_events = {
     },
 }
 
+after_migrate = "restaurant_management.setup.install.after_install"
 after_install = "restaurant_management.setup.install.after_install"
 
 # Includes in <head>

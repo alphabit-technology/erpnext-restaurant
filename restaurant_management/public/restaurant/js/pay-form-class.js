@@ -1,51 +1,41 @@
-class PayForm {
+class PayForm extends DeskForm {
+    button_payment = null;
+    num_pad = null;
+    payment_methods = {};
+    dinners = null;
+    form_name = "Payment Order";
+    has_primary_action = false;
+    
     constructor(options) {
-        Object.assign(this, options);
-        this.modal = null;
-        this.button_payment = null;
-        this.num_pad = undefined;
-        this.payment_methods = {};
-        this.dinners = null;
-        this.form = null;
-        this.wrapper_form = null;
+        super(options);
 
-        this.initialize();
+        this.doc_name = this.order.data.name;
+        this.title = this.order.data.name;
+        this.primary_action = () => {
+            this.send_payment();
+        };
+
+        this.primary_action_label = __("Pay");
+
+        super.initialize();
+    }
+
+    async make() {
+        await super.make();
+
         this.init_synchronize();
+
+        setTimeout(() => {
+            this.make_inputs();
+            this.make_pad();
+            this.make_payment_button();
+        }, 200);
     }
 
     init_synchronize() {
         frappe.realtime.on("pos_profile_update", () => {
-            this.form.hide();
+            this.hide();
         });
-    }
-
-    reload() {
-        this.form.reload();
-        this.form.show();
-    }
-
-    initialize() {
-        if (this.form == null) {
-            this.form = new DeskForm({
-                doctype: "Table Order",
-                docname: this.order.data.name,
-                form_name: "payment-order",
-                disabled_to_save: true,
-                after_load: () => {
-                    this.wrapper_form = this.form.form.field_group.fields_dict;
-                    this.make();
-                },
-                title: `${this.order.data.name} - ${__("Pay")}`
-            })
-        } else {
-            this.form.reload();
-        }
-    }
-
-    make() {
-        this.make_inputs();
-        this.make_pad();
-        this.make_payment_button();
     }
 
     make_pad() {
@@ -55,16 +45,23 @@ class PayForm {
             }
         });
 
-        $(this.wrapper_form.num_pad.wrapper).empty().append(
+        this.get_field("num_pad").$wrapper.empty().append(
             `<div style="width: 100% !important; height: 200px !important; padding: 0">
                 ${this.num_pad.html}
             </div>`
         );
     }
 
+    async reload(){
+        await super.reload(null, true);
+
+        this.set_dinners_input();
+        this.update_paid_value();
+    }
+
     make_inputs() {
         let payment_methods = "";
-        RM.pos_profile.payments.forEach((mode_of_payment) => {
+        RM.pos_profile.payments.forEach(mode_of_payment => {
             this.payment_methods[mode_of_payment.mode_of_payment] = frappe.jshtml({
                 tag: "input",
                 properties: {
@@ -79,18 +76,30 @@ class PayForm {
 
             if (mode_of_payment.default === 1) {
                 this.payment_methods[mode_of_payment.mode_of_payment].val(this.order.data.amount);
+
                 setTimeout(() => {
                     this.payment_methods[mode_of_payment.mode_of_payment].select();
                     this.num_pad.input = this.payment_methods[mode_of_payment.mode_of_payment];
-                }, 500);
+                }, 200);
             }
 
-            payment_methods += this.form_tag(
+            payment_methods += this.form_tag (
                 mode_of_payment.mode_of_payment, this.payment_methods[mode_of_payment.mode_of_payment]
             );
         });
-        $(this.wrapper_form.payment_methods.wrapper).empty().append(payment_methods);
 
+        this.get_field("payment_methods").$wrapper.empty().append(payment_methods);
+
+        this.set_dinners_input();
+        
+        this.update_paid_value();
+
+        /*RM.pos_profile.payments.forEach(mode_of_payment => {
+            console.log(this.payment_methods[mode_of_payment.mode_of_payment])
+        });*/
+    }
+
+    set_dinners_input(){
         this.dinners = frappe.jshtml({
             tag: "input",
             properties: {
@@ -99,13 +108,12 @@ class PayForm {
             },
         }).on("click", (obj) => {
             this.num_pad.input = obj;
-        }).val(this.form.form.doc.dinners).int();
+        }).val(this.doc.dinners).int();
 
-        $(this.wrapper_form.dinners.wrapper).empty().append(
+        this.get_field("dinners").$wrapper.empty().append(
             this.form_tag("Dinners", this.dinners)
         );
 
-        this.update_paid_value();
     }
 
     form_tag(label, input) {
@@ -123,7 +131,7 @@ class PayForm {
     make_payment_button() {
         this.button_payment = frappe.jshtml({
             tag: "button",
-            wrapper: this.wrapper_form.payment_button.wrapper,
+            wrapper: this.get_field("payment_button").$wrapper,
             properties: {
                 type: "button",
                 class: `btn btn-primary btn-lg btn-flat`,
@@ -152,7 +160,7 @@ class PayForm {
 
     send_payment() {
         RM.working("Saving Invoice");
-        this._send_payment();
+        this.#send_payment();
     }
 
     reset_payment_button() {
@@ -164,7 +172,7 @@ class PayForm {
         this.button_payment.enable().val(__("Pay")).remove_class("btn-warning");
     }
 
-    _send_payment() {
+    #send_payment() {
         if (!RM.can_pay) return;
         const order_manage = this.order.order_manage;
 
@@ -177,7 +185,7 @@ class PayForm {
             method: "make_invoice",
             args: {
                 mode_of_payment: this.payments_values,
-                customer: this.form.form.get_value("customer"),
+                customer: this.get_value("customer"),
                 dinners: this.dinners.float_val
             },
             always: (r) => {
@@ -186,7 +194,8 @@ class PayForm {
                     order_manage.clear_current_order();
                     order_manage.check_buttons_status();
                     order_manage.check_item_editor_status();
-                    this.form.hide();
+                    
+                    this.hide();
                     this.print(r.message.invoice_name);
                     order_manage.make_orders();
                 } else {
@@ -236,8 +245,8 @@ class PayForm {
                 total += this.payment_methods[payment_method].float_val;
             });
 
-            this.form.form.set_value("total_payment", total);
-            this.form.form.set_value("change_amount", (total - this.order.amount));
+            this.set_value("total_payment", total);
+            this.set_value("change_amount", (total - this.order.amount));
         }, 0);
     }
 }

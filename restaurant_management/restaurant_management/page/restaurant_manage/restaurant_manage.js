@@ -50,7 +50,7 @@ RestaurantManage = class RestaurantManage {
 		const base_assets = "assets/restaurant_management/restaurant/";
 
 		const assets = [
-			base_assets + 'js/pos_restaurant_controller.js',
+			base_assets + 'js/pos-restaurant-controller.js',
 			base_assets + 'js/restaurant-room-class.js',
 			base_assets + 'js/restaurant-object-class.js',
 
@@ -368,6 +368,7 @@ RestaurantManage = class RestaurantManage {
 		this.#restrictions = r.restrictions;
 		this.#lang = r.lang;
 		this.restaurant_permissions = r.pos.restaurant_permissions;
+		this.order_item_editor_form = r.order_item_editor_form;
 
 		if (r.pos.has_pos) {
 			this.#pos_profile = r.pos.pos;

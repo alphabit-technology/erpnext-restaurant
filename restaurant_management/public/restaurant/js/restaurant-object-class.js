@@ -447,7 +447,7 @@ RestaurantObject = class RestaurantObject {
         if (this.edit_form == null) {
             this.edit_form = new DeskForm({
                 doctype: "Restaurant Object",
-                docname: this.data.name,
+                doc_name: this.data.name,
                 form_name: this.data.type === "Table" ? "restaurant-table" : "restaurant-production-center",
                 call_back: () => {
                     this.edit_form.hide();

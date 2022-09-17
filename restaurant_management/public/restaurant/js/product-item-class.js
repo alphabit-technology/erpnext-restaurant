@@ -5,27 +5,13 @@ class ProductItem {
         this.items = {};
         this.currency = RM.pos_profile.currency;
 
-        frappe.db.get_value("Item Group", { lft: 1, is_group: 1 }, "name", (r) => {
+        frappe.db.get_value("Item Group", { lft: 1, is_group: 1 }, "name", async (r) => {
             this.parent_item_group = r.name;
             this.make_dom();
             this.make_fields();
             this.init_clusterize();
-            this.load_items_data();
+            await this.load_items_data();
         });
-    }
-
-    load_items_data() {
-        this.get_items().then(({ items }) => {
-            this.all_items = items;
-            this.items = items;
-            this.render_items(items);
-        });
-    }
-
-    reset_items() {
-        this.wrapper.find('.pos-items').empty();
-        this.init_clusterize();
-        this.load_items_data();
     }
 
     make_dom() {
@@ -76,8 +62,8 @@ class ProductItem {
             clearTimeout(this.last_search);
             this.last_search = setTimeout(() => {
                 const search_term = e.target.value;
-                const item_group = this.item_group_field ?
-                    this.item_group_field.get_value() : '';
+                const item_group = this.item_group_field ? this.item_group_field.get_value() : '';
+                
                 this.filter_items({ search_term: search_term, item_group: item_group });
             }, 300);
         });
@@ -116,22 +102,39 @@ class ProductItem {
         });
     }
 
+    async load_items_data() {
+        this.items = await this.get_items();
+        this.items = this.items.items;
+        this.all_items = this.items;
+        this.render_items();
+    }
+
+    get_items({ start = 0, page_length = 40, search_value = '', item_group = this.parent_item_group } = {}) {
+        const price_list = RM.pos_profile.selling_price_list;
+        const pos_profile = RM.pos_profile.name;
+
+        return new Promise(res => {
+            frappe.call({
+                method: "erpnext.selling.page.point_of_sale.point_of_sale.get_items",
+                freeze: true,
+                args: { start, page_length, price_list, item_group, search_value, pos_profile }
+            }).then(r => {
+                res(r.message);
+            });
+        });
+    }
+
     render_items(items) {
-        const _items = items || this.items;
+        const raw_items = Object.values(items || this.items).map(item => this.get_item_html(item));
+        raw_items.reduce((acc, item) => acc += item, '');
 
-        const all_items = Object.values(_items).map(item => this.get_item_html(item));
-        const row_items = [];
+        this.clusterize.update(raw_items);
+    }
 
-        let curr_row = "";
-
-        for (let i = 0; i < all_items.length; i++) {
-            curr_row += all_items[i];
-            if (i === all_items.length - 1) {
-                row_items.push(curr_row);
-            }
-        }
-
-        this.clusterize.update(row_items);
+    reset_items() {
+        this.wrapper.find('.pos-items').empty();
+        this.init_clusterize();
+        this.load_items_data();
     }
 
     filter_items({ search_term = '', item_group = this.parent_item_group } = {}) {
@@ -153,12 +156,15 @@ class ProductItem {
                 this.items = items;
                 this.render_items(items);
                 this.set_item_in_the_cart(items);
+
                 return;
             }
         } else if (item_group === this.parent_item_group) {
             this.items = this.all_items;
+            
             return this.render_items(this.all_items);
         }
+
         this.get_items({ search_value: search_term, page_length: 9999, item_group })
             .then(({ items, serial_no, batch_no, barcode }) => {
                 items.forEach(item => {
@@ -167,13 +173,16 @@ class ProductItem {
                     } else if (`${item.item_name}`.toLowerCase().includes(search_term)) {
                         result_arr.push(item);
                     }
-                })
+                });
+
                 if (result_arr.length > 0) {
                     items = result_arr;
                 }
+
                 if (search_term && !barcode) {
                     this.search_index[search_term] = items;
                 }
+
                 this.items = items;
                 this.render_items(items);
                 this.set_item_in_the_cart(items, serial_no, batch_no, barcode);
@@ -205,14 +214,7 @@ class ProductItem {
     }
 
     get(item_code) {
-        let item = {};
-        this.items.map(data => {
-            if (data.item_code === item_code) {
-                item = data;
-            }
-        });
-
-        return item
+        return this.items.filter(item => item.item_code === item_code)[0];
     }
 
     get_all() {
@@ -229,13 +231,14 @@ class ProductItem {
             properties: { class: "pos-item-wrapper product non-selectable" },
             content: template()
         }).on("click", () => {
-            this.add_item_cart(item);
+            this.add_item_in_order(item);
         }).html();
 
         function template() {
-            return `<div class="product-img">
-				${!item_image ? `<span class="placeholder-text" style="font-size: 72px; color: #d1d8dd;"> ${frappe.get_abbr(item_title)}</span>` : ''}
-				${item_image ? `<img src="${item_image}" alt="${item_title}">` : ''}
+            return `
+            <div class="product-img"> ${item_image ?
+                `<img src="${item_image}" alt="${item_title}">` : 
+                `<span class="placeholder-text" style="font-size: 72px; color: #d1d8dd;"> ${frappe.get_abbr(item_title)}</span>`}
 				<span class="price-tag">
                     ${price_list_rate}
                 </span>
@@ -246,42 +249,49 @@ class ProductItem {
         }
     }
 
-
-    add_item_cart(item) {
-        const { item_code, item_name } = item;
-        const _item = {
-            discount_percentage: 0,
-            entry_name: null,
-            item_code: item_code,
-            item_invoice: null,
-            item_invoice_name: null,
-            item_name: item_name,
+    add_item_in_order(item) {
+        const base_item = {
             name: null,
+            entry_name: null,
+
+            item_code: item.item_code,
+            item_name: item.item_name,
             qty: 1,
             rate: item.price_list_rate,
             price_list_rate: item.price_list_rate,
-            ordered_time: null
+            discount_percentage: 0,
+            discount_amount: 0,
+            stock_uom: item.stock_uom,
+            item_invoice: null,
+            item_invoice_name: null,
+            ordered_time: null,
+            has_serial_no: 0,
+            serial_no: null,
+            has_batch_no: 0,
+            batch_no: null
         };
 
-        if (this.order_manage.current_order != null) {
-            if (!RM.check_permissions("order", this.order_manage.current_order, "write")) {
+        const current_order = this.order_manage.current_order;
+        const pos_profile = RM.pos_profile;
+
+        if (current_order != null) {
+            if (!RM.check_permissions("order", current_order, "write")) {
                 RM.notification("red", __("You cannot modify an order from another User"));
                 return;
             }
 
-            _item.company = RM.company;
-            _item.customer = this.order_manage.current_order.data.customer;
-            _item.doctype = "Sales Invoice";
-            _item.currency = RM.pos_profile.currency;
-            _item.pos_profile = RM.pos_profile.name;
+            base_item.company = RM.company;
+            base_item.customer = current_order.data.customer;
+            base_item.doctype = "Sales Invoice";
+            base_item.currency = pos_profile.currency;
+            base_item.pos_profile = pos_profile.name;
 
-            this.set_items_detail(_item).then((data) => {
-                const item_to_push = Object.assign({}, data, _item);
+            this.get_items_detail(base_item).then(item_data => {
+                const item_to_push = Object.assign({}, base_item, item_data);
 
                 item_to_push.identifier = RM.uuid("entry");
                 item_to_push.status = "Pending";
                 item_to_push.notes = null;
-                item_to_push.rate = data.valuation_rate;
                 item_to_push.process_status_data = {
                     next_action_message: 'Sent',
                     color: 'red',
@@ -289,14 +299,15 @@ class ProductItem {
                     status_message: 'Add',
                 }
                 item_to_push.qty = 1;
-                this.order_manage.current_order.push_item(item_to_push);
+
+                current_order.push_item(item_to_push);
             });
         }
     }
 
-    set_items_detail(item) {
+    get_items_detail(item) {
         return new Promise(res => {
-            if (typeof RM.store.items[item.item_code] != "undefined") {
+            if (RM.store.items[item.item_code]) {
                 res(RM.store.items[item.item_code]);
             } else {
                 frappe.call({
@@ -309,42 +320,6 @@ class ProductItem {
                 });
             }
         });
-    }
-
-    get_items({ start = 0, page_length = 40, search_value = '', item_group = this.parent_item_group } = {}) {
-        const price_list = RM.pos_profile.selling_price_list;
-        return new Promise(res => {
-            frappe.call({
-                method: "erpnext.selling.page.point_of_sale.point_of_sale.get_items",
-                freeze: true,
-                args: {
-                    start,
-                    page_length,
-                    price_list,
-                    item_group,
-                    search_value,
-                    pos_profile: RM.pos_profile.name
-                }
-            }).then(r => {
-                res(r.message);
-            });
-        });
-    }
-
-    html() {
-        return `
-        <article class="product">
-            <div class="product-img">
-                <img src="${this.data.image}" alt="${this.data.item_name}">
-                <span class="price-tag">
-                    ${this.data.rate}
-                </span>
-            </div>
-            <div class="product-name">
-                ${this.data.item_name}
-            </div>
-        </article>
-        `
     }
 }
 

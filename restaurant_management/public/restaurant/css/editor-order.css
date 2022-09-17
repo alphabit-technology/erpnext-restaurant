@@ -1,14 +1,15 @@
-.panel-order-edit .input-edit-values {
+.panel-order-edit .entry-order-editor {
     font-size: 18px;
     height: 40px !important;
     width: 100%;
+    display: block;
 }
 
 .panel-order-edit .edit-values td{
     padding: 0.5px 0.5px 4px;
 }
 
-.panel-order-edit .input-edit-values.center {
+.panel-order-edit .entry-order-editor.center {
     text-align: center;
     border: none;
 }

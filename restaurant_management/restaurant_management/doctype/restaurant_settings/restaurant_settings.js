@@ -14,18 +14,6 @@ frappe.ui.form.on('Restaurant Settings', {
 		frm.fields_dict.double_click_events_info.$wrapper.empty().append(`
 	        ${__(one_click_events_message)}
 	    `);
-
-		frm.add_custom_button(__('Reinstall'), () => {
-	        frappe.call({
-				method: "restaurant_management.restaurant_management.doctype.restaurant_settings.restaurant_settings.reinstall",
-				success: function(r) {
-					frappe.msgprint(__("Completed"));
-				},
-				error: function(r) {
-					frappe.msgprint(__("Failed"));
-				}
-			});
-		});
 	},
 
 	setup: function(frm) {

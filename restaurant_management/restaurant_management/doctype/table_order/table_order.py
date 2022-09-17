@@ -3,6 +3,7 @@
 # For license information, please see license.txt
 
 from __future__ import unicode_literals
+from operator import inv
 import frappe
 from frappe import _
 from frappe.model.document import Document
@@ -57,7 +58,8 @@ class TableOrder(Document):
 
     def divide(self, items, client):
         new_order = frappe.new_doc("Table Order")
-        self.transfer_general_data(new_order)
+        self.transfer_order_values(new_order)
+        new_order.save()
         status = []
 
         for item in self.entry_items:
@@ -81,7 +83,11 @@ class TableOrder(Document):
                     identifier=item.identifier if rest == 0 else divide_item["identifier"],
                     notes=item.notes,
                     ordered_time=item.ordered_time,
-                    table_description=f'{self.room_description} ({self.table_description})'
+                    table_description=f'{self.room_description} ({self.table_description})',
+                    has_batch_no=item.has_batch_no,
+                    batch_no=item.batch_no,
+                    has_serial_no=item.has_serial_no,
+                    serial_no=item.serial_no,
                 ))
 
             status.append(item.status)
@@ -158,12 +164,14 @@ class TableOrder(Document):
                 amount=mode_of_payment[mp]
             ))
 
+        invoice.validate()
         invoice.save()
         invoice.submit()
 
         self.status = "Invoiced"
         self.link_invoice = invoice.name
         self.save()
+        
         frappe.db.set_value("Table Order", self.name, "docstatus", 1)
 
         frappe.msgprint(_('Invoice Created'), indicator='green', alert=True)
@@ -198,35 +206,24 @@ class TableOrder(Document):
         last_table.synchronize()
         return True
 
-    def set_invoice_values(self, invoice):
-        invoice.company = self.company
-        invoice.is_pos = 1
-        invoice.customer = self.customer
-        invoice.title = self.customer
-        invoice.taxes_and_charges = self.taxes_and_charges
-        invoice.selling_price_list = self.selling_price_list
-        invoice.pos_profile = self.pos_profile
-
-    def transfer_general_data(self, new_order):
-        new_order.company = self.company
-        new_order.is_pos = 1
-        new_order.customer = self.customer
-        new_order.title = self.customer
-        new_order.taxes_and_charges = self.taxes_and_charges
-        new_order.selling_price_list = self.selling_price_list
-        new_order.pos_profile = self.pos_profile
-        new_order.table = self.table
-
-        new_order.save()
+    def transfer_order_values(self, to_doc):
+        to_doc.company = self.company
+        to_doc.is_pos = 1
+        to_doc.customer = self.customer
+        to_doc.title = self.customer
+        to_doc.taxes_and_charges = self.taxes_and_charges
+        to_doc.selling_price_list = self.selling_price_list
+        to_doc.pos_profile = self.pos_profile
+        to_doc.table = self.table
 
     def get_invoice(self, entry_items=None, make=False):
         invoice = frappe.new_doc("POS Invoice")
-        self.set_invoice_values(invoice)
+        self.transfer_order_values(invoice)
 
         invoice.items = []
         invoice.taxes = []
-        invoice.payments = []
         taxes = {}
+        
         for i in entry_items:
             item = entry_items[i]
             if item["qty"] > 0:
@@ -235,7 +232,7 @@ class TableOrder(Document):
 
                 margin_rate_or_amount = (rate - price_list_rate)
                 invoice.append('items', dict(
-                    serial_no="" if make else item["identifier"],
+                    identifier=item["identifier"],
                     item_code=item["item_code"],
                     qty=item["qty"],
                     rate=item["rate"],
@@ -246,7 +243,14 @@ class TableOrder(Document):
 
                     margin_type="Amount",
                     margin_rate_or_amount=0 if margin_rate_or_amount < 0 else margin_rate_or_amount,
-                    # conversion_factor=1,
+
+                    has_serial_no=item["has_serial_no"],
+                    serial_no=item["serial_no"],
+                    
+                    has_batch_no=item["has_batch_no"],
+                    batch_no=item["batch_no"],
+
+                    conversion_factor=1,
                 ))
 
                 if "item_tax_rate" in item:
@@ -261,14 +265,34 @@ class TableOrder(Document):
                     in_invoice_taxes.append(t)
         
         included_in_print_rate = frappe.db.get_value("POS Profile", self.pos_profile, "posa_tax_inclusive")
+        apply_discount_on = frappe.db.get_value(
+            "POS Profile", self.pos_profile, "apply_discount_on")
+        cost_center = frappe.db.get_value(
+            "POS Profile", self.pos_profile, "cost_center")
+
+        invoice.cost_center = cost_center
 
         for t in set(in_invoice_taxes):
             invoice.append('taxes', {
-                "charge_type": "On Net Total", "account_head": t, "rate": 0, "description": t, "included_in_print_rate": included_in_print_rate
+                "charge_type": "On " + apply_discount_on,
+                "account_head": t,
+                "rate": 0, 
+                "description": t,
+                "included_in_print_rate": included_in_print_rate
             })
             
         invoice.run_method("set_missing_values")
         invoice.run_method("calculate_taxes_and_totals")
+
+        ##To validate the invoice
+        invoice.payments = []
+        invoice.append('payments', dict(
+            mode_of_payment="cash",
+            amount=invoice.grand_total
+        ))
+        invoice._action = "submit"
+        invoice.validate()
+        ##To validate the invoice
 
         return invoice
 
@@ -291,6 +315,7 @@ class TableOrder(Document):
             "You cannot modify an order from another User"
         )
         action = self.update_item(item)
+
         if action == "db_commit":
             self.db_commit()
         else:
@@ -346,13 +371,19 @@ class TableOrder(Document):
                 tax_amount=invoice.base_total_taxes_and_charges,
                 amount=invoice.grand_total,
                 discount_percentage=item.discount_percentage,
-                discount_amount=invoice.base_discount_amount,
+                discount_amount=item.discount_amount,
                 status="Attending" if entry["status"] in ["Pending", "", None] else entry["status"],
                 identifier=entry["identifier"],
                 notes=entry["notes"],
                 table_description=f'{self.room_description} ({self.table_description})',
-                ordered_time=entry["ordered_time"] or frappe.utils.now_datetime()
+                ordered_time=entry["ordered_time"] or frappe.utils.now_datetime(),
+                has_batch_no=entry["has_batch_no"],
+                batch_no=entry["batch_no"],
+                has_serial_no=entry["has_serial_no"],
+                serial_no=entry["serial_no"],
             )
+
+            self.validate()
 
             if frappe.db.count("Order Entry Item", {"identifier": entry["identifier"]}) == 0:
                 self.append('entry_items', data)
@@ -381,11 +412,16 @@ class TableOrder(Document):
                 item_tax_rate=item.item_tax_rate,
                 amount=item.amount,
                 discount_percentage=item.discount_percentage,
+                discount_amount=item.discount_amount,
                 status="Attending" if entry_item["status"] in ["Pending", "", None] else entry_item["status"],
                 identifier=entry_item["identifier"],
                 notes=entry_item["notes"],
                 ordered_time=entry_item["ordered_time"],
-                table_description=f'{self.room_description} ({self.table_description})'
+                table_description=f'{self.room_description} ({self.table_description})',
+                has_batch_no=entry_item["has_batch_no"],
+                batch_no=entry_item["batch_no"],
+                has_serial_no=entry_item["has_serial_no"],
+                serial_no=entry_item["serial_no"],
             ))
             item.serial_no = None
 
@@ -439,13 +475,18 @@ class TableOrder(Document):
                     "rate",
                     "amount",
                     "discount_percentage",
+                    "discount_amount",
                     "price_list_rate",
                     "item_tax_template",
                     "item_tax_rate",
                     "table_description",
                     "status",
                     "notes",
-                    "ordered_time"
+                    "ordered_time",
+                    "has_batch_no",
+                    "batch_no",
+                    "has_serial_no",
+                    "serial_no",
                 ]}
 
                 row["order_name"] = item.parent
@@ -507,10 +548,15 @@ class TableOrder(Document):
                     price_list_rate=item.price_list_rate,
                     item_tax_template=item["item_tax_template"],
                     discount_percentage=item.discount_percentage,
+                    discount_amount=item.discount_amount,
                     status=item.status,
                     identifier=item.identifier,
                     notes=item.notes,
                     ordered_time=item.ordered_time,
+                    has_batch_no=item.has_batch_no,
+                    batch_no=item.batch_no,
+                    has_serial_no=item.has_serial_no,
+                    serial_no=item.serial_no,
                 ))
         self.save()
 

@@ -1,3 +1,16 @@
+.media.event{
+    display: block;
+}
+
+.media.event .card{
+    background-color: var(--light-gray) !important;
+    border: unset;
+}
+
+.media.event .card .card-footer{
+    border: unset;
+}
+
 .erp-items {
     border-right: var(--default_line);
     border-left: var(--default_line);
@@ -25,11 +38,20 @@
 }
 
 .panel-order-items ul.products-list li.selected {
-    background-color: var(--selected_color) !important;
+    background-color: var(--selected-color) !important;
 }
 
-.panel-order-items ul.products-list li.selected .edit-note {
-    display: block !important;
+.panel-order-items ul.products-list li .form-editor {
+    max-height: 250px;
+    overflow-y: auto;
+}
+
+.panel-order-items ul.products-list li:not(.selected) .form-editor {
+    display: none !important;
+}
+
+.panel-order-items ul.products-list li.selected .form-editor {
+    display: block;
 }
 
 .panel-order-items .media-body {

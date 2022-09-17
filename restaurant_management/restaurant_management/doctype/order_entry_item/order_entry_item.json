@@ -23,7 +23,11 @@
   "table_description",
   "discount_amount",
   "tax_amount",
-  "ordered_time"
+  "ordered_time",
+  "has_batch_no",
+  "batch_no",
+  "has_serial_no",
+  "serial_no"
  ],
  "fields": [
   {
@@ -120,7 +124,7 @@
   {
    "fieldname": "valuation_rate",
    "fieldtype": "Currency",
-   "label": "valuation_rate"
+   "label": "Valuation Rate"
   },
   {
    "fieldname": "discount_amount",
@@ -136,12 +140,40 @@
    "fieldname": "ordered_time",
    "fieldtype": "Datetime",
    "label": "Ordered Time"
+  },
+  {
+   "fieldname": "batch_no",
+   "fieldtype": "Link",
+   "label": "Batch No",
+   "options": "Batch"
+  },
+  {
+   "default": "0",
+   "fetch_from": "item_code.has_batch_no",
+   "fieldname": "has_batch_no",
+   "fieldtype": "Check",
+   "label": "Has Batch No",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fetch_from": "item_code.has_serial_no",
+   "fieldname": "has_serial_no",
+   "fieldtype": "Check",
+   "label": "Has Serial No",
+   "read_only": 1
+  },
+  {
+   "fieldname": "serial_no",
+   "fieldtype": "Link",
+   "label": "Serial No",
+   "options": "Serial No"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2021-10-18 17:36:51.071392",
+ "modified": "2022-09-12 16:34:06.730751",
  "modified_by": "Administrator",
  "module": "Restaurant Management",
  "name": "Order Entry Item",

@@ -163,9 +163,8 @@ class RestaurantRoom extends ObjectManage {
     edit() {
         if (this.edit_form == null) {
             this.edit_form = new DeskForm({
-                doctype: "Restaurant Object",
-                docname: this.data.name,
-                form_name: "restaurant-room",
+                doc_name: this.data.name,
+                form_name: "Restaurant Room",
                 call_back: () => {
                     this.edit_form.hide();
                 },

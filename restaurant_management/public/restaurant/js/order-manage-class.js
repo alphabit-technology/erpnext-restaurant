@@ -66,6 +66,7 @@ class OrderManage extends ObjectManage {
 
     show() {
         if (!this.is_enabled_to_open()) return;
+
         this.modal.show();
         if (this.transferring_order) {
             if (this.current_order != null) {
@@ -185,13 +186,16 @@ class OrderManage extends ObjectManage {
     }
 
     make_edit_input() {
-        const default_class = `input input-edit-values input-with-feedback center`;
+        const default_class = `input entry-order-editor input-with-feedback center`;
 
         const objs = [
             {
                 name: "Minus",
                 tag: 'button',
-                properties: { name: 'minus', class: `btn btn-default edit-button ${default_class}` },
+                properties: {
+                    name: 'minus', 
+                    class: `btn btn-default edit-button ${default_class}` 
+                },
                 content: '<span class="fa fa-minus">',
                 on: {
                     'click': () => {
@@ -204,7 +208,10 @@ class OrderManage extends ObjectManage {
             {
                 name: "Qty",
                 tag: 'button', label: 'Qty',
-                properties: { name: 'qty', type: 'text', class: default_class, input_type: "number" },
+                properties: { 
+                    name: 'qty', type: 'text', input_type: "number",
+                    class: default_class
+                },
                 on: {
                     'click': (obj) => {
                         this.num_pad.input = obj;
@@ -214,7 +221,10 @@ class OrderManage extends ObjectManage {
             {
                 name: "Discount",
                 tag: 'button', label: 'Discount',
-                properties: { name: 'discount', type: 'text', class: default_class, input_type: "number" },
+                properties: { 
+                    name: 'discount', type: 'text', input_type: "number",
+                    class: default_class,
+                },
                 on: {
                     'click': (obj) => {
                         this.num_pad.input = obj;
@@ -224,7 +234,10 @@ class OrderManage extends ObjectManage {
             {
                 name: "Rate",
                 tag: 'button', label: 'Rate',
-                properties: { name: 'rate', type: 'text', class: default_class, input_type: "number" },
+                properties: { 
+                    name: 'rate', type: 'text', input_type: "number",
+                    class: default_class
+                },
                 on: {
                     'click': (obj) => {
                         this.num_pad.input = obj;
@@ -234,7 +247,10 @@ class OrderManage extends ObjectManage {
             {
                 name: "Plus",
                 tag: 'button',
-                properties: { name: 'plus', class: `btn btn-default edit-button ${default_class}` },
+                properties: {
+                    name: 'plus',
+                    class: `btn btn-default edit-button ${default_class}`
+                },
                 content: '<span class="fa fa-plus">',
                 on: {
                     'click': () => {
@@ -247,7 +263,10 @@ class OrderManage extends ObjectManage {
             {
                 name: "Trash",
                 tag: 'button',
-                properties: { name: 'trash', class: `btn btn-default edit-button ${default_class}` },
+                properties: {
+                    name: 'trash', 
+                    class: `btn btn-default edit-button ${default_class}`
+                },
                 content: '<span class="fa fa-trash">',
                 on: {
                     'click': () => {
@@ -272,7 +291,7 @@ class OrderManage extends ObjectManage {
         objs.forEach((_obj) => {
             base_html += `
 			<th class="center pad-head" style="font-size: 12px; padding: 4px">
-				${typeof _obj.label != "undefined" ? _obj.label : ""}
+				${_obj.label || ""}
 			</th>`
         });
         base_html += "</thead><tbody><tr class='edit-values'>";
@@ -283,13 +302,14 @@ class OrderManage extends ObjectManage {
             this.#objects[element.name] = frappe.jshtml({
                 tag: element.tag,
                 properties: element.properties,
-                content: (typeof element.content != "undefined" ? element.content : "")
+                content: (element.content || "")
             }).on(
                 Object.keys(element.on)[0], element.on[Object.keys(element.on)[0]], (element.name === "Trash" ? DOUBLE_CLICK : "")
             ).disable();
 
             base_html += this.objects[element.name].html();
         });
+        
         $(container).empty().append(base_html + "</tr></tbody>");
 
         this.#objects.Qty.int();
@@ -346,7 +366,7 @@ class OrderManage extends ObjectManage {
         const default_class = `pad-col ${this.table_name}`;
         this.orders_count_badge = frappe.jshtml({
             tag: 'span',
-            properties: { class: 'badge', style: 'font-size: 12px' },
+            properties: { class: 'badge badge-tag badge-btn', style: 'font-size: 12px' },
             content: "{{text}}",
             text: 0
         });
@@ -426,14 +446,14 @@ class OrderManage extends ObjectManage {
         let base_html = "<tbody>";
         num_pads_components.forEach((row) => {
             const props = typeof row[1] != "undefined" ? row[1] : {};
-            base_html += `<tr style='${typeof props["style"] != "undefined" ? props["style"] : ""}'>`;
+            base_html += `<tr style='${props.style || ""}'>`;
 
             row[0].forEach((col) => {
                 col.props.class += ` ${default_class}-${col.name}`;
                 this.#components[col.name] = frappe.jshtml({
                     tag: "td",
                     properties: col.props,
-                    content: "{{text}}" + (typeof col.content == "undefined" ? "" : col.content),
+                    content: "{{text}}" + (col.content || ""),
                     text: __(col.name) + (["Tax", "Total"].includes(col.name) ? ": " + RM.format_currency(0) : "")
                 }).on("click", () => {
                     if (col.action !== "none") {
@@ -498,6 +518,7 @@ class OrderManage extends ObjectManage {
         this.in_components((component, k) => {
             if (!["Pad", "Tax", "Total"].includes(k)) {
                 component.disable();
+
                 if (["delete", "edit", "new", "new_order"].includes(k)) {
                     component.hide();
                 }
@@ -538,17 +559,12 @@ class OrderManage extends ObjectManage {
                     this.#components.Order.enable().add_class("btn-danger").val(__("Add"));
                 } else {
                     const orders_count = this.current_order.data.products_not_ordered;
+                    this.orders_count_badge.val(`${orders_count}`);
+                    const [action, text] = [orders_count > 0 ? "enable" : "disable", orders_count > 0 ? this.orders_count_badge.html() : ""];
 
-                    if (orders_count > 0) {
-                        this.orders_count_badge.val("" + orders_count + "");
-                        this.#components.Order.set_content(
-                            `<span class="fa fa-cutlery pull-right"></span>${__('Order')}${this.orders_count_badge.html()}{{text}}`
-                        ).enable();
-                    } else {
-                        this.#components.Order.set_content(
-                            `<span class="fa fa-cutlery pull-right"></span>${__('Order')}{{text}}`
-                        ).disable();
-                    }
+                    this.#components.Order.set_content(
+                        `<span class="fa fa-cutlery pull-right"></span>${__('Order')}${text}{{text}}`
+                    )[action]();
                 }
 
                 this.#components.Divide.prop("disabled", this.current_order.items_count === 0);
@@ -582,6 +598,7 @@ class OrderManage extends ObjectManage {
             });
             return;
         }
+        
         const pos_profile = RM.pos_profile
         const data = item.data;
         const item_is_enabled_to_edit = item.is_enabled_to_edit;
@@ -589,15 +606,20 @@ class OrderManage extends ObjectManage {
         objects.Qty.prop(
             "disabled", !item_is_enabled_to_edit
         ).val(data.qty, false);
+
         objects.Discount.prop(
             "disabled", !item_is_enabled_to_edit || !pos_profile.allow_discount_change
         ).val(data.discount_percentage, false);
+
         objects.Rate.prop(
             "disabled", !item_is_enabled_to_edit || !pos_profile.allow_rate_change
         ).val(data.rate, false);
+
         objects.Minus.prop("disabled", !item_is_enabled_to_edit);
         objects.Plus.prop("disabled", !item_is_enabled_to_edit);
         objects.Trash.prop("disabled", !item.is_enabled_to_delete);
+
+        item.check_status();
     }
 
     make_items() {
@@ -605,6 +627,10 @@ class OrderManage extends ObjectManage {
             wrapper: $(`#${this.item_container_name}`),
             order_manage: this,
         });
+    }
+
+    storage() {
+        return this.#items;
     }
 
     add_order() {
@@ -748,6 +774,7 @@ class OrderManage extends ObjectManage {
         this.#components.Tax.val(`${__("Tax")}: ${RM.format_currency(0)}`);
         this.#components.Total.val(`${__("Total")}: ${RM.format_currency(0)}`);
         this.check_item_editor_status();
+
         if (this.current_order != null) {
             this.delete_order(this.current_order.data.name);
         }
@@ -772,6 +799,7 @@ class OrderManage extends ObjectManage {
 
     order_status_message() {
         const container = $("#" + this.identifier);
+        
         if (this.current_order == null) {
             container.removeClass("has-order");
             container.removeClass("has-items");

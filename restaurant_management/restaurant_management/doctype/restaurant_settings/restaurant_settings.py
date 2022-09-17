@@ -27,7 +27,8 @@ class RestaurantSettings(Document):
             ),
             restrictions=restaurant_settings,
             exceptions=[item for item in restaurant_settings.restaurant_exceptions  if item.role_profile == profile],
-            lang=frappe.session.data.lang
+            lang=frappe.session.data.lang,
+            order_item_editor_form=self.get_order_item_editor_form(),
         )
 
     def pos_profile_data(self):
@@ -38,6 +39,9 @@ class RestaurantSettings(Document):
             pos=frappe.get_doc(
                 "POS Profile", pos_profile_name) if pos_profile_name is not None else None
         )
+    
+    def get_order_item_editor_form(self):
+        return frappe.get_doc("Desk Form", "order-item-editor")
 
     def get_current_pos_profile_name(self):
         return self.pos_profile
@@ -69,4 +73,4 @@ class RestaurantSettings(Document):
 
 @frappe.whitelist()
 def reinstall():
-    install.after_install()
+    return install.after_install()

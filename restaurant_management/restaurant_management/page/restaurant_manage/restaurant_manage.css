@@ -1,7 +1,7 @@
 :root {
     --default_line: 1px solid rgba(119, 136, 153, 0.39);
     --fill_color: rgba(119, 136, 153, 0.07);
-    --selected_color:  rgba(119, 136, 153, 0.39);
+    --selected_color:  rgba(67, 96, 125, 0.39);
     --margin-grid: 5px;
 }
 

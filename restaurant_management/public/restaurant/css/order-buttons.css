@@ -63,7 +63,7 @@
     padding: 1rem 1rem !important;
 }
 
-.order-manage .badge {
+.order-manage .badge-tag {
     position: absolute;
     top: 0;
     right: 0;
@@ -80,7 +80,7 @@
     color: var(--white) !important;
 }
 
-.order-manage .order-container .btn-app .badge {
+.order-manage .order-container .btn-app .badge-btn {
     left: 0;
     border-radius:0 0 10px 0;
     right: unset !important;

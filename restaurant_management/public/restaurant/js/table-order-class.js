@@ -74,7 +74,7 @@ class TableOrder {
 
     get content() {
         const background_color = `background-color: ${RM.check_permissions("order", this, "write") ? '' : RM.restrictions.color};`;
-        return `<span class='badge' style="${background_color}">{{text}}</span>${this.data.short_name}`;
+        return `<span class='badge badge-tag' style="${background_color}">{{text}}</span>${this.data.short_name}`;
     }
 
     hide_items() {
@@ -101,6 +101,10 @@ class TableOrder {
             this.container.show();
 
             if (via_click) {
+                if (!this.data.customer) {
+                    this.order_manage.components.customer.highlight();
+                    this.set_customer();
+                }
                 this.get_items();
             } else {
                 this.order_manage.order_status_message("from select order");
@@ -144,7 +148,7 @@ class TableOrder {
         }
 
         let test_item = null;
-        this.in_items((item) => {
+        this.in_items(item => {
             if (item.data.item_code === new_item.item_code) {
                 if ([this.data.attending_status, "Pending", "Add", "", null, "undefined"].includes(item.data.status)) {
                     item.data.qty += 1;
@@ -155,6 +159,7 @@ class TableOrder {
                 }
             }
         });
+
         test_item = test_item || this.add_locale_item(new_item);
         if (test_item != null) {
             test_item.update();
@@ -198,11 +203,10 @@ class TableOrder {
     }
 
     check_items(options = {}) {
-        const items = options.hasOwnProperty("items") ? options.items : [];
-        let current = options.hasOwnProperty("current") ? options.current : null;
-        const action = options.hasOwnProperty("action") ? options.action : null;
+        const items = options.items || [];
+        const action = options.action || null;
+        const current = options.current || this.current_item;
 
-        current = current || this.current_item;
         let test_item = null, current_item = null;
 
         items.forEach((item, index) => {
@@ -228,8 +232,8 @@ class TableOrder {
             this.order_manage.order_status_message("from check item");
             setTimeout(() => {
                 this.order_manage.check_buttons_status();
-                if (current_item == null) {
 
+                if (current_item == null) {
                     if (this.items_count) {
                         this.select_first_item();
                     } else {
@@ -480,7 +484,7 @@ class TableOrder {
                     if (typeof r.message != "undefined") {
                         this.divide_account_modal.hide();
                     }
-                },
+                }
             });
         } else {
             frappe.msgprint(__('You have not selected products'))
@@ -516,19 +520,30 @@ class TableOrder {
         return RM.format_currency(this.amount);
     }
 
-    pay() {
+    validate_items(){
+        let valid = false;
+        Object.keys(this.items).forEach((index) => {
+            const item_in_order = this.items[index];
+        });
+
+        return valid;
+    }
+
+    async pay() {
         if (RM.busy || !RM.can_pay) return;
         if (RM.pos_profile == null) {
             frappe.msgprint(RM.not_has_pos_profile_message());
         } else if (RM.pos_profile.payments.length === 0) {
             frappe.msgprint(__("There are no configured payment methods"));
         } else {
+            this.validate_items();
             if (this.pay_form == null) {
                 this.pay_form = new PayForm({
                     order: this
                 });
             } else {
-                this.pay_form.reload();
+                await this.pay_form.reload();
+                this.pay_form.show();
             }
         }
     }
@@ -561,25 +576,35 @@ class TableOrder {
         }
     }
 
-    edit(type) {
-        if (RM.busy_message()) {
-            return;
-        }
+    set_customer() {
+        this.edit("customer");
+    }
 
-        if (this[type + "_form"]) {
-            this[type + "_form"].reload().show();
+    set_dinners() {
+        this.edit("dinners");
+    }
+
+    edit(type) {
+        const form = type + "_form";
+        if (this[form]) {
+            this[form].reload();
+            this[form].show();
         } else {
-            this[type + "_form"] = new DeskForm({
-                doctype: "Table Order",
-                docname: this.data.name,
+            this[form] = new DeskForm({
                 form_name: `restaurant-order-${type}`,
-                call_back: (self) => {
+                doc_name: this.data.name,
+                call_back: self => {
                     self.hide();
+
                     RM.sound_submit();
                     this.data[type] = self.get_value(type);
                     this.make_invoice();
                 },
-                title: __(`Set ${type}`)
+                title: __(`Set ${type}`),
+                after_load: self => {
+                    const input = self.get_field(type);
+                    input.set_focus();
+                }
             });
         }
     }
