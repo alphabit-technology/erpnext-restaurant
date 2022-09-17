@@ -14,6 +14,7 @@ ___
 6. Individual order management by table and user.
 7. Process management based on Restaurant Production Center.
 8. Real time based on the user's activity when the restaurant areas are modified or when the user interacts with it.
+9. Compatible with Dark Theme.
 
 ___
 ### ERPNext Restaurant Management requires
@@ -39,6 +40,11 @@ ___
 ___
 ### How to Use
 > See the documentation [here](https://github.com/quantumbitcore/erpnext-restaurant/wiki)
+
+___
+### Compatibility
+> V13, V14
+
 ___
 ERPNext Restaurant Management is based on [Frappe Framework](https://github.com/frappe/frappe).
 
