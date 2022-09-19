@@ -31,13 +31,13 @@ class TableOrder(Document):
     @property
     def items_count(self):
         return frappe.db.count("Order Entry Item", filters={
-            "parentType": "Table Order", "parent": self.name, "qty": (">", 0)
+            "parenttype": "Table Order", "parent": self.name, "qty": (">", "0")
         })
 
     @property
     def products_not_ordered_count(self):
         return frappe.db.count("Order Entry Item", filters={
-            "parentType": "Table Order", "parent": self.name, "status": status_attending
+            "parenttype": "Table Order", "parent": self.name, "status": status_attending
         })
 
     @property

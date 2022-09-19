@@ -96,7 +96,7 @@ class RestaurantObject(Document):
         else:
             frappe.throw(_("POS Profile is required to use Point-of-Sale"))
 
-        order.selling_price_list = frappe.db.get_value('Price List', dict(enabled=1))
+        order.selling_price_list = frappe.db.get_value('Price List', dict(enabled="1"))
         order.table = self.name
         order.company = company
 
@@ -126,7 +126,7 @@ class RestaurantObject(Document):
                 "status": ("in", status_managed),
                 "item_group": ("in", items_group),
                 "parent": ("!=", ""),
-                "qty": (">", 0)
+                "qty": (">", "0")
             })
 
         return 0
@@ -243,7 +243,7 @@ class RestaurantObject(Document):
             "status": ("in", [item.status_managed for item in status_managed]),
             "item_group": ("in", self._items_group),
             "parent": ("!=", ""),
-            "qty": (">", 0)
+            "qty": (">", "0")
         } if identifier is None else {
             "identifier": identifier
         }
