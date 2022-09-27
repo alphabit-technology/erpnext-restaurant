@@ -27,55 +27,55 @@ RestaurantManage = class RestaurantManage {
 	#components = [];
 	#lang = null;
 	currency_precision = 2;
+	editing = false;
+	transfer_order = null;
+	current_room = null;
+	busy = false;
+	sounds = false;
+	client =  this.uuid();
+	request_client = null;
+	loaded = false;
+	store = {
+		items: []
+	}
+	objects = [];
+
+	room = [];
 
 	constructor(wrapper) {
 		this.base_wrapper = wrapper;
 		this.wrapper = $(wrapper).find('.layout-main-section');
 		this.page = wrapper.page;
-		this.editing = false;
-		this.transfer_order = null;
-		this.current_room = null;
 		this.url_manage = "restaurant_management.restaurant_management.page.restaurant_manage.restaurant_manage.";
-		this.busy = false;
-		this.sounds = false;
-		this.client = this.uuid();
-		this.request_client = null;
 		this.#company = frappe.defaults.get_user_default('company');
-		this.loaded = false;
-		this.store = {
-			items: []
-		}
-		this.objects = [];
-
-		const base_assets = "assets/restaurant_management/restaurant/";
 
 		const assets = [
-			base_assets + 'js/pos-restaurant-controller.js',
-			base_assets + 'js/restaurant-room-class.js',
-			base_assets + 'js/restaurant-object-class.js',
+			'js/pos-restaurant-controller.js',
+			'js/restaurant-room-class.js',
+			'js/restaurant-object-class.js',
 
-			base_assets + 'js/order-manage-class.js',
-			base_assets + 'js/product-item-class.js',
-			base_assets + 'js/order-item-class.js',
+			'js/order-manage-class.js',
+			'js/product-item-class.js',
+			'js/order-item-class.js',
 
-			base_assets + 'js/process-manage-class.js',
-			base_assets + 'js/food-command-class.js',
-			base_assets + 'js/table-order-class.js',
-			base_assets + 'js/pay-form-class.js',
-			base_assets + 'js/invoice-class.js',
+			'js/process-manage-class.js',
+			'js/food-command-class.js',
+			'js/table-order-class.js',
+			'js/pay-form-class.js',
+			'js/invoice-class.js',
 
-			base_assets + 'css/restaurant-room.css',
-			base_assets + 'css/action-buttons.css',
-			base_assets + 'css/editor-order.css',
-			base_assets + 'css/food-command.css',
-			base_assets + 'css/order-buttons.css',
-			base_assets + 'css/order-items.css',
-			base_assets + 'css/order-items-container.css',
-			base_assets + 'css/order-manage.css',
-			base_assets + 'css/process-manage.css',
-			base_assets + 'css/product-list.css',
-			base_assets + 'css/restaurant-object.css'
-		];
+			'css/restaurant-room.css',
+			'css/action-buttons.css',
+			'css/editor-order.css',
+			'css/food-command.css',
+			'css/order-buttons.css',
+			'css/order-items.css',
+			'css/order-items-container.css',
+			'css/order-manage.css',
+			'css/process-manage.css',
+			'css/product-list.css',
+			'css/restaurant-object.css'
+		].map(asset => `assets/restaurant_management/restaurant/${asset}`);
 
 		frappe.require(assets, () => {
 			this.make();
@@ -89,17 +89,14 @@ RestaurantManage = class RestaurantManage {
 			() => {
 				this.working("Set settings");
 				this.settings_data.then(() => {
-					//frappe.require('assets/js/restaurant_management.min.js', () => {
 					this.pos = new erpnext.PointOfSale.RestaurantController(this.wrapper);
 					window.cur_pos = this.pos;
 
 					this.make_rooms().then(() => {
 						setTimeout(() => {
 							this.check_permissions_status();
-							//this.set_pos_controller();
 						}, 100);
 					});
-					//});
 				});
 			},
 			() => {
@@ -278,28 +275,27 @@ RestaurantManage = class RestaurantManage {
 	make_rooms() {
 		const currents_rooms = Object.values(this.rooms || {}).map(room => room.name);
 		this.working("Loading Rooms");
+		this.clear_rooms(currents_rooms);
 
 		return new Promise(res => {
 			frappe.call({
-				method: this.url_manage + "get_rooms"
+				method: `${this.url_manage}get_rooms`
 			}).then(r => {
-				$("body").show();
 				this.rooms = r.message;
-				this.clear_rooms(currents_rooms)
 				this.render_rooms();
 				this.ready();
+				
+				$("body").show();
 				res();
 			});
 		});
 	}
 
-	clear_rooms(currents_rooms = []) {
-		currents_rooms.forEach(room => {
-			Object.values(this.rooms || {}).forEach(room => {
-				if (!currents_rooms.includes(room.name)) {
-					this.object(room) ? this.object(room).remove() : null;
-				}
-			});
+	clear_rooms(currents_rooms = []) {	
+		Object.values(this.rooms || {}).forEach(room => {
+			if (!currents_rooms.includes(room.name) || !this.has_access_to_room(room.name)) {
+				this.object(room.name) ? this.object(room.name).remove() : null;
+			}
 		});
 	}
 
@@ -312,26 +308,29 @@ RestaurantManage = class RestaurantManage {
 		let room_from_url = null;
 
 		this.rooms.forEach((room, index, rooms) => {
+			const has_access_to_room = this.has_access_to_room(room.name);
+
 			if (this.object(room.name) == null) {
-				if (this.permissions.restaurant_object.create || this.permissions.restaurant_object.write || this.rooms_access.includes(room.name)) {
+				if (has_access_to_room) {
 					this.object(room.name, new RestaurantRoom(room))
 				}
 			} else {
-				if (!this.rooms_access.includes(room.name)) {
-					RM.object(room.name).remove();
+				if (!has_access_to_room) {
+					this.object(room.name).remove();
 				} else {
-					RM.object(room.name).data = room;
+					this.object(room.name).data = room;
 				}
 			}
 
 			if (current === false) {
 				if (this.current_room == null) {
-					if (RM.object(this.room_from_url) == null) {
+					if (this.object(this.room_from_url) == null) {
 						room_from_url = rooms[0].name;
 					} else {
 						room_from_url = this.room_from_url;
 					}
 				} else {
+					current = true;
 					room_from_url = this.current_room.data.name;
 				}
 			} else {
@@ -340,10 +339,10 @@ RestaurantManage = class RestaurantManage {
 		});
 
 		setTimeout(() => {
-			this.current_room = RM.object(room_from_url);
+			this.current_room = this.object(room_from_url);
 
 			if (this.current_room != null) {
-				if (this.rooms_access.includes(this.current_room.data.name)) {
+				if (this.has_access_to_room(this.current_room.data.name)) {
 					this.current_room.select();
 				} else {
 					this.delete_current_room();
@@ -352,9 +351,13 @@ RestaurantManage = class RestaurantManage {
 		}, 0);
 	}
 
+	has_access_to_room(room) {
+		return this.rooms_access.includes(room) || frappe.session.user === "Administrator" || this.permissions.restaurant_object.create || this.permissions.restaurant_object.write
+	}
+
 	get settings_data() {
 		return new Promise(res => {
-			frappe.xcall(this.url_manage + "get_settings_data", {}).then((r) => {
+			frappe.xcall(`${this.url_manage}get_settings_data`, {}).then(r => {
 				this.set_settings_data(r);
 				res();
 			});
@@ -478,7 +481,7 @@ RestaurantManage = class RestaurantManage {
 			this.rooms = r.rooms;
 
 			this.settings_data.then(() => {
-				this.rooms = this.rooms.filter(room => this.rooms_access.includes(room.name));
+				this.rooms = this.rooms.filter(room => this.rooms_access.includes(room.name) || frappe.session.user === "Administrator");
 
 				this.render_rooms(r.client === RM.client ? r.current_room : false);
 			});

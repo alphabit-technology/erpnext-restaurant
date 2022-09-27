@@ -732,7 +732,7 @@ class OrderManage extends ObjectManage {
             this.add_order();
         }, !RM.restrictions.to_new_order ? DOUBLE_CLICK : null);
 
-        if (typeof this.components.new_order_button == "undefined") {
+        if (this.components.new_order_button) {
             $(this.order_container).prepend(new_order_button.html());
         }
 
