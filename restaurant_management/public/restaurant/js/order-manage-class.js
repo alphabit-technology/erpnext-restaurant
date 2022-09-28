@@ -529,16 +529,20 @@ class OrderManage extends ObjectManage {
     check_buttons_status() {
         if (this.current_order == null) {
             this.disable_components();
-            if (typeof this.components.new_order_button != "undefined")
+            if (typeof this.#components.new_order_button != "undefined"){
                 this.#components.new_order_button.enable().show();
+            }
+                
             return;
         } else {
             if (RM.check_permissions("order", null, "create")) {
-                if (typeof this.components.new_order_button != "undefined")
+                if (typeof this.#components.new_order_button != "undefined"){
                     this.#components.new_order_button.enable().show();
+                }
             } else {
-                if (typeof this.components.new_order_button != "undefined")
+                if (typeof this.#components.new_order_button != "undefined"){
                     this.#components.new_order_button.disable().hide();
+                }
             }
         }
 
@@ -720,8 +724,13 @@ class OrderManage extends ObjectManage {
         orders.forEach(order => {
             this.append_order(order, current);
         });
+        
+        if (this.#components.new_order_button){
+            this.#components.new_order_button.remove();
+        }
 
         const new_order_button = frappe.jshtml({
+            test_field:true,
             tag: "button",
             properties: {
                 class: "btn btn-app btn-lg btn-order",
@@ -732,11 +741,11 @@ class OrderManage extends ObjectManage {
             this.add_order();
         }, !RM.restrictions.to_new_order ? DOUBLE_CLICK : null);
 
-        if (this.components.new_order_button) {
+        this.#components.new_order_button = new_order_button;
+        
+        if (this.#components.new_order_button) {
             $(this.order_container).prepend(new_order_button.html());
         }
-
-        this.#components.new_order_button = new_order_button;
     }
 
     append_order(order, current = null) {

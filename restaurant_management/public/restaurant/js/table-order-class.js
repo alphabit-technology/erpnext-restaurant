@@ -40,12 +40,18 @@ class TableOrder {
 
     make() {
         setTimeout(() => {
-            if (this.button != null) this.button.remove();
+            if (this.button) this.button.remove();
             let font_color = "";
 
             if (!RM.check_permissions("order", this, "write")) {
                 font_color = `color: ${RM.restrictions.color};`;
             }
+
+            this.container = frappe.jshtml({
+                tag: "div",
+                properties: { style: "display: none;", class: `order-entry-container hide` },
+                wrapper: this.order_manage.order_entry_container
+            });
 
             this.button = frappe.jshtml({
                 tag: "button",
@@ -54,21 +60,14 @@ class TableOrder {
                     style: `${font_color}; background-color: var(--fill_color)`
                 },
                 content: this.content,
-                text: this.data.items_count
+                text: this.data.items_count,
+                wrapper: this.order_manage.order_container,
             }).on("click", () => {
                 if (RM.busy_message()) {
                     return;
                 }
                 this.select();
             });
-
-            this.container = frappe.jshtml({
-                tag: "div",
-                properties: { style: "display: none;", class: `order-entry-container hide` },
-                wrapper: this.order_manage.order_entry_container
-            });
-
-            this.make_html();
         }, 0);
     }
 
@@ -117,10 +116,6 @@ class TableOrder {
         }, 0);
 
         return this;
-    }
-
-    make_html() {
-        $(this.order_manage.order_container).append(`${this.button.html()}`)
     }
 
     in_items(f) {
