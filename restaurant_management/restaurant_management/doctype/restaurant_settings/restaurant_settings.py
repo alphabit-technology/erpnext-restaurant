@@ -61,10 +61,10 @@ class RestaurantSettings(Document):
 
             restaurant_permissions = frappe.db.get_list("Restaurant Permission", fields=("room"),
                                                         filters={
-                    "parenttype": "POS Profile User",
-                    "parent": permission_parent or "",
+                    "parenttype": "Restaurant Permission Manage",
+                    "parent": permission_parent,
                 }
-            )
+            ) if permission_parent else []
 
             return (item.room for item in restaurant_permissions)
 

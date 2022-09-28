@@ -190,7 +190,8 @@ class PayForm extends DeskForm {
             },
             always: (r) => {
                 RM.ready();
-                if (typeof r.message != "undefined" && r.message.status) {
+                
+                if (r.message && r.message.status) {
                     order_manage.clear_current_order();
                     order_manage.check_buttons_status();
                     order_manage.check_item_editor_status();

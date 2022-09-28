@@ -173,6 +173,9 @@ class RestaurantRoom extends ObjectManage {
                     type: {
                         read_only: true,
                     },
+                    room: {
+                        hidden: true,
+                    }
                 },
             });
         } else {
