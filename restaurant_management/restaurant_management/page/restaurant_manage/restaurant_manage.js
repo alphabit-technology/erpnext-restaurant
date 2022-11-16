@@ -386,7 +386,7 @@ RestaurantManage = class RestaurantManage {
 	get permissions() { return this.#permissions }
 	get exceptions() { return this.#exceptions }
 	get restrictions() { return this.#restrictions }
-	get company() { return this.#company }
+	get company() { return this.pos_profile.company }
 	get components() { return this.#components }
 	get lang() { return this.#lang }
 
