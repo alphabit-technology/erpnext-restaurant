@@ -262,14 +262,20 @@ RestaurantManage = class RestaurantManage {
 	}
 
 	close_pos() {
-		const voucher = frappe.model.get_new_doc('POS Closing Entry');
-		voucher.pos_profile = this.pos.pos_profile;
-		voucher.user = frappe.session.user;
-		voucher.company = this.pos.company;
-		voucher.pos_opening_entry = this.pos.pos_opening;
-		voucher.period_end_date = frappe.datetime.now_datetime();
-		voucher.posting_date = frappe.datetime.now_date();
-		frappe.set_route('Form', 'POS Closing Entry', voucher.name);
+		this.working("Checking opening entries...");
+		RM.pos.check_opening_entry(RM.pos_profile.name).then(() => {
+			RM.ready();
+			const voucher = frappe.model.get_new_doc('POS Closing Entry');
+			voucher.pos_profile = this.pos.pos_profile;
+			voucher.user = frappe.session.user;
+			voucher.company = this.pos.company;
+			voucher.pos_opening_entry = this.pos.pos_opening;
+			voucher.period_end_date = frappe.datetime.now_datetime();
+			voucher.posting_date = frappe.datetime.now_date();
+
+			frappe.set_route('Form', 'POS Closing Entry', voucher.name);
+		});
+		
 	}
 
 	make_rooms() {
@@ -386,7 +392,7 @@ RestaurantManage = class RestaurantManage {
 	get permissions() { return this.#permissions }
 	get exceptions() { return this.#exceptions }
 	get restrictions() { return this.#restrictions }
-	get company() { return this.#company }
+	get company() { return this.pos_profile.company }
 	get components() { return this.#components }
 	get lang() { return this.#lang }
 
