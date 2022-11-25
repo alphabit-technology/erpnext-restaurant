@@ -30,6 +30,18 @@ class PayForm extends DeskForm {
             this.make_pad();
             this.make_payment_button();
         }, 200);
+
+        this.fields_dict.address.df.onchange = () => {
+            frappe.call({
+                method: 'frappe.contacts.doctype.address.address.get_address_display',
+                args: {
+                    "address_dict": this.get_value("address")
+                },
+                callback: (r) => {
+                    this.set_value("primary_address", r.message);
+                }
+            });
+        }
     }
 
     init_synchronize() {
@@ -50,6 +62,9 @@ class PayForm extends DeskForm {
                 ${this.num_pad.html}
             </div>`
         );
+
+        this.get_field("num_pad").$wrapper.parent().parent().css("max-width", "300px");
+        this.get_field("payment_methods").$wrapper.parent().parent().removeClass("col-sm-6").addClass("col");
     }
 
     async reload(){
