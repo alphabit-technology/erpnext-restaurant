@@ -13,6 +13,7 @@
   "naming_series",
   "status",
   "customer",
+  "address",
   "dinners",
   "link_invoice",
   "discount",
@@ -142,12 +143,18 @@
    "fieldname": "customer_name",
    "fieldtype": "Read Only",
    "label": "Customer"
+  },
+  {
+   "fieldname": "address",
+   "fieldtype": "Link",
+   "label": "Address",
+   "options": "Address"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2022-07-13 21:04:18.440680",
+ "modified": "2022-11-25 07:58:48.917404",
  "modified_by": "Administrator",
  "module": "Restaurant Management",
  "name": "Table Order",

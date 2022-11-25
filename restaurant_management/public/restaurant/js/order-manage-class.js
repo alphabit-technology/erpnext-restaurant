@@ -17,11 +17,13 @@ class OrderManage extends ObjectManage {
         this.editor_container_name = `edit-container-${this.table_name}`;
         this.pad_container_name = `pad-container-${this.table_name}`;
         this.item_container_name = `items-container-${this.table_name}`;
+        this.invoice_container_name = `invoice-container-${this.table_name}`;
         this.not_selected_order = null;
         this.init_synchronize();
         this.initialize();
     }
 
+    //get invoice_wrapper() { return document.getElementById(this.invoice_container_name);}
     get objects() { return this.#objects }
     get components() { return this.#components }
     get items() { return this.#items }
@@ -136,6 +138,24 @@ class OrderManage extends ObjectManage {
     }
 
     template() {
+        this.invoice_wrapper = frappe.jshtml({
+            tag: 'div',
+            properties: {
+                id: this.invoice_container_name,
+                class: 'product-list',
+                style: "height: 100%;"
+            },
+        });
+
+        this.items_wrapper = frappe.jshtml({
+            tag: 'div',
+            properties: {
+                id: this.item_container_name,
+                class: 'product-list',
+                style: "height: 100%;"
+            },
+        });
+
         return `
 		<div class="order-manage" id="${this.identifier}">
 			<table class="layout-table">
@@ -145,8 +165,9 @@ class OrderManage extends ObjectManage {
 					</td>
 					<td class="erp-items" style="width: 100%">
 						<div class="content-container">
-							<div class="product-list" id = "${this.item_container_name}" style="height: 100%">
-							<div class="col-md-12">
+							${this.items_wrapper.html()}
+                            ${this.invoice_wrapper.html()}
+                            <div class="col-md-12">
 							
 							</div>
 						</div>
@@ -169,6 +190,16 @@ class OrderManage extends ObjectManage {
 				</tr>
 			</table>
 		</div>`
+    }
+
+    toggle_main_section(option="items"){
+        if(option == "items"){
+            this.items_wrapper.show();
+            this.invoice_wrapper.hide();
+        }else{
+            this.items_wrapper.hide();
+            this.invoice_wrapper.show();
+        }
     }
 
     in_objects(f) {
@@ -627,6 +658,7 @@ class OrderManage extends ObjectManage {
     }
 
     make_items() {
+        //console.log(["make_items", this.items_wrapper]);
         this.#items = new ProductItem({
             wrapper: $(`#${this.item_container_name}`),
             order_manage: this,

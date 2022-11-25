@@ -113,6 +113,8 @@ class TableOrder {
             if (this.data.customer) {
                 this.make_invoice();
             }
+
+            this.order_manage.toggle_main_section();
         }, 0);
 
         return this;
@@ -534,12 +536,15 @@ class TableOrder {
             this.validate_items();
             if (this.pay_form == null) {
                 this.pay_form = new PayForm({
-                    order: this
+                    order: this,
+                    location: this.order_manage.invoice_wrapper.JQ()
                 });
             } else {
                 await this.pay_form.reload();
                 this.pay_form.show();
             }
+
+            this.order_manage.toggle_main_section("invoice");
         }
     }
 

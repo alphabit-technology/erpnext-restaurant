@@ -15,6 +15,7 @@ class ProductItem {
     }
 
     make_dom() {
+        
         this.wrapper.html(`
 			<table class="layout-table">
 				<tbody>
