@@ -1,0 +1,29 @@
+<div class="order-manage">
+    <table class="layout-table">
+        <tr class="header-row">
+            <td class="header-cell" colspan="3">
+                <div class="action-buttons">
+                    <div class="control-button btn-label">Order</div>
+                    <div class="control-button pull-right">Close</div>
+                </div>
+            </td>
+        </tr>
+        <tr class="content-row">
+            <td class="orders-container-{{doc.name}}" style="background-color: slategray; max-width: 50px; min-width: 50px">
+                <button class="btn btn-default btn-lg">2122</button>
+            </td>
+            <td class="erp-items" style="width: 100%">
+                <div class="content-container">
+                    <div class="product-list"></div>
+                </div>
+            </td>
+            <td class="container-order-items" style="background-color: darkorange">
+                <div class="panel-order-items" id="container-order-entry-{{doc.name}}"></div>
+                <div class="panel-order-edit" id ="edit-container-{{doc.name}}"></div>
+                <table class="pad-container" id="pad-container-{{doc.name}}">
+
+                </table>
+            </td>
+        </tr>
+    </table>
+</div>

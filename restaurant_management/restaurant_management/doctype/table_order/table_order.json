@@ -1,0 +1,301 @@
+{
+ "actions": [],
+ "autoname": "naming_series:",
+ "creation": "2020-04-03 21:45:19.214036",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "table",
+  "room",
+  "customer",
+  "status",
+  "column_break_2",
+  "table_description",
+  "room_description",
+  "customer_name",
+  "dinners",
+  "section_break_8",
+  "customer_primary_address",
+  "address",
+  "delivery_date",
+  "delivery_notes",
+  "column_break_9",
+  "delivery_charges",
+  "pick_time",
+  "branch",
+  "column_break_11",
+  "items",
+  "entry_items",
+  "invoice_info_section",
+  "company",
+  "link_invoice",
+  "taxes_and_charges",
+  "discount",
+  "selling_price_list",
+  "column_break_26",
+  "pos_profile",
+  "naming_series",
+  "tax",
+  "delivery_charges_amount",
+  "amount",
+  "amended_from",
+  "section_break_32",
+  "notes"
+ ],
+ "fields": [
+  {
+   "fieldname": "table",
+   "fieldtype": "Link",
+   "label": "Table",
+   "options": "Restaurant Object"
+  },
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Series",
+   "options": "OR-.YYYY.-"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Attending\nInvoiced"
+  },
+  {
+   "fetch_from": "table.room",
+   "fieldname": "room",
+   "fieldtype": "Link",
+   "label": "Room",
+   "options": "Restaurant Object"
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "label": "Customer",
+   "options": "Customer"
+  },
+  {
+   "fieldname": "dinners",
+   "fieldtype": "Int",
+   "label": "Dinners"
+  },
+  {
+   "fieldname": "link_invoice",
+   "fieldtype": "Link",
+   "label": "Invoice",
+   "options": "POS Invoice",
+   "read_only": 1
+  },
+  {
+   "fieldname": "amount",
+   "fieldtype": "Currency",
+   "label": "Amount",
+   "read_only": 1
+  },
+  {
+   "fieldname": "entry_items",
+   "fieldtype": "Table",
+   "label": "Entry Items",
+   "options": "Order Entry Item"
+  },
+  {
+   "fieldname": "discount",
+   "fieldtype": "Currency",
+   "label": "Discount",
+   "read_only": 1
+  },
+  {
+   "fieldname": "tax",
+   "fieldtype": "Currency",
+   "label": "Tax",
+   "read_only": 1
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Table Order",
+   "print_hide": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "pos_profile",
+   "fieldtype": "Link",
+   "label": "POS Profile",
+   "options": "POS Profile"
+  },
+  {
+   "fieldname": "taxes_and_charges",
+   "fieldtype": "Data",
+   "label": "Taxes and Charges"
+  },
+  {
+   "fieldname": "selling_price_list",
+   "fieldtype": "Data",
+   "label": "Selling Price List"
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company"
+  },
+  {
+   "fetch_from": "table.description",
+   "fieldname": "table_description",
+   "fieldtype": "Read Only",
+   "label": "Table Description"
+  },
+  {
+   "fetch_from": "room.description",
+   "fieldname": "room_description",
+   "fieldtype": "Read Only",
+   "label": "Room Description"
+  },
+  {
+   "fetch_from": "customer.name",
+   "fieldname": "customer_name",
+   "fieldtype": "Read Only",
+   "label": "Customer Name"
+  },
+  {
+   "fieldname": "address",
+   "fieldtype": "Link",
+   "label": "Address",
+   "options": "Address"
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_break_8",
+   "fieldtype": "Section Break",
+   "label": "Delivery Info"
+  },
+  {
+   "fieldname": "column_break_9",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_11",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fetch_from": "address.posa_delivery_charges",
+   "fieldname": "delivery_charges",
+   "fieldtype": "Link",
+   "label": "Delivery Charges",
+   "options": "Delivery Charges",
+   "read_only": 1
+  },
+  {
+   "fieldname": "delivery_date",
+   "fieldtype": "Date",
+   "label": "Delivery Date"
+  },
+  {
+   "fieldname": "pick_time",
+   "fieldtype": "Time",
+   "label": "Pick Time"
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Text",
+   "label": "Notes"
+  },
+  {
+   "fieldname": "delivery_notes",
+   "fieldtype": "Text",
+   "label": "Delivery Notes"
+  },
+  {
+   "fieldname": "items",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "invoice_info_section",
+   "fieldtype": "Section Break",
+   "label": "Invoice Info"
+  },
+  {
+   "fieldname": "column_break_26",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_32",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "branch",
+   "fieldtype": "Link",
+   "label": "Branch",
+   "options": "Branch"
+  },
+  {
+   "fetch_from": "customer.customer_primary_address",
+   "fieldname": "customer_primary_address",
+   "fieldtype": "Read Only",
+   "hidden": 1
+  },
+  {
+   "fieldname": "delivery_charges_amount",
+   "fieldtype": "Attach Image",
+   "label": "Delivery Charges Amount"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2022-11-26 23:48:25.296061",
+ "modified_by": "Administrator",
+ "module": "Restaurant Management",
+ "name": "Table Order",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Restaurant Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Restaurant User",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

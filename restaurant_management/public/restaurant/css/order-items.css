@@ -1,0 +1,117 @@
+.media.event{
+    display: block;
+}
+
+.media.event .card{
+    background-color: var(--light-gray) !important;
+    border: unset;
+}
+
+.media.event .card .card-footer{
+    border: unset;
+}
+
+.erp-items {
+    border-right: var(--default_line);
+    border-left: var(--default_line);
+}
+
+.panel-order-items {
+    border-bottom: var(--default_line);
+}
+
+.panel-order-items ul.products-list {
+    /*height: 330px;*/
+    width: 100%;
+    padding-left: 0;
+}
+
+.panel-order-items ul.products-list li:nth-child(odd) {
+    background-color: var(--fill_color);
+}
+
+.panel-order-items ul.products-list li {
+    margin: 0;
+    padding: 3px 5px;
+    cursor: pointer;
+    border-bottom: var(--default_line);
+}
+
+.panel-order-items ul.products-list li.selected {
+    background-color: var(--selected-color) !important;
+}
+
+.panel-order-items ul.products-list li .form-editor {
+    max-height: 250px;
+    overflow-y: auto;
+}
+
+.panel-order-items ul.products-list li:not(.selected) .form-editor {
+    display: none !important;
+}
+
+.panel-order-items ul.products-list li.selected .form-editor {
+    display: block;
+}
+
+.panel-order-items .media-body {
+    -ms-flex: 1;
+    flex: 1;
+}
+
+.panel-order-items .media .profile_thumb {
+    border: var(--default_line);
+    width: 50px;
+    height: 50px;
+    margin: 5px 10px 5px 0;
+    border-radius: 50%;
+    padding: 9px 12px;
+}
+
+.panel-order-items .media .profile_thumb i {
+    font-size: 30px;
+    text-align: center !important;
+}
+
+.panel-order-items .event .media-body a.title {
+    font-weight: bold;
+}
+
+.panel-order-items .event .media-body p {
+    margin-bottom: 0;
+}
+
+.panel-order-items a:not([href]):not([tabindex]) {
+    text-decoration: none;
+}
+
+.panel-order-items .fa {
+    display: inline-block;
+    font: normal normal normal 14px/1 FontAwesome;
+    font-size: inherit;
+    text-rendering: auto;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.panel-order-items a {
+    text-decoration: none;
+    background-color: transparent;
+}
+
+.panel-order-items p {
+    margin-top: 0;
+    margin-bottom: 1rem;
+}
+
+.panel-order-items .notes {
+    color: orangered;
+}
+
+.panel-order-items b, strong {
+    font-weight: bolder;
+}
+
+.panel-order-items .border-aero {
+    border: var(--default_line) !important;
+}

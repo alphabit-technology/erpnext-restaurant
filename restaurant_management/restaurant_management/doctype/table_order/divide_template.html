@@ -1,0 +1,85 @@
+<div class="col-sm-12">
+    <table style="width: 100%; margin-top: 0">
+        <tbody>
+            <tr>
+                <td>
+                    <table class="table table-condensed table-striped table-hover" style="margin-top: 0">
+                        <thead>
+                        <tr>
+                            <th colspan="4">
+                                <h5>
+                                    {{_("Current")}}
+                                    <label class="pull-right {{table}}_{{model.name}}-grand-total-left">
+                                        {{frappe.format_value(model.amount, {"fieldtype": "Currency"})}}
+                                    </label>
+                                </h5>
+                            </th>
+                            <th style="width: 20px;"/>
+                            <th colspan="3">
+                                 <h5>
+                                     {{_("New")}}
+                                     <label class="pull-right {{table}}_{{model.name}}-grand-total-right">
+                                            {{frappe.format_value(0, {"fieldtype": "Currency"})}}
+                                     </label>
+                                 </h5>
+                            </th>
+                        </tr>
+                        <tr>
+                            <th style="text-align: left">...</th>
+                            <th>{{_("Item")}}</th>
+                            <th style="text-align: center">{{_("Qty")}}</th>
+                            <th style="text-align: right; display: none;">{{_("Rate")}}</th>
+                            <th style="text-align: right; display: none;">{{_("Discount")}}</th>
+                            <th style="text-align: right">{{_("Total")}}</th>
+                             
+                            <th style="border: none"/>
+                            <th style="text-align: center">{{_("Qty")}}</th>
+                            <th style="text-align: right">{{_("Total")}}</th>
+                            <th style="text-align: right">...</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for item in items %}
+                            {% set base_name = model.name + '-' + item.entry_name %}
+                            <tr>
+                                <td style="width: 50px !important; padding: 5px;">
+                                    <a class="btn btn-primary btn-flat {{base_name}}-add-item" style="width: 50px">
+                                        <span class="fa fa-chevron-right"/>
+                                    </a>
+                                </td>
+                                <td><strong>{{item.item_name}}</strong></td>
+                                <td class="{{base_name}}-from-qty" style="text-align: center">{{item.qty}}</td>
+                                <td style="text-align: right; display: none;">
+                                    {{frappe.format_value(item.rate, {"fieldtype": "Currency"})}}
+                                </td>
+                                <td style="text-align: right; display: none;">{{item.discount_percentage}}%</td>
+                                <td style="text-align: right">
+                                    <strong class="{{base_name}}-from-total">
+                                        {{frappe.format_value(item.amount, {"fieldtype": "Currency"})}}
+                                    </strong>
+                                </td>
+
+                                <td style="width: 20px;border: none"/>
+
+                                <td class="{{base_name}}-to-qty" style="text-align: center">0</td>
+                                <td  style="text-align: right">
+                                    <strong class="{{base_name}}-to-total">
+                                        {{frappe.format_value('0', {"fieldtype": "Currency"})}}
+                                    </strong>
+                                </td>
+
+                                <td style="text-align: right; width: 50px !important; padding: 5px;">
+                                    <a class="btn btn-danger btn-flat {{base_name}}-minus-item" style="width: 50px">
+                                        <span class="fa fa-chevron-left"/>
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                            <tr><td colspan="9"></td></tr>
+                        </tbody>
+                    </table>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>

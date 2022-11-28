@@ -1,0 +1,101 @@
+.order-manage-control-buttons{
+    position: relative;
+    width: 100%;
+    height: 265px;
+}
+
+.order-manage .action-buttons {
+    width: 100%;
+    padding-top: 5px;
+    padding-right: 5px;
+    padding-left: 5px;
+}
+
+.order-manage .action-buttons .control-button {
+    -webkit-flex-grow: 1;
+    flex-grow: 1;
+    display: inline-block;
+    line-height: 33px;
+    min-width: 70px;
+    text-align: center;
+    border-radius: 3px;
+    padding: 0px 5px;
+    font-size: 16px;
+    margin-left: 0;
+    margin-bottom: 0;
+    cursor: pointer;
+    overflow: hidden;
+    transition: all linear 150ms;
+}
+
+.order-manage .action-buttons .control-button.disabled {
+    display: none;
+    pointer-events: none !important;
+}
+
+.order-manage .action-buttons .control-button.disabled span {
+    pointer-events: none !important;
+}
+
+.order-manage .action-buttons .control-button.disabled:hover {
+    background: #556578;
+    cursor: not-allowed;
+}
+
+.order-manage .action-buttons .control-button.btn-label {
+    margin-left: 10px !important;
+    font-size: 18px;
+    padding-right: 25px;
+}
+
+
+.order-manage .order-container .btn-app {
+    border-radius: 3px;
+    position: relative;
+    min-width: 80px;
+    width: 100%;
+    text-align: center;
+    vertical-align: center;
+    font-size: 16px;
+    margin-bottom: 5px !important;
+    border-top-right-radius: 10px !important;
+    border: var(--default_line);
+    padding: 1rem 1rem !important;
+}
+
+.order-manage .badge-tag {
+    position: absolute;
+    top: 0;
+    right: 0;
+    display: inline-block;
+    min-width: 10px;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: middle;
+    border-radius:0 0 0 10px;
+    background-color: var(--orange);
+    color: var(--white) !important;
+}
+
+.order-manage .order-container .btn-app .badge-btn {
+    left: 0;
+    border-radius:0 0 10px 0;
+    right: unset !important;
+}
+
+.order-manage .action-buttons .control-button.btn-small {
+    width: 35px !important;
+    min-width: 35px !important;
+    max-width: 35px !important;
+}
+
+.order-manage .action-buttons .control-button.btn-label.warning {
+    background: rgba(255, 0, 0, 0.49) !important;
+}
+
+.order-manage .order-container .btn-app.btn-order.selected {
+    background-color: var(--selected_color) !important;
+}

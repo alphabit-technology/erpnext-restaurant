@@ -1,0 +1,8 @@
+.DS_Store
+*.pyc
+*.egg-info
+*.swp
+tags
+restaurant_management/docs/current
+.idea
+/.idea/

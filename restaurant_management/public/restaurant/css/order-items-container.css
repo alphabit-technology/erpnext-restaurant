@@ -1,0 +1,17 @@
+.container-order-items {
+    width: 450px;
+    min-width: 450px !important;
+    max-width: 450px !important;
+}
+
+.container-order-items .panel-order-items {
+    top: 0;
+    height: calc(100% - 334px);
+    overflow-y: auto;
+    scroll-behavior: smooth;
+}
+
+.container-order-items .panel-order-edit {
+    height: 65px;
+    border-right: var(--default_line);
+}

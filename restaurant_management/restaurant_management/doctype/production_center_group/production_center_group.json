@@ -1,0 +1,31 @@
+{
+ "actions": [],
+ "creation": "2020-04-04 00:09:40.141055",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "item_group"
+ ],
+ "fields": [
+  {
+   "fieldname": "item_group",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Group",
+   "options": "Item Group",
+   "reqd": 1
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2020-04-09 17:50:54.418273",
+ "modified_by": "Administrator",
+ "module": "Restaurant Management",
+ "name": "Production Center Group",
+ "owner": "Administrator",
+ "permissions": [],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

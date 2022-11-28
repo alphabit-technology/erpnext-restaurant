@@ -1,0 +1,28 @@
+.panel-order-edit .entry-order-editor {
+    font-size: 18px;
+    height: 40px !important;
+    width: 100%;
+    display: block;
+}
+
+.panel-order-edit .edit-values td{
+    padding: 0.5px 0.5px 4px;
+}
+
+.panel-order-edit .entry-order-editor.center {
+    text-align: center;
+    border: none;
+}
+
+.panel-order-edit .center {
+    text-align: center;
+}
+
+.panel-order-edit .edit-button {
+    width: 52.5px;
+    border-radius: 0;
+}
+
+.panel-order-edit .edit-button span {
+    color: slategray;
+}

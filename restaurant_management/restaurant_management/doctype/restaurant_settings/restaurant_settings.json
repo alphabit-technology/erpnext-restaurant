@@ -1,0 +1,174 @@
+{
+ "actions": [],
+ "creation": "2020-06-07 20:39:44.010918",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "for_tables_section",
+  "restricted_to_owner_table",
+  "for_orders_section",
+  "restricted_to_owner_order",
+  "column_break_5",
+  "multiple_pending_order",
+  "section_break_12",
+  "pos_profile",
+  "column_break_9",
+  "color",
+  "column_break_7",
+  "print_format",
+  "double_click_events_section",
+  "double_click_events_info",
+  "column_break_10",
+  "to_new_order",
+  "to_pay",
+  "column_break_13",
+  "to_transfer_order",
+  "to_change_status_order",
+  "section_break_11",
+  "restaurant_permissions_info",
+  "restaurant_exceptions"
+ ],
+ "fields": [
+  {
+   "fieldname": "for_tables_section",
+   "fieldtype": "Section Break",
+   "label": "Restrictions"
+  },
+  {
+   "fieldname": "for_orders_section",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_11",
+   "fieldtype": "Section Break",
+   "label": "Exceptions"
+  },
+  {
+   "fieldname": "restaurant_permissions_info",
+   "fieldtype": "HTML"
+  },
+  {
+   "default": "0",
+   "fieldname": "restricted_to_owner_table",
+   "fieldtype": "Check",
+   "label": "Restrict tables by owner"
+  },
+  {
+   "default": "0",
+   "fieldname": "restricted_to_owner_order",
+   "fieldtype": "Check",
+   "label": "Restrict order by owner"
+  },
+  {
+   "fieldname": "color",
+   "fieldtype": "Color",
+   "label": "Restriction Color"
+  },
+  {
+   "fieldname": "section_break_12",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_7",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "print_format",
+   "fieldtype": "Link",
+   "label": "Print Format",
+   "options": "Print Format"
+  },
+  {
+   "fieldname": "double_click_events_section",
+   "fieldtype": "Section Break",
+   "label": "One Click Events"
+  },
+  {
+   "fieldname": "column_break_10",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "1",
+   "fieldname": "to_new_order",
+   "fieldtype": "Check",
+   "label": "To new Order"
+  },
+  {
+   "default": "1",
+   "fieldname": "to_pay",
+   "fieldtype": "Check",
+   "label": "To Pay"
+  },
+  {
+   "fieldname": "column_break_13",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "1",
+   "fieldname": "to_transfer_order",
+   "fieldtype": "Check",
+   "label": "To transfer Order"
+  },
+  {
+   "default": "0",
+   "fieldname": "to_change_status_order",
+   "fieldtype": "Check",
+   "label": "To Change status Order"
+  },
+  {
+   "fieldname": "double_click_events_info",
+   "fieldtype": "HTML"
+  },
+  {
+   "fieldname": "restaurant_exceptions",
+   "fieldtype": "Table",
+   "label": "Restaurant Exceptions",
+   "options": "Restaurant Exceptions"
+  },
+  {
+   "fieldname": "column_break_5",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "multiple_pending_order",
+   "fieldtype": "Check",
+   "label": "Multiple pending order"
+  },
+  {
+   "fieldname": "pos_profile",
+   "fieldtype": "Link",
+   "label": "POS Profile",
+   "options": "POS Profile"
+  },
+  {
+   "fieldname": "column_break_9",
+   "fieldtype": "Column Break"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2022-07-13 21:07:25.854704",
+ "modified_by": "Administrator",
+ "module": "Restaurant Management",
+ "name": "Restaurant Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

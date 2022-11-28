@@ -1,0 +1,67 @@
+/**ROOMS**/
+.restaurant-manage .floor-selector .button {
+    position: relative;
+    cursor: pointer;
+    background-color: var(--fill_color);
+    -webkit-flex: 1;
+    flex: 1;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    color: var(--text-color);
+    border: var(--default_line)
+}
+
+.restaurant-manage .floor-map .table-container {
+    height: 100%;
+    width: 100%;
+    position: relative;
+    display: none;
+}
+
+.restaurant-manage .table-container.active{
+    display: block;
+}
+
+.restaurant-manage .floor-selector .button.active {
+    background: var(--selected_color);
+    color: var(--text-color);
+    border: 1px solid !important;
+    border-color: var(--selected_color) !important;
+}
+
+.restaurant-manage .floor-selector .button a{
+    margin-right: -3px;
+}
+
+.restaurant-manage .floor-selector .button .badge{
+    position: absolute;
+    top: 0;
+    right: 0;
+    display: inline-block;
+    min-width: 10px;
+    padding: 3px 7px;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: middle;
+    border-top-left-radius: 0 !important;
+    border-top-right-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+    border-bottom-left-radius: 10px;
+}
+
+.restaurant-manage.editing .button .badge{
+    display: none;
+}
+
+.restaurant-manage .floor-selector .edit-bar-room .btn-room{
+    border-radius: 0 !important;
+    font-size: 14px !important;
+    width: 30px !important;
+    height: 100% !important;
+}
+/***ROOMS***/

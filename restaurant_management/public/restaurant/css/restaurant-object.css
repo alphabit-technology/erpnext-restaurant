@@ -1,0 +1,227 @@
+:root{
+    --table-border-radius: 7px;
+    --table-round-border-radius: 50%;
+}
+.restaurant-manage .floor-map .d-table {
+    text-align: center;
+    font-size: 32px !important;
+    cursor: pointer !important;
+    transition: background, background-color 300ms ease-in-out;
+    border-radius: var(--table-border-radius);
+    border: 1px solid var(--gray);
+    touch-action: none;
+    user-select: none;
+    box-sizing: border-box;
+    position: absolute;
+}
+
+.restaurant-manage .floor-map .d-table.selected {
+    cursor: move !important;
+    z-index: 50;
+}
+
+.floor-map .d-table .resize-handle-container {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    position: absolute;
+    border-radius: var(--table-border-radius);
+}
+
+.restaurant-manage .floor-map .d-table.round-type .resize-handle-container {
+    border-radius: 50%;
+}
+
+.restaurant-manage .floor-map .d-table.round-type {
+    border-radius: 50%;
+}
+
+.restaurant-manage .floor-map .d-table.drag {
+    opacity: 0.8;
+}
+
+.restaurant-manage .floor-map .d-table.hide{
+    display: none !important;
+}
+
+.restaurant-manage .floor-map .d-table .d-toll-box {
+    display: none;
+}
+
+.restaurant-manage .floor-map .d-table.selected .d-toll-box {
+    display: block;
+}
+
+.restaurant-manage .floor-map .d-table.p-center .d-table-seats {
+    display: none;
+}
+
+.restaurant-manage .floor-map .d-table.p-center .shape-button {
+    display: none;
+}
+
+.restaurant-manage .floor-map .d-table.selected .d-label {
+    font-size: 22px;
+}
+
+.restaurant-manage .floor-map .d-table .d-label {
+    position: relative;
+    top: 50%;
+    transform: translate(0, -50%);
+    text-align: center;
+    width: 100%;
+    z-index: 5;
+    font-weight: 150 !important;
+    color: var(--white);
+}
+
+.restaurant-manage .floor-map .d-table .d-table-seats {
+    position: absolute;
+    display: inline-block;
+    bottom: 0;
+    left: 50%;
+    height: 20px;
+    width: 40px;
+    line-height: 20px;
+    font-size: 16px;
+    border-radius: 5px;
+    margin-left: -20px;
+    margin-bottom: 4px;
+    background: var(--gray-900);
+    color: var(--yellow);
+    opacity: 0.4;
+    z-index: 3;
+}
+
+.restaurant-manage .floor-map .d-table .order-count {
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 50%;
+    background: var(--dark);
+    color: var(--white);
+    width: 40px;
+    margin-top: 1px;
+    margin-left: -20px;
+    height: 20px;
+    line-height: 20px;
+    border-radius: 5px;
+    font-size: 16px;
+    z-index: 10;
+}
+
+.restaurant-manage .floor-map .d-table .order-count.block {
+    background: red !important;
+}
+
+.restaurant-manage.editing .floor-map .d-table .order-count {
+     display: none;
+}
+
+.restaurant-manage .floor-map .d-table.selected .resize-handle {
+    position: absolute;
+    background: var(--white);
+    opacity: 0.6;
+    z-index: 100;
+    cursor: grab;
+}
+
+.restaurant-manage .floor-map .d-table.selected .resize-handle:hover {
+    opacity: 0.9;
+}
+
+.restaurant-manage .floor-map .d-table.selected .resize-handle.c {
+    width: 20px;
+    height: 20px;
+}
+
+.restaurant-manage .floor-map .d-table.round-type .resize-handle.c {
+    display: none;
+}
+
+.restaurant-manage .floor-map .d-table .resize-handle.c.nw {
+  left: 0; top: 0; border-bottom-right-radius: 100%; border-top-left-radius: 5px;
+}
+
+.restaurant-manage .floor-map .d-table .resize-handle.c.ne {
+  right: 0; top: 0; border-bottom-left-radius: 100%; border-top-right-radius: 5px;
+}
+
+.restaurant-manage .floor-map .d-table .resize-handle.c.se {
+  right: 0; bottom: -1px; border-top-left-radius: 100%; border-bottom-right-radius: 5px;
+}
+
+.restaurant-manage .floor-map .d-table .resize-handle.c.sw {
+  left: 0; bottom: -1px; border-top-right-radius: 100%; border-bottom-left-radius: 5px;
+}
+
+.restaurant-manage .floor-map .d-table.selected .resize-handle.b {
+    border-radius: 50%;
+}
+
+
+.restaurant-manage .floor-map .d-table.selected .resize-handle.b.v {
+    width: 10px;
+    height: 24px;
+    top: calc(50% - 12px);
+}
+
+.restaurant-manage .floor-map .d-table.selected .resize-handle.b.h {
+    width: 24px;
+    height: 10px;
+    left: calc(50% - 12px);
+}
+
+.restaurant-manage .floor-map .d-table.selected .resize-handle.b.v.w {
+    -moz-border-radius: 0 100px 100px 0;
+    -webkit-border-radius: 0 100px 100px 0;
+    border-radius: 0 100px 100px 0;
+    left: 0;
+}
+.restaurant-manage .floor-map .d-table.selected .resize-handle.b.v.e {
+    -moz-border-radius: 100px 0 0 100px;
+    -webkit-border-radius: 100px 0 100px;
+    border-radius: 100px 0 0 100px;
+    right: 0;
+}
+.restaurant-manage .floor-map .d-table.selected .resize-handle.b.h.n {
+    -moz-border-radius: 0 0 100px 100px;
+    -webkit-border-radius: 0 0 100px 100px;
+    border-radius: 0 0 100px 100px;
+    top: 0;
+}
+.restaurant-manage .floor-map .d-table.selected .resize-handle.b.h.s {
+    -moz-border-radius: 100px 100px 0 0;
+    -webkit-border-radius: 100px 100px 0;
+    border-radius: 100px 100px 0 0;
+    bottom: -1px;
+}
+
+.pos .oe_hidden {
+    display: none !important;
+}
+
+.oe_hidden {
+    display: none !important;
+}
+
+.restaurant-manage .d-table.selected .d-toll-box {
+    position: relative;
+    height: 100%;
+    width: 10px;
+    transition: all 150ms linear;
+    z-index: 50;
+    display: block;
+    left: calc(100% + 4px);
+}
+
+.restaurant-manage .d-table .option-button{
+    position: absolute;
+    top: 50%;
+    transform: translate(0, -50%);
+}
+
+.restaurant-manage .d-table.selected .d-toll-box .option-button .d-table-btn{
+    border: var(--default_line);
+    width: 36px !important;
+}

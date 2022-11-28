@@ -1,0 +1,81 @@
+{
+ "actions": [],
+ "creation": "2020-06-11 20:52:37.635763",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "role_profile",
+  "section_break_2",
+  "order_manage",
+  "order_create",
+  "order_write",
+  "column_break_5",
+  "order_delete",
+  "order_pay"
+ ],
+ "fields": [
+  {
+   "fieldname": "role_profile",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Role Profile",
+   "options": "Role Profile",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "order_delete",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Delete Order"
+  },
+  {
+   "default": "0",
+   "fieldname": "order_pay",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": " Pay"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_break_2",
+   "fieldtype": "Section Break",
+   "label": "Exceptions"
+  },
+  {
+   "default": "0",
+   "fieldname": "order_manage",
+   "fieldtype": "Check",
+   "label": "Order Manage"
+  },
+  {
+   "fieldname": "column_break_5",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "order_write",
+   "fieldtype": "Check",
+   "label": "Update Order"
+  },
+  {
+   "default": "0",
+   "fieldname": "order_create",
+   "fieldtype": "Check",
+   "label": "Add Order"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2021-05-11 12:49:05.673549",
+ "modified_by": "Administrator",
+ "module": "Restaurant Management",
+ "name": "Restaurant Exceptions",
+ "owner": "Administrator",
+ "permissions": [],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

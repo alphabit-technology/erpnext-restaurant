@@ -1,0 +1,36 @@
+{
+ "content": null,
+ "creation": "2020-04-03 22:00:20.706491",
+ "docstatus": 0,
+ "doctype": "Page",
+ "icon": "fa fa-cutlery",
+ "idx": 0,
+ "modified": "2021-04-27 10:41:04.051132",
+ "modified_by": "Administrator",
+ "module": "Restaurant Management",
+ "name": "restaurant-manage",
+ "owner": "Administrator",
+ "page_name": "Restaurant Manage",
+ "roles": [
+  {
+   "role": "Sales User"
+  },
+  {
+   "role": "Purchase User"
+  },
+  {
+   "role": "Accounts User"
+  },
+  {
+   "role": "System Manager"
+  },
+  {
+   "role": "Restaurant User"
+  }
+ ],
+ "script": null,
+ "standard": "Yes",
+ "style": null,
+ "system_page": 0,
+ "title": "Restaurant Manage"
+}
