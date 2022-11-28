@@ -255,34 +255,38 @@ class PayForm extends DeskForm {
         if (!RM.can_pay) return;
         const order_manage = this.order.order_manage;
 
-        RM.working("Generating Invoice");
+        RM.working("Saving Invoice");
         this.order.data.dinners = this.dinners.val();
 
-        frappeHelper.api.call({
-            model: "Table Order",
-            name: this.order.data.name,
-            method: "make_invoice",
-            args: {
-                mode_of_payment: this.payments_values,
-                customer: this.get_value("customer"),
-                dinners: this.dinners.float_val
-            },
-            always: (r) => {
-                RM.ready();
-                
-                if (r.message && r.message.status) {
-                    order_manage.clear_current_order();
-                    order_manage.check_buttons_status();
-                    order_manage.check_item_editor_status();
+        this.save(() => {
+            RM.ready();
+            RM.working("Paying Invoice");
+            frappeHelper.api.call({
+                model: "Table Order",
+                name: this.order.data.name,
+                method: "make_invoice",
+                args: {
+                    mode_of_payment: this.payments_values,
+                    customer: this.get_value("customer"),
+                    dinners: this.dinners.float_val
+                },
+                always: (r) => {
+                    RM.ready();
                     
-                    this.hide();
-                    this.print(r.message.invoice_name);
-                    order_manage.make_orders();
-                } else {
-                    this.reset_payment_button();
-                }
-            },
-            freeze: true
+                    if (r.message && r.message.status) {
+                        order_manage.clear_current_order();
+                        order_manage.check_buttons_status();
+                        order_manage.check_item_editor_status();
+                        
+                        this.hide();
+                        this.print(r.message.invoice_name);
+                        order_manage.make_orders();
+                    } else {
+                        this.reset_payment_button();
+                    }
+                },
+                freeze: true
+            });
         });
     }
 
