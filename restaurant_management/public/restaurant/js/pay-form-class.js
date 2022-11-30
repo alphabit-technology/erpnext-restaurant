@@ -59,53 +59,62 @@ class PayForm extends DeskForm {
             this.button_payment.val(__("Pay"));
         });
 
-        this.on(["address", "delivery_branch", "branch"], "change", () => {
-            if(this.get_value("delivery_branch") === 1){
-                this.get_field("branch").$wrapper.show();
-                this.get_field("address").$wrapper.hide();
+        this.on(["delivery_branch", "address"], "change", () => {
+            if (this.get_value("delivery_branch") === 0) {;
+                this.set_field_property("branch", "read_only", 1);
+                this.set_field_property("delivery_date", "mandatory", 0);
+                this.set_field_property("pick_time", "mandatory", 0);
             }else{
-                this.get_field("branch").$wrapper.hide();
-                this.get_field("address").$wrapper.show();
+                this.set_field_property("branch", "read_only", 0);
+                this.set_field_property("delivery_date", "mandatory", 1);
+                this.set_field_property("pick_time", "mandatory", 1);
             }
 
             this.get_delivery_address();
         });
+        
+       
+        const set_related = (from, to) => {
+            const from_value = this.get_value(from);
+            this.set_value(to, from_value);
+        }
 
         this.on("customer_primary_address", "change", () => {
-            if(this.get_value("address").length === 0){
-                this.set_value("address", this.get_value("customer_primary_address"));
-            }
-
-            this.set_value("address", "");
-            this.set_value("branch", "");
+            set_related("customer_primary_address", "address");
         });
-
+        
         this.on("address_branch", "change", () => {
-            if(this.get_value("branch").length === 0){
-                this.set_value("branch", this.get_value("address_branch"));
-            }
+            set_related("address_branch", "branch");
         });
-
 
         this.get_field("notes").input.style.height = "80px";
+        this.get_field("column").$wrapper.css("height", "37px");
         this.get_field("customer_primary_address").$wrapper.hide();
         this.get_field("address_branch").$wrapper.hide();
 
-        this.trigger("customer_primary_address", "change");
+        Object.entries({width: "100%", height: "60px", fontSize: "25px", fontWeight: "400", }).forEach(([key, value]) => {
+            this.get_field("place_order").input.style[key] = value;
+        });
+
+        this.get_field("place_order").input.addEventListener("click", () => {
+            this.save(() => {
+                RM.ready("Order Placed");
+            });
+        });
+        this.trigger("delivery_branch", "change");
     }
 
     get_delivery_address() {
-        const origin = this.get_value("delivery_branch") === 1 ? "Branch" : "Address";
+        const type_delivery = this.get_value("delivery_branch") === 1 ? "Branch" : "Address";
         const address = this.get_value("address");
-        const branch = this.get_value("branch");
 
-        if(origin === "Address" && address.length === 0){
+        if(type_delivery === "Address" && address.length === 0){
             this.set_value("delivery_address", "");
             this.set_value("charge_amount", 0);
             return
         };
 
-        if(origin === "Branch" && branch.length === 0){
+        if(type_delivery === "Branch"){
             this.set_value("delivery_address", "");
             this.set_value("charge_amount", 0);
             return
@@ -115,7 +124,7 @@ class PayForm extends DeskForm {
             model: "Table Order",
             name: this.order.data.name,
             method: "get_delivery_address",
-            args: {origin:origin, ref:origin === "Address" ? address : branch},
+            args: {origin: "Address", ref: address},
             always: (r) => {
                 if (r.message) {
                     this.set_value("delivery_address", r.message.address);
