@@ -72,18 +72,10 @@ def set_custom_fields():
 
 
 def set_custom_scripts():
-    test_script = frappe.get_value("Client Script", "POS Profile-Form")
-    if test_script is None:
-        CS = frappe.new_doc("Client Script")
-        CS.set("name", "POS Profile-Form")
-    else:
-        CS = frappe.get_doc("Client Script", test_script)
-
-    CS.set("enabled", 1)
-    CS.set("view", "Form")
-    CS.set("dt", "POS Profile")
-    CS.set("script", """
-
+    custom_scripts = {
+        "POS Profile": dict(
+            doc="POS Profile",
+            script="""
 frappe.ui.form.on('POS Profile', {
     setup(frm) {
         frm.set_query('crm_room', function(doc) {
@@ -154,5 +146,41 @@ frappe.ui.form.on('POS Profile User', {
         });
     }
 });"""
-           )
+        ),
+        "Customer": dict(
+            doc="Customer",
+            script= """
+frappe.ui.form.on('Customer', {
+    refresh(frm) {
+        if(!frm.doc.__islocal) {
+            frm.add_custom_button(__('Restaurant Order'), function () {
+                window.crm_customer = frm.doc.name;
+
+                frappe.set_route('restaurant-manage');
+            }, __('Create'));
+        }
+    }
+})"""
+        )
+    }
+
+    for script in custom_scripts:
+        set_custom_script(custom_scripts[script]["doc"], custom_scripts[script]["script"])
+
+
+def set_custom_script(document, script,  apply_to="Form"):
+    script_name = document + "-" + apply_to
+    test_script = frappe.get_value("Client Script", script_name)
+    
+    if test_script is None:
+        CS = frappe.new_doc("Client Script")
+        CS.set("name", script_name)
+    else:
+        CS = frappe.get_doc("Client Script", test_script)
+
+    CS.set("enabled", 1)
+    CS.set("view", "Form")
+    CS.set("dt", document)
+    CS.set("script", script)
+
     CS.insert() if test_script is None else CS.save()

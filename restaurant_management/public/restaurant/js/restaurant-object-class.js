@@ -395,6 +395,7 @@ RestaurantObject = class RestaurantObject {
                 RM.ready();
                 open();
             }
+
         } else if (this.data.type === "Production Center") {
             if (RM.transfer_order != null) {
                 frappe.confirm(
@@ -488,6 +489,7 @@ RestaurantObject = class RestaurantObject {
         }
     }
 
+    
     get is_table() { return this.data.type === "Table" }
     get is_round() { return this.data.shape === 'Round' }
 }
