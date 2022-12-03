@@ -66,10 +66,27 @@ class OrderManage extends ObjectManage {
         return true;
     }
 
+    get_order_by_customer(customer) {
+        let order = null;
+        this.orders.forEach((o) => {
+            if (o.data.customer == customer) {
+                order = o;
+            }
+        });
+        return order;
+    }
+
     show() {
         if (!this.is_enabled_to_open()) return;
 
-        this.modal.show();
+        if(RM.crm_customer) {
+            this.get_orders();
+            this.modal.show();
+        } else {
+            this.modal.show();
+        }
+        //if(RM.crm_customer){
+
         if (this.transferring_order) {
             if (this.current_order != null) {
                 //**To move windows over the current, on transferring order**//
@@ -166,7 +183,7 @@ class OrderManage extends ObjectManage {
 					<td class="erp-items" style="width: 100%">
 						<div class="content-container">
 							${this.items_wrapper.html()}
-                            <div style="overflow-y:auto;position:absolute;height:100%;width:calc(100% - 540px)">
+                            <div style="overflow-y:auto;position:absolute;height:100%;width:calc(100% - 545px)">
                                 ${this.invoice_wrapper.html()}
                             </div>
 						</div>
@@ -192,7 +209,7 @@ class OrderManage extends ObjectManage {
     }
 
     toggle_main_section(option="items"){
-        if(option == "items"){
+        if (option == "items"){
             this.items_wrapper.show();
             this.invoice_wrapper.hide();
         }else{
@@ -657,7 +674,6 @@ class OrderManage extends ObjectManage {
     }
 
     make_items() {
-        //console.log(["make_items", this.items_wrapper]);
         this.#items = new ProductItem({
             wrapper: $(`#${this.item_container_name}`),
             order_manage: this,
@@ -686,15 +702,17 @@ class OrderManage extends ObjectManage {
 
     get_orders(current = null) {
         RM.working(__("Loading Orders in") + ": " + this.title);
-        if (current == null) current = this.current_order_identifier;
         frappeHelper.api.call({
             model: "Restaurant Object",
             name: this.table.data.name,
             method: "orders_list",
-            args: {},
+            args: RM.crm_customer ? {customer: RM.crm_customer} : {},
             always: (r) => {
                 RM.ready();
-                this.make_orders(r.message, current);
+                if(r.message){
+                    current = r.message.order || current;
+                    this.make_orders(r.message.orders, current);
+                }
             },
         });
     }

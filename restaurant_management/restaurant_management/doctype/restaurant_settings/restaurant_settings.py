@@ -28,7 +28,7 @@ class RestaurantSettings(Document):
             restrictions=restaurant_settings,
             exceptions=[item for item in restaurant_settings.restaurant_exceptions  if item.role_profile == profile],
             lang=frappe.session.data.lang,
-            order_item_editor_form=self.get_order_item_editor_form(),
+            order_item_editor_form=self.get_order_item_editor_form()
         )
 
     def pos_profile_data(self):

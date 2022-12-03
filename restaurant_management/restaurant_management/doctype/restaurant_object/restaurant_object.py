@@ -51,14 +51,15 @@ class RestaurantObject(Document):
                     current_user=self.current_user
                 ))
                 
-    def validate_transaction(self, user=frappe.session.user):
-        if self.current_user is None or self.current_user == "Administrator" or self.orders_count == 0:
+    def validate_transaction(self, user=frappe.session.user, from_crm=None):
+        orders_count = self.orders_count
+        if self.current_user is None or self.current_user == "Administrator" or orders_count == 0:
             frappe.db.set_value("Restaurant Object", self.name, "current_user", user)
             frappe.db.commit()
             self.reload()
             return True
 
-        if self.current_user != user and self.orders_count > 0:
+        if self.current_user != user and orders_count > 0:
             from restaurant_management.restaurant_management.restaurant_manage import check_exceptions
             if not check_exceptions(
                     dict(name="Restaurant Object", short_name="table", action="read", data=self),
@@ -66,16 +67,16 @@ class RestaurantObject(Document):
             ):
                 frappe.throw(_("The table {0} is Assigned to another User").format(self.description))
 
-    def validate_table(self):
+    def validate_table(self, from_crm=None):
         restaurant_settings = frappe.get_single("Restaurant Settings")
-        if not restaurant_settings.multiple_pending_order and self.orders_count > 0:
+        if from_crm is None and not restaurant_settings.multiple_pending_order and self.orders_count > 0:
             frappe.throw(_("Complete pending orders"))
 
-    def add_order(self, client=None):
+    def add_order(self, client=None, from_crm=None):
         # last_user = self.current_user
-        self.validate_transaction()
+        self.validate_transaction(frappe.session.user, from_crm)
 
-        self.validate_table()
+        self.validate_table(from_crm)
 
         from erpnext.stock.get_item_details import get_pos_profile
         # from erpnext.controllers.accounts_controller import get_default_taxes_and_charges
@@ -99,9 +100,11 @@ class RestaurantObject(Document):
         order.selling_price_list = frappe.db.get_value('Price List', dict(enabled="1"))
         order.table = self.name
         order.company = company
+        order.customer = from_crm
 
         order.save()
         order.synchronize(dict(action="Add", client=client))
+        return order
 
         # if last_user != frappe.session.user:
         #    self._on_update()
@@ -131,17 +134,33 @@ class RestaurantObject(Document):
 
         return 0
 
-    def orders_list(self, name=None):
-        orders = frappe.get_list("Table Order", fields="name", filters={
+    def orders_list(self, name=None, customer=None):
+        if customer is not None and frappe.db.count("Table Order", {
+            "table": self.name,
+            "customer": customer,
+            "status": "Attending"
+        }) == 0:
+            self.add_order(None, customer)
+            self.reload()
+
+        orders = frappe.get_list("Table Order", fields=["name","customer"], filters={
             "table" if name is None else "name": name if name is not None else self.name,
             "status": "Attending"
         })
+
+        current_order = None
+
         for order in orders:
             data = frappe.get_doc("Table Order", order.name).short_data()
+            current_order = order.name if customer is not None and order.customer == customer else current_order
+               
             for field in data:
                 order[field] = data[field]
 
-        return orders
+        return dict(
+            orders=orders,
+            order=current_order
+        )
 
     def get_objects(self, name=None):
         tables = frappe.get_all("Restaurant Object", "name", filters={

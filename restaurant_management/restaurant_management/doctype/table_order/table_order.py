@@ -128,25 +128,9 @@ class TableOrder(Document):
         if status is not None:
             RestaurantManage.production_center_notify(status)
 
-    def make_invoice(self, mode_of_payment, customer=None, dinners=0):
+    def make_invoice(self, mode_of_payment):
         if self.link_invoice:
             return frappe.throw(_("The order has been invoiced"))
-
-        if customer is not None:
-            frappe.db.set_value("Table Order", self.name, "customer", customer)
-
-        if dinners > 0:
-            frappe.db.set_value("Table Order", self.name, "dinners", dinners)
-
-        if customer is not None or dinners > 0:
-            frappe.db.commit()
-            self.reload()
-
-        if customer is None or len(customer) == 0 or dinners == 0:
-            none_customer = _("Please set a Customer") + "<br>" if customer is None or len(customer) == 0 else ""
-            none_dinners = _("Please set a Dinners") if dinners == 0 else ""
-
-            frappe.throw(none_customer + none_dinners)
 
         entry_items = {
             item.identifier: item.as_dict() for item in self.entry_items

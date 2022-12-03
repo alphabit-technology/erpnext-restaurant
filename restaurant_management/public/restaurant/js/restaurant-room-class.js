@@ -58,6 +58,17 @@ class RestaurantRoom extends ObjectManage {
                 return new RestaurantObject(this, table);
             },
             always: t => {
+                if(RM.crm_customer && RM.pos_profile.crm_table){
+                    //RM.crm_customer = null;
+
+                    if(t.data.name === RM.pos_profile.crm_table){
+                        setTimeout(() => {
+                            t.select();
+                            this.resize_container(t);
+                        }, 0);
+                        return;
+                    }
+                }
                 if (RM.editing && adding && t) {
                     setTimeout(() => {
                         t.select();

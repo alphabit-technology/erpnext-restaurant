@@ -363,7 +363,7 @@ RestaurantObject = class RestaurantObject {
                             this.order_manage = new OrderManage({
                                 table: this,
                                 identifier: RM.OMName(this.data.name)
-                            })
+                            });
                         } else {
                             this.order_manage.show();
                         }

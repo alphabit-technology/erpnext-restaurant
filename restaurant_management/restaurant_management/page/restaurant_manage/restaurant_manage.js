@@ -19,6 +19,16 @@ frappe.pages['restaurant-manage'].on_page_load = function (wrapper) {
 	});
 }
 
+frappe.pages['restaurant-manage'].refresh = function () {
+	if(window.crm_customer){
+		RM.crm_customer = window.crm_customer;
+		window.crm_customer = null;
+		if(RM.objects[RM.pos_profile.crm_room]){
+			RM.objects[RM.pos_profile.crm_room].select();
+		}
+	}
+};
+
 RestaurantManage = class RestaurantManage {
 	#pos_profile = null;
 	#permissions = null;
@@ -311,7 +321,8 @@ RestaurantManage = class RestaurantManage {
 		this.test_components();
 	}
 
-	render_rooms(current = false) {
+	render_rooms(current = window.crm_customer && this.pos_profile.crm_room || false) {
+		//window.crm_customer = null;
 		let room_from_url = null;
 
 		this.rooms.forEach((room, index, rooms) => {

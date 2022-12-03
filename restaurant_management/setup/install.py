@@ -3,18 +3,23 @@ from faulthandler import disable
 import frappe
 from itertools import chain
 
-docs = {
+custom_fields = {
     "POS Profile User": dict(
         restaurant_permission=dict(label="Restaurant Permission", fieldtype="Button",
                                    options="Restaurant Permission", insert_after="User", in_list_view=1, read_only=1),
         parent=dict(label="Parent", fieldtype="Data", hidden=1),
         parenttype=dict(label="Parent Type", fieldtype="Data", hidden=1),
         restaurant_permissions=dict(label="Restaurant Permissions", fieldtype="Table",
-                                    options="Restaurant Permission", hidden=1, insert_after="Restaurant Permission"),
+                                    options="Restaurant Permission", hidden=1, insert_after="Restaurant Permission")
     ),
     "POS Profile": dict(
         posa_tax_inclusive=dict(
-            label="Tax Inclusive", fieldtype="Check", insert_after="tax_category", default_value=1)
+            label="Tax Inclusive", fieldtype="Check", insert_after="tax_category", default_value=1),
+        restaurant_settings=dict(
+            label="Restaurant Settings", fieldtype="Section Break", insert_after="applicable_for_users"),
+            crm_room=dict(label="CRM Room", fieldtype="Link", options="Restaurant Object", insert_after="restaurant_settings"),
+            column_break_1=dict(fieldtype="Column Break", insert_after="crm_room"), 
+            crm_table=dict(label="CRM Table", fieldtype="Link", read_only=1, options="Restaurant Object", insert_after="column_break_1")
     ),
     "POS Invoice Item": dict(
         identifier=dict(label="Identifier", fieldtype="Data"),
@@ -35,8 +40,8 @@ def after_install():
     set_custom_scripts()
 
 def clear_custom_fields():
-    for doc in docs:
-        for field_name in docs[doc]:
+    for doc in custom_fields:
+        for field_name in custom_fields[doc]:
             if (field_name in fields_not_needed):
                 test_field = frappe.get_value(
                     "Custom Field", doc + "-" + field_name)
@@ -45,8 +50,8 @@ def clear_custom_fields():
                     frappe.db.sql("""DELETE FROM `tabCustom Field` WHERE name=%s""", test_field)
 
 def set_custom_fields():
-    for doc in docs:
-        for field_name in docs[doc]:
+    for doc in custom_fields:
+        for field_name in custom_fields[doc]:
             if (field_name in fields_not_needed):
                 continue
 
@@ -58,7 +63,7 @@ def set_custom_fields():
                     "Custom Field", test_field)
 
                 _values = dict(chain.from_iterable(d.items() for d in (
-                    docs[doc][field_name], dict(dt=doc, fieldname=field_name))))
+                    custom_fields[doc][field_name], dict(dt=doc, fieldname=field_name))))
 
                 for key in _values:
                     CF.set(key, _values[key])
@@ -78,9 +83,43 @@ def set_custom_scripts():
     CS.set("view", "Form")
     CS.set("dt", "POS Profile")
     CS.set("script", """
+
 frappe.ui.form.on('POS Profile', {
+    setup(frm) {
+        frm.set_query('crm_room', function(doc) {
+			return {
+				filters: [
+                    ['type', '=', 'Room']
+                ]
+			}
+		});
+    },
+    crm_room: function(frm){
+        frm.set_value("crm_table", "");
+		if(frm.doc.crm_room){
+		    frm.set_df_property("crm_table", "read_only", 0);
+		    frm.set_df_property("crm_table", "reqd", 1);
+		    frm.set_query('crm_table', function(doc) {
+    			return {
+    				filters: [
+                        ['type', '=', 'Table'],
+                        ['room', '=', frm.doc.crm_room]
+                    ]
+    			}
+    		});
+		}else{
+		    frm.set_df_property("crm_table", "read_only", 1);
+		    frm.set_df_property("crm_table", "reqd", 0);
+		}
+	},
     refresh(frm) {
-        //refresh
+        if(frm.doc.crm_room){
+		    frm.set_df_property("crm_table", "read_only", 0);
+		    frm.set_df_property("crm_table", "reqd", 1);
+		}else{
+		    frm.set_df_property("crm_table", "read_only", 1);
+		    frm.set_df_property("crm_table", "reqd", 0);
+		}
 	}
 });
 

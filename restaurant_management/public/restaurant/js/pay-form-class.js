@@ -1,7 +1,5 @@
 class PayForm extends DeskForm {
-    button_payment = null;
     payment_methods = {};
-    dinners = null;
     form_name = "Payment Order";
     has_primary_action = false;
     
@@ -37,37 +35,48 @@ class PayForm extends DeskForm {
                     }
                 }
             });
-
-            /*this.set_field_property('branch', "get_query", () => {
-                return {
-                    query: RM.url_manage + "get_customer_branches",
-                    filters: {
-                        'link_name': this.get_value("customer")
-                    }
-                }
-            });*/
         }
-
-        this.make_inputs();
-        this.make_payment_button();
-        set_address_query();
 
         this.on("charge_amount", "change", () => {
             this.order.data.delivery_charges_amount = this.get_value("charge_amount") || 0;
             this.order.aggregate();
-            this.button_payment.set_content(`<span style="font-size: 25px; font-weight: 400">{{text}} ${this.order.total_money}</span>`);
-            this.button_payment.val(__("Pay"));
+            this.set_value("amount", this.order.amount);
+            this.payment_button.set_content(`<span style="font-size: 25px; font-weight: 400">{{text}} ${this.order.total_money}</span>`);
+            this.payment_button.val(__("Pay"));
+        });
+
+        this.on("related_branch", "change", (value) => {
+            this.set_value("branch", value);
         });
 
         this.on(["delivery_branch", "address"], "change", () => {
-            if (this.get_value("delivery_branch") === 0) {;
-                this.set_field_property("branch", "read_only", 1);
-                this.set_field_property("delivery_date", "mandatory", 0);
-                this.set_field_property("pick_time", "mandatory", 0);
+            if (this.get_value("delivery_branch") === 0) {
+                this.set_field_property("branch", {
+                    read_only: 1,
+                    reqd: 0,
+                });
+                this.set_field_property(["delivery_date", "pick_time"], "reqd", 0);
+
+                ["delivery_date", "pick_time"].forEach(fieldname => {
+                    this.set_value(fieldname, "");
+                    this.get_field(fieldname).$wrapper.hide();
+                });
+
+                ["delivery_address", "charge_amount"].forEach(fieldname => {
+                    this.get_field(fieldname).$wrapper.show();
+                });
             }else{
-                this.set_field_property("branch", "read_only", 0);
-                this.set_field_property("delivery_date", "mandatory", 1);
-                this.set_field_property("pick_time", "mandatory", 1);
+                this.set_field_property("branch", {
+                    read_only: 0,
+                    reqd: 1,
+                });
+                this.set_field_property(["delivery_date", "pick_time"], "reqd", 1);
+                ["delivery_date", "pick_time"].forEach(fieldname => {
+                    this.get_field(fieldname).$wrapper.show();
+                });
+                ["delivery_address", "charge_amount"].forEach(fieldname => {
+                    this.get_field(fieldname).$wrapper.hide();
+                });
             }
 
             this.get_delivery_address();
@@ -89,19 +98,33 @@ class PayForm extends DeskForm {
 
         this.get_field("notes").input.style.height = "80px";
         this.get_field("column").$wrapper.css("height", "37px");
-        this.get_field("customer_primary_address").$wrapper.hide();
-        this.get_field("address_branch").$wrapper.hide();
+
+        this.hide_support_elements();
 
         Object.entries({width: "100%", height: "60px", fontSize: "25px", fontWeight: "400", }).forEach(([key, value]) => {
             this.get_field("place_order").input.style[key] = value;
+            this.get_field("payment_button").input.style[key] = value;
         });
 
         this.get_field("place_order").input.addEventListener("click", () => {
             this.save(() => {
+                RM.pull_alert("right");
                 RM.ready("Order Placed");
             });
         });
         this.trigger("delivery_branch", "change");
+        this.make_inputs();
+        this.make_payment_button();
+        set_address_query();
+        setTimeout(() => {
+            this.payment_button.remove_class("btn-default").add_class("btn-primary");
+        }, 0);
+    }
+
+    hide_support_elements() {
+        ["customer_primary_address", "address_branch", "related_branch", "amount"].forEach(fieldname => {
+            this.get_field(fieldname).$wrapper.hide();
+        });
     }
 
     get_delivery_address() {
@@ -142,14 +165,13 @@ class PayForm extends DeskForm {
 
     async reload(){
         await super.reload(null, true);
-
-        this.set_dinners_input();
         this.update_paid_value();
     }
 
     make_inputs() {
         let payment_methods = "";
         RM.pos_profile.payments.forEach(mode_of_payment => {
+
             this.payment_methods[mode_of_payment.mode_of_payment] = frappe.jshtml({
                 tag: "input",
                 properties: {
@@ -177,33 +199,12 @@ class PayForm extends DeskForm {
         });
 
         this.get_field("payment_methods").$wrapper.empty().append(payment_methods);
-
-        this.set_dinners_input();
-        
         this.update_paid_value();
 
         /*RM.pos_profile.payments.forEach(mode_of_payment => {
             console.log(this.payment_methods[mode_of_payment.mode_of_payment])
         });*/
     }
-
-    set_dinners_input(){
-        this.dinners = frappe.jshtml({
-            tag: "input",
-            properties: {
-                type: "text",
-                class: `input-with-feedback form-control bold`
-            },
-        }).on("click", (obj) => {
-            this.order.order_manage.num_pad.input = obj;
-        }).val(this.doc.dinners).int();
-
-        this.get_field("dinners").$wrapper.empty().append(
-            this.form_tag("Dinners", this.dinners)
-        );
-
-    }
-
     form_tag(label, input) {
         return `
         <div class="form-group">
@@ -215,11 +216,10 @@ class PayForm extends DeskForm {
             </div>
          </div>`
     }
-
+    
     make_payment_button() {
-        this.button_payment = frappe.jshtml({
-            tag: "button",
-            wrapper: this.get_field("payment_button").$wrapper,
+        this.payment_button = frappe.jshtml({
+            from_html: this.get_field("payment_button").input,
             properties: {
                 type: "button",
                 class: `btn btn-primary btn-lg btn-flat`,
@@ -229,7 +229,7 @@ class PayForm extends DeskForm {
             text: `${__("Pay")}`
         }).on("click", () => {
             if (!RM.can_pay) return;
-            this.button_payment.disable().val(__("Paying"));
+            this.payment_button.disable().val(__("Paying"));
             this.send_payment();
         }, !RM.restrictions.to_pay ? DOUBLE_CLICK : null).prop("disabled", !RM.can_pay);
     }
@@ -254,10 +254,10 @@ class PayForm extends DeskForm {
     reset_payment_button() {
         RM.ready();
         if (!RM.can_pay) {
-            this.button_payment.disable();
+            this.payment_button.disable();
             return;
         }
-        this.button_payment.enable().val(__("Pay")).remove_class("btn-warning");
+        this.payment_button.enable().val(__("Pay")).remove_class("btn-warning");
     }
 
     #send_payment() {
@@ -265,7 +265,6 @@ class PayForm extends DeskForm {
         const order_manage = this.order.order_manage;
 
         RM.working("Saving Invoice");
-        this.order.data.dinners = this.dinners.val();
 
         this.save(() => {
             RM.ready();
@@ -275,9 +274,7 @@ class PayForm extends DeskForm {
                 name: this.order.data.name,
                 method: "make_invoice",
                 args: {
-                    mode_of_payment: this.payments_values,
-                    customer: this.get_value("customer"),
-                    dinners: this.dinners.float_val
+                    mode_of_payment: this.payments_values
                 },
                 always: (r) => {
                     RM.ready();

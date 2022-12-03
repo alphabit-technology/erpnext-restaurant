@@ -114,7 +114,14 @@ class TableOrder {
                 this.make_invoice();
             }
 
-            this.order_manage.toggle_main_section();
+            if (RM.crm_customer){
+                this.pay();
+            }else{
+                this.order_manage.toggle_main_section();
+            }
+            
+            RM.crm_customer = null;
+
         }, 0);
 
         return this;
@@ -531,7 +538,8 @@ class TableOrder {
     }
 
     async pay() {
-        if (RM.busy || !RM.can_pay) return;
+        if ((RM.busy && !RM.crm_customer) || !RM.can_pay) return;
+        
         if (RM.pos_profile == null) {
             frappe.msgprint(RM.not_has_pos_profile_message());
         } else if (RM.pos_profile.payments.length === 0) {
