@@ -720,7 +720,7 @@ class OrderManage extends ObjectManage {
     in_orders(f) {
         this.in_childs((child, key, index) => {
             f(child, key, index);
-        })
+        });
     }
 
     check_permissions_status() {

@@ -470,7 +470,7 @@
  "is_standard": 1,
  "login_required": 1,
  "max_attachment_size": 0,
- "modified": "2022-12-03 12:59:20.473846",
+ "modified": "2022-12-03 16:56:25.636513",
  "modified_by": "Administrator",
  "module": "Restaurant Management",
  "name": "payment-order",
