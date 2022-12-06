@@ -15,6 +15,17 @@ status_attending = "Attending"
 
 
 class TableOrder(Document):
+    def before_save(self):
+        if self.link_invoice:
+            return
+
+        entry_items = self.items_list()
+
+        if len(entry_items) == 0:
+            return
+
+        self.calculate_order(entry_items)
+
     def validate(self):
         self.set_default_customer()
 
@@ -199,6 +210,7 @@ class TableOrder(Document):
         to_doc.selling_price_list = self.selling_price_list
         to_doc.pos_profile = self.pos_profile
         to_doc.table = self.table
+        to_doc.shipping_rule = self.shipping_rule
 
     def get_invoice(self, entry_items=None, make=False):
         invoice = frappe.new_doc("POS Invoice")
@@ -247,24 +259,52 @@ class TableOrder(Document):
             if tax is not None:
                 for t in json.loads(tax):
                     in_invoice_taxes.append(t)
-        
+
         included_in_print_rate = frappe.db.get_value("POS Profile", self.pos_profile, "posa_tax_inclusive")
-        apply_discount_on = frappe.db.get_value(
-            "POS Profile", self.pos_profile, "apply_discount_on")
+
         cost_center = frappe.db.get_value(
             "POS Profile", self.pos_profile, "cost_center")
 
         invoice.cost_center = cost_center
 
+        tax_template = frappe.db.get_value("Sales Taxes and Charges Template", {"company": self.company})
+
         for t in set(in_invoice_taxes):
+            tax = frappe.db.get_value("Sales Taxes And Charges", dict(
+                parenttype=tax_template, account_head=t), ["charge_type", "rate", "amount", "included_in_print_rate"], as_dict=True)
+
+            if isinstance(tax, type(None)):
+                invoice.append('taxes', {
+                    "charge_type": "On Net Total",
+                    "account_head": t,
+                    "rate": 0,
+                    "description": t,
+                    "included_in_print_rate": included_in_print_rate
+                })
+            else:
+                invoice.append('taxes', {
+                    "charge_type": tax.charge_type,
+                    "account_head": t,
+                    "rate": tax.rate,
+                    "tax_amount": tax.amount,
+                    "description": t,
+                    "included_in_print_rate": included_in_print_rate or tax.included_in_print_rate
+                })
+
+        if self.is_delivery == 1 and self.delivery_branch == 0:
+            address =frappe.db.get_value("Address", self.address, "posa_delivery_charges")
+            shipping_data = frappe.db.get_value("Delivery Charges", address, ["default_rate", "shipping_account", "cost_center"], as_dict=True)
+
             invoice.append('taxes', {
-                "charge_type": "On " + apply_discount_on,
-                "account_head": t,
-                "rate": 0, 
-                "description": t,
-                "included_in_print_rate": included_in_print_rate
+                "charge_type": "Actual",
+                "account_head": shipping_data.shipping_account,
+                "rate": 0,
+                "tax_amount": shipping_data.default_rate,
+                "description": shipping_data.shipping_account,
+                "cost_center": shipping_data.cost_center,
+                "included_in_print_rate": 0
             })
-            
+
         invoice.run_method("set_missing_values")
         invoice.run_method("calculate_taxes_and_totals")
 
@@ -385,10 +425,12 @@ class TableOrder(Document):
 
         self.entry_items = []
         for item in invoice.items:
-            entry_item = entry_items[item.serial_no] if item.serial_no in entry_items else None
+            entry_item = entry_items[item.identifier] if item.identifier in entry_items else None
 
             self.append('entry_items', dict(
                 item_code=item.item_code,
+                item_group=item.item_group,
+                item_name=item.item_name,
                 qty=item.qty,
                 rate=item.rate,
                 price_list_rate=item.price_list_rate,
@@ -412,7 +454,7 @@ class TableOrder(Document):
         self.tax = invoice.base_total_taxes_and_charges
         self.discount = invoice.base_discount_amount
         self.amount = invoice.grand_total
-        self.save()
+        #self.save(True)
 
     @property
     def identifier(self):

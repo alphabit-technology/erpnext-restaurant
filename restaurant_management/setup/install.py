@@ -5,21 +5,27 @@ from itertools import chain
 
 custom_fields = {
     "POS Profile User": dict(
-        restaurant_permission=dict(label="Restaurant Permission", fieldtype="Button",
-                                   options="Restaurant Permission", insert_after="User", in_list_view=1, read_only=1),
+        restaurant_permission=dict(
+            label="Restaurant Permission", fieldtype="Button", options="Restaurant Permission",
+            insert_after="User", in_list_view=1, read_only=1
+        ),
         parent=dict(label="Parent", fieldtype="Data", hidden=1),
         parenttype=dict(label="Parent Type", fieldtype="Data", hidden=1),
-        restaurant_permissions=dict(label="Restaurant Permissions", fieldtype="Table",
-                                    options="Restaurant Permission", hidden=1, insert_after="Restaurant Permission")
+        restaurant_permissions=dict(
+            label="Restaurant Permissions", fieldtype="Table", options="Restaurant Permission",
+            hidden=1, insert_after="Restaurant Permission"
+        )
     ),
     "POS Profile": dict(
         posa_tax_inclusive=dict(
-            label="Tax Inclusive", fieldtype="Check", insert_after="tax_category", default_value=1),
+            label="Tax Inclusive", fieldtype="Check", insert_after="tax_category", default_value=1
+        ),
         restaurant_settings=dict(
-            label="Restaurant Settings", fieldtype="Section Break", insert_after="applicable_for_users"),
-            crm_room=dict(label="CRM Room", fieldtype="Link", options="Restaurant Object", insert_after="restaurant_settings"),
-            column_break_1=dict(fieldtype="Column Break", insert_after="crm_room"), 
-            crm_table=dict(label="CRM Table", fieldtype="Link", read_only=1, options="Restaurant Object", insert_after="column_break_1")
+            label="Restaurant Settings", fieldtype="Section Break", insert_after="applicable_for_users"
+        ),
+        crm_room=dict(label="CRM Room", fieldtype="Link", options="Restaurant Object", insert_after="restaurant_settings"),
+        column_break_1=dict(fieldtype="Column Break", insert_after="crm_room"), 
+        crm_table=dict(label="CRM Table", fieldtype="Link", read_only=1, options="Restaurant Object", insert_after="column_break_1")
     ),
     "POS Invoice Item": dict(
         identifier=dict(label="Identifier", fieldtype="Data"),
@@ -29,7 +35,11 @@ custom_fields = {
     ),
     "Address": dict(
         branch=dict(label="Branch", fieldtype="Link", options="Branch", insert_after="address_line1"),
-    )
+    ),
+    #"Delivery Charges": dict(
+    #    shipping_rule=dict(label="Shipping Rule", fieldtype="Link",
+    #                options="Shipping Rule", insert_after="cost_center"),
+    #)
 }
 
 fields_not_needed = ['parent', 'parenttype', 'restaurant_permissions']

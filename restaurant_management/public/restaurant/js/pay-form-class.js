@@ -58,7 +58,7 @@ class PayForm extends DeskForm {
                 this.set_field_property(["delivery_date", "pick_time"], "reqd", 0);
 
                 ["delivery_date", "pick_time"].forEach(fieldname => {
-                    this.set_value(fieldname, "");
+                    //this.set_value(fieldname, "");
                     this.get_field(fieldname).$wrapper.hide();
                 });
 
@@ -88,6 +88,16 @@ class PayForm extends DeskForm {
             this.set_value(to, from_value);
         }
 
+        this.on("is_delivery", "change", (value) => {
+            if (value === 1) {
+                this.get_field("delivery_options").wrapper[0].style.display = "block";
+                this.trigger("delivery_branch", "change");
+            }else{
+                this.get_field("delivery_options").wrapper[0].style.display = "none"
+                this.set_field_property(["delivery_date", "pick_time", "branch", "address"], "reqd", 0);;
+            }
+        });
+
         this.on("customer_primary_address", "change", () => {
             set_related("customer_primary_address", "address");
         });
@@ -107,17 +117,20 @@ class PayForm extends DeskForm {
         });
 
         this.get_field("place_order").input.addEventListener("click", () => {
-            this.save(() => {
-                RM.pull_alert("right");
-                RM.ready("Order Placed");
+            this.save({
+                success: () => {
+                    this.order.select(true, false);
+                    RM.ready("Order Placed");
+                }
             });
         });
-        this.trigger("delivery_branch", "change");
+        
         this.make_inputs();
         this.make_payment_button();
         set_address_query();
         setTimeout(() => {
             this.payment_button.remove_class("btn-default").add_class("btn-primary");
+            this.trigger(["delivery_branch", "is_delivery"], "change");
         }, 0);
     }
 
@@ -171,7 +184,6 @@ class PayForm extends DeskForm {
     make_inputs() {
         let payment_methods = "";
         RM.pos_profile.payments.forEach(mode_of_payment => {
-
             this.payment_methods[mode_of_payment.mode_of_payment] = frappe.jshtml({
                 tag: "input",
                 properties: {

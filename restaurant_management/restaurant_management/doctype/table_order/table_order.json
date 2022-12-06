@@ -10,6 +10,7 @@
   "room",
   "customer",
   "status",
+  "is_delivery",
   "column_break_2",
   "table_description",
   "room_description",
@@ -17,6 +18,7 @@
   "dinners",
   "section_break_8",
   "customer_primary_address",
+  "delivery_branch",
   "address",
   "delivery_date",
   "delivery_notes",
@@ -31,13 +33,13 @@
   "company",
   "link_invoice",
   "taxes_and_charges",
+  "data_26",
   "discount",
   "selling_price_list",
   "column_break_26",
   "pos_profile",
   "naming_series",
   "tax",
-  "delivery_charges_amount",
   "amount",
   "amended_from",
   "section_break_32",
@@ -242,15 +244,26 @@
    "hidden": 1
   },
   {
-   "fieldname": "delivery_charges_amount",
-   "fieldtype": "Attach Image",
-   "label": "Delivery Charges Amount"
+   "fieldname": "data_26",
+   "fieldtype": "Data"
+  },
+  {
+   "default": "0",
+   "fieldname": "delivery_branch",
+   "fieldtype": "Check",
+   "label": "Delivery Branch"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_delivery",
+   "fieldtype": "Check",
+   "label": "Is Delivery"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2022-11-26 23:48:25.296061",
+ "modified": "2022-12-05 18:33:05.376779",
  "modified_by": "Administrator",
  "module": "Restaurant Management",
  "name": "Table Order",

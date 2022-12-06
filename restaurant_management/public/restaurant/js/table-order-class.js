@@ -89,7 +89,7 @@ class TableOrder {
         });
     }
 
-    select(via_click = true) {
+    select(via_click=true, toggle=true) {
         this.order_manage.current_order = this;
 
         setTimeout(() => {
@@ -117,7 +117,7 @@ class TableOrder {
             if (RM.crm_customer){
                 this.pay();
             }else{
-                this.order_manage.toggle_main_section();
+                toggle && this.order_manage.toggle_main_section();
             }
             
             RM.crm_customer = null;
@@ -189,20 +189,21 @@ class TableOrder {
 
     aggregate(locale = false) {
         if (this.order_manage.is_same_order(this)) {
-            let tax = this.data.tax;
-            let amount = this.data.amount;
+            /*let tax = this.data.tax;*/
+            const amount = this.data.amount;
+            const tax = this.data.tax;
 
-            if (locale) {
+            /*if (locale) {
                 tax = 0;
                 amount = 0;
                 this.in_items(item => {
                     tax += item.data.tax_amount;
                     amount += item.data.amount;
                 });
-            }
+            }*/
             
             this.order_manage.components.Tax.val(`${__("Tax")}: ${RM.format_currency(tax)}`);
-            this.order_manage.components.Total.val(`${__("Total")}: ${RM.format_currency(amount + this.delivery_charges)}`);
+            this.order_manage.components.Total.val(`${__("Total")}: ${RM.format_currency(amount)}`);
         }
     }
 
@@ -521,7 +522,7 @@ class TableOrder {
     }
 
     get amount() {
-        return isNaN(parseFloat(this.data.amount)) ? 0 : parseFloat(this.data.amount + this.delivery_charges);
+        return isNaN(parseFloat(this.data.amount)) ? 0 : parseFloat(this.data.amount);
     }
 
     get total_money() {
@@ -548,6 +549,8 @@ class TableOrder {
             this.validate_items();
 
             if (this.pay_form == null) {
+                this.order_manage.invoice_wrapper.JQ().empty();
+
                 this.pay_form = new PayForm({
                     order: this,
                     location: this.order_manage.invoice_wrapper.JQ()
