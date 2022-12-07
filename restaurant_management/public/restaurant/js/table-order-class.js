@@ -121,7 +121,6 @@ class TableOrder {
             }
             
             RM.crm_customer = null;
-
         }, 0);
 
         return this;
@@ -202,8 +201,12 @@ class TableOrder {
                 });
             }*/
             
-            this.order_manage.components.Tax.val(`${__("Tax")}: ${RM.format_currency(tax)}`);
+            this.order_manage.components.Tax.val(`${__("Taxes & Charges")}: ${RM.format_currency(tax)}`);
             this.order_manage.components.Total.val(`${__("Total")}: ${RM.format_currency(amount)}`);
+
+            if(this.pay_form){
+                this.pay_form.set_value("amount", amount);
+            }
         }
     }
 
@@ -556,7 +559,7 @@ class TableOrder {
                     location: this.order_manage.invoice_wrapper.JQ()
                 });
             } else {
-                await this.pay_form.reload(null, true);
+                //await this.pay_form.reload(null, true);
                 this.pay_form.show();
             }
 

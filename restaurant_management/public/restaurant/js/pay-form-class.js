@@ -18,7 +18,26 @@ class PayForm extends DeskForm {
     }
 
     on_reload() {
+        this.trigger("is_delivery", "change");
         this.trigger("customer_primary_address", "change");
+    }
+
+    get is_delivery() {
+        return this.get_value("is_delivery") === 1;
+    }
+
+    async set_order_value(fieldname, value) {
+        return new Promise(resolve => {
+            frappeHelper.api.call({
+                model: "Table Order",
+                name: this.order.data.name,
+                method: "set_" + fieldname,
+                args: { fieldname: value },
+                always: (r) => {
+                    resolve(r);
+                }
+            });
+        });
     }
 
     async make() {
@@ -41,8 +60,6 @@ class PayForm extends DeskForm {
             this.order.data.delivery_charges_amount = this.get_value("charge_amount") || 0;
             this.order.aggregate();
             this.set_value("amount", this.order.amount);
-            this.payment_button.set_content(`<span style="font-size: 25px; font-weight: 400">{{text}} ${this.order.total_money}</span>`);
-            this.payment_button.val(__("Pay"));
         });
 
         this.on("related_branch", "change", (value) => {
@@ -50,39 +67,55 @@ class PayForm extends DeskForm {
         });
 
         this.on(["delivery_branch", "address"], "change", () => {
-            if (this.get_value("delivery_branch") === 0) {
-                this.set_field_property("branch", {
-                    read_only: 1,
-                    reqd: 0,
-                });
-                this.set_field_property(["delivery_date", "pick_time"], "reqd", 0);
+            const set_reqd_status = (delivery_branch) => {
+                if(this.is_delivery){
+                    if(delivery_branch){
+                        this.set_field_property(["delivery_date", "pick_time", "branch"], "reqd", 1);
+                        this.set_field_property("address", "reqd", 0);
+                    }else{
+                        this.set_field_property(["delivery_date", "pick_time", "branch"], "reqd", 0);
+                        this.set_field_property("address", "reqd", 1);
+                    }
+                }else{
+                    this.set_field_property(["delivery_date", "pick_time", "branch", "address"], "reqd", 0);
+                }
+            }
 
-                ["delivery_date", "pick_time"].forEach(fieldname => {
-                    //this.set_value(fieldname, "");
-                    this.get_field(fieldname).$wrapper.hide();
-                });
-
-                ["delivery_address", "charge_amount"].forEach(fieldname => {
-                    this.get_field(fieldname).$wrapper.show();
-                });
-            }else{
+            if (this.get_value("delivery_branch") === 1) {
                 this.set_field_property("branch", {
                     read_only: 0,
                     reqd: 1,
                 });
-                this.set_field_property(["delivery_date", "pick_time"], "reqd", 1);
+
+                set_reqd_status(this.get_value("delivery_branch") === 1);
+
                 ["delivery_date", "pick_time"].forEach(fieldname => {
                     this.get_field(fieldname).$wrapper.show();
                 });
+
                 ["delivery_address", "charge_amount"].forEach(fieldname => {
                     this.get_field(fieldname).$wrapper.hide();
+                });
+            }else{
+                this.set_field_property("branch", {
+                    read_only: 1,
+                    reqd: 0,
+                });
+
+                set_reqd_status(this.get_value("delivery_branch") === 1);
+
+                ["delivery_date", "pick_time"].forEach(fieldname => {
+                    this.get_field(fieldname).$wrapper.hide();
+                });
+
+                ["delivery_address", "charge_amount"].forEach(fieldname => {
+                    this.get_field(fieldname).$wrapper.show();
                 });
             }
 
             this.get_delivery_address();
         });
         
-       
         const set_related = (from, to) => {
             const from_value = this.get_value(from);
             this.set_value(to, from_value);
@@ -119,7 +152,7 @@ class PayForm extends DeskForm {
         this.get_field("place_order").input.addEventListener("click", () => {
             this.save({
                 success: () => {
-                    this.order.select(true, false);
+                    this.order.select(true,false);
                     RM.ready("Order Placed");
                 }
             });
@@ -131,6 +164,7 @@ class PayForm extends DeskForm {
         setTimeout(() => {
             this.payment_button.remove_class("btn-default").add_class("btn-primary");
             this.trigger(["delivery_branch", "is_delivery"], "change");
+            window.test = this;
         }, 0);
     }
 
@@ -217,6 +251,7 @@ class PayForm extends DeskForm {
             console.log(this.payment_methods[mode_of_payment.mode_of_payment])
         });*/
     }
+
     form_tag(label, input) {
         return `
         <div class="form-group">
@@ -357,5 +392,30 @@ class PayForm extends DeskForm {
             this.set_value("total_payment", total);
             this.set_value("change_amount", (total - this.order.amount));
         }, 0);
+    }
+
+    set_value(field, value) {
+        super.set_value(field, value);
+        if (field === "amount") {
+            this.set_total_payment();
+        }
+    }
+
+    set_total_payment() {
+        const total_payment = this.get_field("total_payment");
+        const change_amount = this.get_field("change_amount");
+
+        this.payment_button.set_content(`<span style="font-size: 25px; font-weight: 400">{{text}} ${this.order.total_money}</span>`);
+        this.payment_button.val(__("Pay"));
+
+        /*if (this.order.amount > this.get_value("total_payment")) {
+            total_payment.$wrapper.find("input").css("color", "red");
+            change_amount.$wrapper.find("input").css("color", "red");
+            this.payment_button.disable();
+        } else {
+            total_payment.$wrapper.find("input").css("color", "green");
+            change_amount.$wrapper.find("input").css("color", "green");
+            this.payment_button.enable();
+        }*/
     }
 }

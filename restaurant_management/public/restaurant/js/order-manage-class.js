@@ -209,9 +209,10 @@ class OrderManage extends ObjectManage {
     }
 
     toggle_main_section(option="items"){
-        if (option == "items"){
+        if (option === "items"){
             this.items_wrapper.show();
             this.invoice_wrapper.hide();
+            //this.current_order && this.current_order.pay_form && this.current_order.pay_form.save({}, true);
         }else{
             this.items_wrapper.hide();
             this.invoice_wrapper.show();
@@ -501,7 +502,7 @@ class OrderManage extends ObjectManage {
                     tag: "td",
                     properties: col.props,
                     content: "{{text}}" + (col.content || ""),
-                    text: __(col.name) + (["Tax", "Total"].includes(col.name) ? ": " + RM.format_currency(0) : "")
+                    text: __(col.name === "Tax" ? "Taxes & Charges" : col.name) + (["Tax", "Total"].includes(col.name) ? ": " + RM.format_currency(0) : "")
                 }).on("click", () => {
                     if (col.action !== "none") {
                         if (this.current_order == null) {
@@ -829,7 +830,7 @@ class OrderManage extends ObjectManage {
     }
 
     clear_current_order() {
-        this.#components.Tax.val(`${__("Tax")}: ${RM.format_currency(0)}`);
+        this.#components.Tax.val(`${__("Taxes & Charges")}: ${RM.format_currency(0)}`);
         this.#components.Total.val(`${__("Total")}: ${RM.format_currency(0)}`);
         this.check_item_editor_status();
 

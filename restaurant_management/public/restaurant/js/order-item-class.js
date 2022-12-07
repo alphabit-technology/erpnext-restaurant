@@ -82,7 +82,7 @@ class OrderItem {
         this.order.current_item = this;
         this.order.order_manage.check_item_editor_status(this);
         this.row.toggle_common('media.event', 'selected');
-        this.order.order_manage.toggle_main_section("items");
+        //this.order.order_manage.toggle_main_section("items");
         
         if (scroller) this.order.scroller();
     }

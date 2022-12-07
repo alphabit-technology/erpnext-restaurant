@@ -210,7 +210,7 @@ class TableOrder(Document):
         to_doc.selling_price_list = self.selling_price_list
         to_doc.pos_profile = self.pos_profile
         to_doc.table = self.table
-        to_doc.shipping_rule = self.shipping_rule
+        #to_doc.shipping_rule = self.shipping_rule
 
     def get_invoice(self, entry_items=None, make=False):
         invoice = frappe.new_doc("POS Invoice")
@@ -291,19 +291,20 @@ class TableOrder(Document):
                     "included_in_print_rate": included_in_print_rate or tax.included_in_print_rate
                 })
 
-        if self.is_delivery == 1 and self.delivery_branch == 0:
-            address =frappe.db.get_value("Address", self.address, "posa_delivery_charges")
+        if self.is_delivery == 1 and self.delivery_branch != 1:
+            address = frappe.db.get_value("Address", self.address, "posa_delivery_charges")
             shipping_data = frappe.db.get_value("Delivery Charges", address, ["default_rate", "shipping_account", "cost_center"], as_dict=True)
 
-            invoice.append('taxes', {
-                "charge_type": "Actual",
-                "account_head": shipping_data.shipping_account,
-                "rate": 0,
-                "tax_amount": shipping_data.default_rate,
-                "description": shipping_data.shipping_account,
-                "cost_center": shipping_data.cost_center,
-                "included_in_print_rate": 0
-            })
+            if not isinstance(shipping_data, type(None)):
+                invoice.append('taxes', {
+                    "charge_type": "Actual",
+                    "account_head": shipping_data.shipping_account,
+                    "rate": 0,
+                    "tax_amount": shipping_data.default_rate,
+                    "description": shipping_data.shipping_account,
+                    "cost_center": shipping_data.cost_center,
+                    "included_in_print_rate": 0
+                })
 
         invoice.run_method("set_missing_values")
         invoice.run_method("calculate_taxes_and_totals")
@@ -326,8 +327,16 @@ class TableOrder(Document):
             dict(name="Table Order", short_name="order", action="write", data=self),
             "You cannot modify an order from another User"
         )
-        self.calculate_order(all_items)
+        self.calculate_order(all_items, True)
         self.synchronize(dict(action="queue"))
+
+    def set_is_delivery(self, is_delivery):
+        self.is_delivery = is_delivery
+        self.save()
+
+    def set_delivery_branch(self, delivery_branch):
+        self.delivery_branch = delivery_branch
+        self.save()
 
     def push_item(self, item):
         if self.customer is None:
@@ -419,7 +428,7 @@ class TableOrder(Document):
                 )
                 return "db_commit"
 
-    def calculate_order(self, items):
+    def calculate_order(self, items, save=False):
         entry_items = {item["identifier"]: item for item in items}
         invoice = self.get_invoice(entry_items)
 
@@ -454,6 +463,7 @@ class TableOrder(Document):
         self.tax = invoice.base_total_taxes_and_charges
         self.discount = invoice.base_discount_amount
         self.amount = invoice.grand_total
+        save and self.save()
         #self.save(True)
 
     @property
@@ -480,6 +490,7 @@ class TableOrder(Document):
                 last_table=last_table,
                 table=self.table,
                 customer=self.customer,
+                is_delivery=self.is_delivery,
                 name=self.name,
                 status=self.status,
                 short_name=self.short_name,
