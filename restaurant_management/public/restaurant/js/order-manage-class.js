@@ -502,7 +502,7 @@ class OrderManage extends ObjectManage {
                     tag: "td",
                     properties: col.props,
                     content: "{{text}}" + (col.content || ""),
-                    text: __(col.name === "Tax" ? "Taxes & Charges" : col.name) + (["Tax", "Total"].includes(col.name) ? ": " + RM.format_currency(0) : "")
+                    text: __(col.name === "Tax" ? "Taxes & Charges" : col.name === "Pay" ? "Complete" : col.name) + (["Tax", "Total"].includes(col.name) ? ": " + RM.format_currency(0) : "")
                 }).on("click", () => {
                     if (col.action !== "none") {
                         if (this.current_order == null) {
@@ -564,7 +564,7 @@ class OrderManage extends ObjectManage {
     disable_components() {
         this.reset_order_button();
         this.in_components((component, k) => {
-            if (!["Pad", "Tax", "Total"].includes(k)) {
+            if (!["Pad", "Tax", "Total", "Pay"].includes(k)) {
                 component.disable();
 
                 if (["delete", "edit", "new", "new_order"].includes(k)) {
@@ -603,7 +603,7 @@ class OrderManage extends ObjectManage {
                 }
             } else {
                 this.#components.delete.disable().hide();
-                this.#components.Pay.prop("disabled", !RM.can_pay);
+                //this.#components.Pay.prop("disabled", !RM.can_pay);
             }
 
             if (RM.check_permissions("order", this.current_order, "write")) {

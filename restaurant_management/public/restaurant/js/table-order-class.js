@@ -204,10 +204,9 @@ class TableOrder {
                     amount += flt(this.data.charge_amount || 0);
                 }
             }
+
             this.data.tax = tax;
             this.data.amount = amount;
-
-            //this.data.charge_amount = 0;
 
             this.order_manage.components.Tax.val(`${__("Taxes & Charges")}: ${RM.format_currency(tax)}`);
             this.order_manage.components.Total.val(`${__("Total")}: ${RM.format_currency(amount)}`);
