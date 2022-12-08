@@ -117,7 +117,7 @@ class TableOrder {
             if (RM.crm_customer){
                 this.pay();
             }else{
-                toggle && this.order_manage.toggle_main_section();
+                toggle && this.order_manage.toggle_main_section("items");
             }
             
             RM.crm_customer = null;
@@ -570,7 +570,7 @@ class TableOrder {
                 this.pay_form.show();
             }
 
-            this.order_manage.toggle_main_section("invoice");
+            this.order_manage.toggle_main_section();
         }
     }
 

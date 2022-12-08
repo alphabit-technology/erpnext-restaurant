@@ -135,6 +135,10 @@ class PayForm extends DeskForm {
             this.trigger("charge_amount", "change");
         });
 
+        this.on("customer", "change", () => {
+            this.order.data.customer = this.get_value("customer");
+        });
+
         this.on("customer_primary_address", "change", () => {
             set_related("customer_primary_address", "address");
         });
@@ -168,9 +172,18 @@ class PayForm extends DeskForm {
 
         setTimeout(() => {
             this.payment_button.remove_class("btn-default").add_class("btn-primary");
+            this.disable_input("payment_button", !RM.can_pay);
             this.trigger(["delivery_branch", "is_delivery"], "change");
             window.test = this;
         }, 0);
+    }
+
+    disable_input(input, value = true){
+        this.get_field(input).input.disabled = value;
+    }
+
+    enable_input(input) {
+        this.get_field(input).input.disabled = false;
     }
 
     hide_support_elements() {

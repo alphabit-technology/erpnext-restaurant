@@ -3,6 +3,7 @@ class OrderManage extends ObjectManage {
     #components = {};
     #items = {};
     #numpad = null;
+    current_layout = "items";
 
     constructor(options) {
         super(options);
@@ -208,8 +209,9 @@ class OrderManage extends ObjectManage {
 		</div>`
     }
 
-    toggle_main_section(option="items"){
-        if (option === "items"){
+    toggle_main_section(option){
+        this.current_layout = option || (this.current_layout === "items" ? "invoice" : "items");
+        if (this.current_layout === "items"){
             this.items_wrapper.show();
             this.invoice_wrapper.hide();
             //this.current_order && this.current_order.pay_form && this.current_order.pay_form.save({}, true);
@@ -604,6 +606,7 @@ class OrderManage extends ObjectManage {
             } else {
                 this.#components.delete.disable().hide();
                 //this.#components.Pay.prop("disabled", !RM.can_pay);
+                this.current_order && this.current_order && this.current_order.pay_form && this.current_order.pay_form.disable_input("payment_button", !RM.can_pay);
             }
 
             if (RM.check_permissions("order", this.current_order, "write")) {
