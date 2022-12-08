@@ -188,19 +188,27 @@ class TableOrder {
 
     aggregate(locale = false) {
         if (this.order_manage.is_same_order(this)) {
-            /*let tax = this.data.tax;*/
-            const amount = this.data.amount;
-            const tax = this.data.tax;
-
-            /*if (locale) {
+            let amount = flt(this.data.amount || 0);
+            let tax = flt(this.data.tax || 0);
+            
+            if (locale) {
                 tax = 0;
                 amount = 0;
                 this.in_items(item => {
-                    tax += item.data.tax_amount;
-                    amount += item.data.amount;
+                    tax += flt(item.data.tax_amount || 0);
+                    amount += flt(item.data.amount || 0);
                 });
-            }*/
-            
+
+                if (this.data.is_delivery === 1 && this.data.delivery_branch !== 1) {
+                    tax += flt(this.data.charge_amount || 0);
+                    amount += flt(this.data.charge_amount || 0);
+                }
+            }
+            this.data.tax = tax;
+            this.data.amount = amount;
+
+            //this.data.charge_amount = 0;
+
             this.order_manage.components.Tax.val(`${__("Taxes & Charges")}: ${RM.format_currency(tax)}`);
             this.order_manage.components.Total.val(`${__("Total")}: ${RM.format_currency(amount)}`);
 
@@ -521,11 +529,11 @@ class TableOrder {
     }
 
     get delivery_charges() {
-        return isNaN(parseFloat(this.data.delivery_charges_amount)) ? 0 : parseFloat(this.data.delivery_charges_amount);
+        return flt(this.data.charge_amount || 0);
     }
 
     get amount() {
-        return isNaN(parseFloat(this.data.amount)) ? 0 : parseFloat(this.data.amount);
+        return flt(this.data.amount || 0);
     }
 
     get total_money() {

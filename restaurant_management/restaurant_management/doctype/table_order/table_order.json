@@ -24,6 +24,7 @@
   "delivery_notes",
   "column_break_9",
   "delivery_charges",
+  "charge_amount",
   "pick_time",
   "branch",
   "column_break_11",
@@ -258,12 +259,18 @@
    "fieldname": "is_delivery",
    "fieldtype": "Check",
    "label": "Is Delivery"
+  },
+  {
+   "fetch_from": "delivery_charges.default_rate",
+   "fieldname": "charge_amount",
+   "fieldtype": "Read Only",
+   "label": "Charge Amount"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2022-12-07 05:42:26.136637",
+ "modified": "2022-12-07 20:14:13.322455",
  "modified_by": "Administrator",
  "module": "Restaurant Management",
  "name": "Table Order",

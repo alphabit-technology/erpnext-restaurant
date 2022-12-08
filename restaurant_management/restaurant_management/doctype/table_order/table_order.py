@@ -491,6 +491,8 @@ class TableOrder(Document):
                 table=self.table,
                 customer=self.customer,
                 is_delivery=self.is_delivery,
+                delivery_branch=self.delivery_branch,
+                charge_amount=self.charge_amount,
                 name=self.name,
                 status=self.status,
                 short_name=self.short_name,

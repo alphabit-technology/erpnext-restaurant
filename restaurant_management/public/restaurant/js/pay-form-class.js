@@ -56,14 +56,17 @@ class PayForm extends DeskForm {
             });
         }
 
-        this.on("charge_amount", "change", () => {
-            this.order.data.delivery_charges_amount = this.get_value("charge_amount") || 0;
-            this.order.aggregate();
-            this.set_value("amount", this.order.amount);
+        this.on("charge_amount", "change", (field) => {
+            this.order.data.is_delivery = this.get_value("is_delivery");
+            this.order.data.delivery_branch = this.get_value("delivery_branch");
+            this.order.data.charge_amount = field.get_value();
+            this.order.aggregate(true);
+
+            this.save({}, true);
         });
 
-        this.on("related_branch", "change", (value) => {
-            this.set_value("branch", value);
+        this.on("related_branch", "change", (field) => {
+            this.set_value("branch", field.get_value());
         });
 
         this.on(["delivery_branch", "address"], "change", () => {
@@ -121,14 +124,15 @@ class PayForm extends DeskForm {
             this.set_value(to, from_value);
         }
 
-        this.on("is_delivery", "change", (value) => {
-            if (value === 1) {
+        this.on("is_delivery", "change", (field) => {
+            if (field.get_value() === 1) {
                 this.get_field("delivery_options").wrapper[0].style.display = "block";
-                this.trigger("delivery_branch", "change");
             }else{
                 this.get_field("delivery_options").wrapper[0].style.display = "none"
                 this.set_field_property(["delivery_date", "pick_time", "branch", "address"], "reqd", 0);;
             }
+
+            this.trigger("charge_amount", "change");
         });
 
         this.on("customer_primary_address", "change", () => {
@@ -161,6 +165,7 @@ class PayForm extends DeskForm {
         this.make_inputs();
         this.make_payment_button();
         set_address_query();
+
         setTimeout(() => {
             this.payment_button.remove_class("btn-default").add_class("btn-primary");
             this.trigger(["delivery_branch", "is_delivery"], "change");

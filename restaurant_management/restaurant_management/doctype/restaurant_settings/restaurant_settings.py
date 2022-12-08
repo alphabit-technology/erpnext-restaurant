@@ -10,12 +10,16 @@ from erpnext.stock.get_item_details import get_pos_profile
 
 
 class RestaurantSettings(Document):
+    def company(self):
+        return frappe.defaults.get_user_default('company')
+
     def on_update(self):
         frappe.publish_realtime("update_settings")
 
     def settings_data(self):
         profile = frappe.db.get_value("User", frappe.session.user, "role_profile_name")
         restaurant_settings = frappe.get_single("Restaurant Settings")
+        tax_template = frappe.db.get_value("Sales Taxes and Charges Template", {"company": self.company()})
 
         return dict(
             pos=self.pos_profile_data(),
@@ -28,7 +32,8 @@ class RestaurantSettings(Document):
             restrictions=restaurant_settings,
             exceptions=[item for item in restaurant_settings.restaurant_exceptions  if item.role_profile == profile],
             lang=frappe.session.data.lang,
-            order_item_editor_form=self.get_order_item_editor_form()
+            order_item_editor_form=self.get_order_item_editor_form(),
+            tax_template=frappe.get_doc("Sales Taxes and Charges Template", tax_template) if tax_template else {}
         )
 
     def pos_profile_data(self):

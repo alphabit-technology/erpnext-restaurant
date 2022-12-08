@@ -91,6 +91,8 @@ RestaurantManage = class RestaurantManage {
 		frappe.require(assets, () => {
 			this.make();
 		});
+
+		
 	}
 
 	make() {
@@ -390,6 +392,7 @@ RestaurantManage = class RestaurantManage {
 		this.#lang = r.lang;
 		this.restaurant_permissions = r.pos.restaurant_permissions;
 		this.order_item_editor_form = r.order_item_editor_form;
+		this.tax_template = r.tax_template;
 
 		if (r.pos.has_pos) {
 			this.#pos_profile = r.pos.pos;

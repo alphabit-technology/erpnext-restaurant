@@ -125,6 +125,7 @@ class OrderItem {
                 if(r.exc) {
                     this.order.check_items({ items: [...Object.values(this.order.items).map(item => item.data), this.data] });
                 }
+                this.order.aggregate(true);
 
                 window.saving = false;
                 RM.ready();
