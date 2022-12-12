@@ -549,7 +549,8 @@ class TableOrder {
     }
 
     async pay() {
-        if ((RM.busy && !RM.crm_customer) || !RM.can_pay) return;
+        console.log("pay")
+        if (RM.busy && !RM.crm_customer) return;
         
         if (RM.pos_profile == null) {
             frappe.msgprint(RM.not_has_pos_profile_message());
