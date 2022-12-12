@@ -87,42 +87,7 @@ def set_custom_scripts():
             doc="POS Profile",
             script="""
 frappe.ui.form.on('POS Profile', {
-    setup(frm) {
-        frm.set_query('crm_room', function(doc) {
-			return {
-				filters: [
-                    ['type', '=', 'Room']
-                ]
-			}
-		});
-    },
-    crm_room: function(frm){
-        frm.set_value("crm_table", "");
-		if(frm.doc.crm_room){
-		    frm.set_df_property("crm_table", "read_only", 0);
-		    frm.set_df_property("crm_table", "reqd", 1);
-		    frm.set_query('crm_table', function(doc) {
-    			return {
-    				filters: [
-                        ['type', '=', 'Table'],
-                        ['room', '=', frm.doc.crm_room]
-                    ]
-    			}
-    		});
-		}else{
-		    frm.set_df_property("crm_table", "read_only", 1);
-		    frm.set_df_property("crm_table", "reqd", 0);
-		}
-	},
-    refresh(frm) {
-        if(frm.doc.crm_room){
-		    frm.set_df_property("crm_table", "read_only", 0);
-		    frm.set_df_property("crm_table", "reqd", 1);
-		}else{
-		    frm.set_df_property("crm_table", "read_only", 1);
-		    frm.set_df_property("crm_table", "reqd", 0);
-		}
-	}
+    //
 });
 
 frappe.ui.form.on('POS Profile User', {
@@ -138,16 +103,17 @@ frappe.ui.form.on('POS Profile User', {
             call_back: (self) => {
                 self.hide();
             },
-            title: __(`Room Access`),
+            title: __(`Restaurant Permissions`),
             field_properties: {
                 pos_profile_user: {
                   value: cdn  
                 },
-                'restaurant_permission.room': {
+                'restaurant_permission.object_name': {
                     "get_query": () => {
                         return {
                             filters: [
-                    			['type', '=', 'Room']
+                                ["company", "=", frm.doc.company],
+                    			['type', '!=', 'Room'],
                     		]
                         }
                     }
