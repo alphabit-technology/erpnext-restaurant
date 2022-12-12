@@ -9,6 +9,7 @@
   "type",
   "column_break_2",
   "room",
+  "company",
   "section_break_2",
   "no_of_seats",
   "column_break_4",
@@ -92,6 +93,7 @@
   {
    "fieldname": "room",
    "fieldtype": "Link",
+   "in_standard_filter": 1,
    "label": "Room",
    "options": "Restaurant Object"
   },
@@ -133,11 +135,19 @@
    "fieldtype": "Select",
    "label": "Shape",
    "options": "Square\nRound"
+  },
+  {
+   "fetch_from": "room.company",
+   "fieldname": "company",
+   "fieldtype": "Read Only",
+   "in_standard_filter": 1,
+   "label": "Company",
+   "options": "Company"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2022-11-30 12:22:50.047372",
+ "modified": "2022-12-10 21:47:23.794922",
  "modified_by": "Administrator",
  "module": "Restaurant Management",
  "name": "Restaurant Object",
@@ -180,7 +190,7 @@
  ],
  "quick_entry": 1,
  "restrict_to_domain": "Services",
- "search_fields": "description,type",
+ "search_fields": "room_description,type,description",
  "sort_field": "modified",
  "sort_order": "DESC",
  "title_field": "description",

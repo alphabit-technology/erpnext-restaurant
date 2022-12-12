@@ -75,8 +75,10 @@
   {
    "fieldname": "customer",
    "fieldtype": "Link",
+   "in_standard_filter": 1,
    "label": "Customer",
-   "options": "Customer"
+   "options": "Customer",
+   "reqd": 1
   },
   {
    "fieldname": "dinners",
@@ -140,10 +142,13 @@
    "label": "Selling Price List"
   },
   {
+   "fetch_from": "table.company",
    "fieldname": "company",
-   "fieldtype": "Link",
+   "fieldtype": "Read Only",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Company",
-   "options": "Company"
+   "reqd": 1
   },
   {
    "fetch_from": "table.description",
@@ -270,7 +275,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2022-12-07 20:14:13.322455",
+ "modified": "2022-12-10 12:39:11.621778",
  "modified_by": "Administrator",
  "module": "Restaurant Management",
  "name": "Table Order",

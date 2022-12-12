@@ -294,13 +294,14 @@ RestaurantManage = class RestaurantManage {
 	make_rooms() {
 		const currents_rooms = Object.values(this.rooms || {}).map(room => room.name);
 		this.working("Loading Rooms");
-		this.clear_rooms(currents_rooms);
+		//this.clear_rooms(currents_rooms);
 
 		return new Promise(res => {
 			frappe.call({
 				method: `${this.url_manage}get_rooms`
 			}).then(r => {
 				this.rooms = r.message;
+				this.clear_rooms(currents_rooms);
 				this.render_rooms();
 				this.ready();
 				
@@ -310,10 +311,13 @@ RestaurantManage = class RestaurantManage {
 		});
 	}
 
-	clear_rooms(currents_rooms = []) {	
-		Object.values(this.rooms || {}).forEach(room => {
-			if (!currents_rooms.includes(room.name) || !this.has_access_to_room(room.name)) {
-				this.object(room.name) ? this.object(room.name).remove() : null;
+	clear_rooms(currents_rooms = []) {
+		const keys_news = Object.values(this.rooms).map(t => t.name);
+
+		currents_rooms.forEach(key => {
+			if (!keys_news.includes(key)) {
+				this.object(key) ? this.object(key).remove() : null;
+				this.objects[key] && delete this.objects[key];
 			}
 		});
 	}
@@ -324,7 +328,6 @@ RestaurantManage = class RestaurantManage {
 	}
 
 	render_rooms(current = window.crm_customer && this.pos_profile.crm_room || false) {
-		//window.crm_customer = null;
 		let room_from_url = null;
 
 		this.rooms.forEach((room, index, rooms) => {
@@ -359,7 +362,7 @@ RestaurantManage = class RestaurantManage {
 		});
 
 		setTimeout(() => {
-			this.current_room = this.object(room_from_url);
+			this.current_room = this.object(room_from_url) || this.current_room;
 
 			if (this.current_room != null) {
 				if (this.has_access_to_room(this.current_room.data.name)) {

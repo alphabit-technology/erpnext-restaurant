@@ -16,22 +16,28 @@ class RestaurantManage:
             obj.synchronize()
 
     @staticmethod
+    def common_role(a, b):
+        a_set = set(a)
+        b_set = set(b)
+        if len(a_set.intersection(b_set)) > 0:
+            return (True)
+
+        return (False)
+
+    @staticmethod
     def get_rooms():
-        user_perm = frappe.permissions.get_doc_permissions(
-            frappe.new_doc("Restaurant Object"))
+        restaurant_settings = frappe.get_single("Restaurant Settings")
+        filters = {
+            "company": frappe.defaults.get_user_default('company'),
+            "type": "Room"
+        }
 
-        if frappe.session.user == "Administrator" or user_perm.get("write") or user_perm.get("create"):
-            rooms = frappe.get_list("Restaurant Object", "name, description", {
-                "type": "Room",
-            })
-        else:
-            restaurant_settings = frappe.get_single("Restaurant Settings")
-            rooms_enabled = restaurant_settings.rooms_access()
+        if not restaurant_settings.user_has_admin_role():
+            rooms_enabled = restaurant_settings.restaurant_access()
 
-            rooms = frappe.get_list("Restaurant Object", "name, description", {
-                "type": "Room",
-                "name": ("in", rooms_enabled)
-            })
+            filters["name"] = ("in", rooms_enabled)
+
+        rooms = frappe.get_list("Restaurant Object", "name,description", filters=filters)
 
         for room in rooms:
             t = frappe.get_doc("Restaurant Object", room.name)

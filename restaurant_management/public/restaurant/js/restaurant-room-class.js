@@ -47,6 +47,15 @@ class RestaurantRoom extends ObjectManage {
         });
     }
 
+    clear_tables(news) {
+        const keys_news = news.map(t => t.name);
+        Object.keys(this.childrend || {}).forEach(key => {
+            if (!keys_news.includes(key)) {
+                this.get_child(key).remove();
+            }
+        });
+    }
+
     append_table(table, adding = false) {
         super.append_child({
             child: table,
@@ -59,8 +68,6 @@ class RestaurantRoom extends ObjectManage {
             },
             always: t => {
                 if(RM.crm_customer && RM.pos_profile.crm_table){
-                    //RM.crm_customer = null;
-
                     if(t.data.name === RM.pos_profile.crm_table){
                         setTimeout(() => {
                             t.select();
@@ -226,6 +233,7 @@ class RestaurantRoom extends ObjectManage {
             method: "get_objects",
             args: {},
             always: (r) => {
+                this.clear_tables(r.message);
                 this.make_objects(r.message);
                 RM.ready();
             },

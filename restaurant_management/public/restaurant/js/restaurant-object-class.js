@@ -51,14 +51,7 @@ RestaurantObject = class RestaurantObject {
 
     remove() {
         this.obj.remove();
-        const tables = Object.keys(this.room.tables);
-
-        tables.forEach((table) => {
-            if (this.room.tables[table].data.identifier === this.data.identifier) {
-                delete this.room.tables[table];
-                RM.sound_delete();
-            }
-        });
+        this.room.delete_child(this.data.name);
     }
 
     save_config(shape = false) {
