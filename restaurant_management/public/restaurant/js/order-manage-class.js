@@ -48,6 +48,11 @@ class OrderManage extends ObjectManage {
         this.modal.load_data();
     }
 
+    remove() {
+        this.close();
+        this.modal.remove();
+    }
+
     initialize() {
         if (!this.is_enabled_to_open()) return;
         this.title = this.table.room.data.description + " (" + this.table.data.description + ")";

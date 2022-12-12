@@ -6,9 +6,9 @@
  "engine": "InnoDB",
  "field_order": [
   "object_name",
+  "room",
   "description",
-  "is_crm",
-  "room"
+  "is_crm"
  ],
  "fields": [
   {
@@ -33,16 +33,19 @@
    "options": "Restaurant Object"
   },
   {
-   "fetch_from": "object_name.room",
+   "fetch_from": "object_name.room_description",
    "fieldname": "room",
    "fieldtype": "Read Only",
-   "label": "Room"
+   "in_list_view": 1,
+   "label": "Room",
+   "options": "Restaurant Object",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2022-12-10 17:08:48.115786",
+ "modified": "2022-12-12 10:29:11.001013",
  "modified_by": "Administrator",
  "module": "Restaurant Management",
  "name": "Restaurant Permission",

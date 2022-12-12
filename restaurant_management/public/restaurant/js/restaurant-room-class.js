@@ -15,9 +15,10 @@ class RestaurantRoom extends ObjectManage {
                 this.data.orders_count = data.orders_count;
                 this.reset_html();
             } else if (data.action === ADD) {
-                if (this.data.name === RM.current_room.data.name) {
+                this.select();
+                /*if (this.data.name === RM.current_room.data.name) {
                     this.append_table(data.table, true);
-                }
+                }*/
             } else if (data.action === DELETE) {
                 this.unselect_all_tables();
                 if (

@@ -14,6 +14,11 @@ ProcessManage = class ProcessManage {
         this.get_commands_food();
     }
 
+    remove() {
+        this.close();
+        this.modal.remove();
+    }
+
     initialize() {
         this.title = this.table.room.data.description + " (" + this.table.data.description + ")";
         if (this.modal == null) {

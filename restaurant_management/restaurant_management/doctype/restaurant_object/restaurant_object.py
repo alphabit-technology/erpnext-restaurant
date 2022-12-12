@@ -6,10 +6,21 @@ from __future__ import unicode_literals
 from datetime import date
 import frappe
 from frappe import _
+import random
 from frappe.model.document import Document
 
 
 class RestaurantObject(Document):
+    def autoname(self):
+        objects_count = frappe.db.count("Restaurant Object", filters={
+            "type": "Room"
+        })
+
+        if self.type == "Room":
+            name = f"Room {random.randint(1000 + objects_count, 9999)}"
+            self.description = name
+            self.name = name
+
     @property
     def _room(self):
         return frappe.get_doc("Restaurant Object", self.room)
@@ -57,7 +68,18 @@ class RestaurantObject(Document):
                     current_user=self.current_user
                 ))
 
+    def can_access(self):
+        settings = frappe.get_single("Restaurant Settings")
+
+        if settings.user_has_admin_role() or self.name in settings.restaurant_access(self.type):
+            return True
+
+        return False
+
     def validate_transaction(self, user=frappe.session.user, from_crm=None):
+        if not self.can_access():
+            frappe.throw(_("You don't have access to this table"))
+
         orders_count = self.orders_count
         if self.current_user is None or self.current_user == "Administrator" or orders_count == 0:
             frappe.db.set_value("Restaurant Object",
@@ -238,6 +260,7 @@ class RestaurantObject(Document):
 
         objects_count=frappe.db.count(
             "Restaurant Object", filters={"room": self.name})
+
         table=frappe.new_doc("Restaurant Object")
 
         zIndex=objects_count + 60
@@ -247,12 +270,15 @@ class RestaurantObject(Document):
             "#1579d0", "#2d401d", "#2e844e", "#505a62"]
         color=colors[random.randint(0, 6)]
 
-        data_style=f'"x":"{left}","y":"{top}","z-index":"{zIndex}","width":"100px","height":"100px"'
+        name = f"{t[:1]}-{random.randint(1000 + objects_count , 9999)}"
+
+        data_style=f'"x":"{left}","y":"{top}","z-index":"{zIndex}","width":"150px","height":"100px"'
         table.type=t
         table.room=self.name
         table.data_style="{" + data_style + "}"
         table.color=color
-        table.description=f"{t[:1]}{(objects_count + 1)}"
+        table.name = name
+        table.description = name
         table.no_of_seats=4
         table.shape='Square'
         table.save()

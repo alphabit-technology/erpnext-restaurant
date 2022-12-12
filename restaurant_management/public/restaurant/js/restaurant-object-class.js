@@ -50,6 +50,21 @@ RestaurantObject = class RestaurantObject {
     }
 
     remove() {
+        if(this.edit_form){
+            this.edit_form.remove();
+            this.edit_form = null;
+        }
+
+        if(this.order_manage){
+            this.order_manage.remove();
+            this.order_manage = null;
+        }
+
+        if(this.process_manage){
+            this.process_manage.remove();
+            this.process_manage = null;
+        }
+
         this.obj.remove();
         this.room.delete_child(this.data.name);
     }
