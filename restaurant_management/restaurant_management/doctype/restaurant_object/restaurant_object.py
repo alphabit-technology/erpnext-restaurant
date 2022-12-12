@@ -15,7 +15,7 @@ class RestaurantObject(Document):
         return frappe.get_doc("Restaurant Object", self.room)
 
     def before_save(self):
-        if self.is_new():
+        if self.is_new() or (self.type == "Room" and self.company is None):
             self.company = frappe.defaults.get_user_default('company')
 
     def after_delete(self):
