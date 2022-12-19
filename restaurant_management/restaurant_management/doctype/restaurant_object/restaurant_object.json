@@ -1,5 +1,7 @@
 {
  "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:description",
  "creation": "2020-04-03 21:41:52.229718",
  "doctype": "DocType",
  "document_type": "Document",
@@ -26,7 +28,14 @@
   "production_center_group",
   "current_user",
   "room_description",
-  "shape"
+  "shape",
+  "restricted_to_parent_room",
+  "section_break_22",
+  "restricted_to_rooms",
+  "restricted_rooms",
+  "restricted_to_tables_container",
+  "restricted_to_tables",
+  "restricted_tables"
  ],
  "fields": [
   {
@@ -45,7 +54,8 @@
    "fieldname": "description",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Description"
+   "label": "Description",
+   "unique": 1
   },
   {
    "fieldname": "type",
@@ -143,11 +153,49 @@
    "in_standard_filter": 1,
    "label": "Company",
    "options": "Company"
+  },
+  {
+   "fieldname": "section_break_22",
+   "fieldtype": "Section Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "restricted_to_rooms",
+   "fieldtype": "Check",
+   "label": "Restricted to Rooms"
+  },
+  {
+   "fieldname": "restricted_rooms",
+   "fieldtype": "Table",
+   "label": "Restricted Rooms",
+   "options": "Order Origin"
+  },
+  {
+   "fieldname": "restricted_to_tables_container",
+   "fieldtype": "Section Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "restricted_to_tables",
+   "fieldtype": "Check",
+   "label": "Restricted to Tables"
+  },
+  {
+   "fieldname": "restricted_tables",
+   "fieldtype": "Table",
+   "label": "Restricted Tables",
+   "options": "Order Origin"
+  },
+  {
+   "default": "0",
+   "fieldname": "restricted_to_parent_room",
+   "fieldtype": "Check",
+   "label": "Restricted to Parent Room"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2022-12-10 21:47:23.794922",
+ "modified": "2022-12-17 12:49:45.835466",
  "modified_by": "Administrator",
  "module": "Restaurant Management",
  "name": "Restaurant Object",
@@ -162,6 +210,7 @@
    "read": 1,
    "report": 1,
    "role": "System Manager",
+   "select": 1,
    "share": 1,
    "write": 1
   },
@@ -174,17 +223,18 @@
    "read": 1,
    "report": 1,
    "role": "Restaurant Manager",
+   "select": 1,
    "share": 1,
    "write": 1
   },
   {
-   "create": 1,
    "email": 1,
    "export": 1,
    "print": 1,
    "read": 1,
    "report": 1,
    "role": "Restaurant User",
+   "select": 1,
    "share": 1
   }
  ],

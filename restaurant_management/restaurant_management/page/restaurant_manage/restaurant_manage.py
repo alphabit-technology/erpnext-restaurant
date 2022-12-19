@@ -49,7 +49,7 @@ class RestaurantManage:
     def add_room():
         room = frappe.new_doc("Restaurant Object")
         room.type = "Room"
-        room.description = f"Room {(RestaurantManage().count_roms() + 1)}"
+        room.description = f"R {(RestaurantManage().count_roms() + 1)}"
         room.save()
 
         return room

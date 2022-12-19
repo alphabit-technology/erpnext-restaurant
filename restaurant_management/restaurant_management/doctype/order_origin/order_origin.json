@@ -1,0 +1,47 @@
+{
+ "actions": [],
+ "creation": "2022-12-12 18:15:29.778594",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "origin",
+  "type",
+  "description"
+ ],
+ "fields": [
+  {
+   "fetch_from": "origin.type",
+   "fieldname": "type",
+   "fieldtype": "Read Only",
+   "label": "Type"
+  },
+  {
+   "fieldname": "origin",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Origin",
+   "options": "Restaurant Object",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "origin.description",
+   "fieldname": "description",
+   "fieldtype": "Read Only",
+   "in_list_view": 1,
+   "label": "Description"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2022-12-18 20:22:00.773873",
+ "modified_by": "Administrator",
+ "module": "Restaurant Management",
+ "name": "Order Origin",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

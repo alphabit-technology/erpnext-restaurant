@@ -8,7 +8,7 @@
  "field_order": [
   "pos_profile_user",
   "user",
-  "restaurant_permission"
+  "restaurant_permissions"
  ],
  "fields": [
   {
@@ -25,7 +25,8 @@
    "label": "User"
   },
   {
-   "fieldname": "restaurant_permission",
+   "description": "Define the permissions to which the user has access. If you select a room, the user will have access to the Tables and Production Centers that correspond to this room, if you exclusively select tables or production centers, the user will have access only to the selected objects.",
+   "fieldname": "restaurant_permissions",
    "fieldtype": "Table",
    "label": "Restaurant Permissions",
    "options": "Restaurant Permission"
@@ -33,7 +34,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2022-09-24 10:03:40.466159",
+ "modified": "2022-12-18 15:53:22.850546",
  "modified_by": "Administrator",
  "module": "Restaurant Management",
  "name": "Restaurant Permission Manage",

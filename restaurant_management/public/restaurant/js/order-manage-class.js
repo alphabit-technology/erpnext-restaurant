@@ -727,7 +727,7 @@ class OrderManage extends ObjectManage {
     }
 
     in_orders(f) {
-        this.in_childs((child, key, index) => {
+        this.in_child((child, key, index) => {
             f(child, key, index);
         });
     }

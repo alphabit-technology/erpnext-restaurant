@@ -153,7 +153,7 @@ class TableOrder {
         let test_item = null;
         this.in_items(item => {
             if (item.data.item_code === new_item.item_code) {
-                if ([this.data.attending_status, "Pending", "Add", "", null, "undefined"].includes(item.data.status)) {
+                if (RM.allows_to_edit_item.includes(item.data.status)) {
                     item.data.qty += 1;
                     item.data.item_tax_rate = new_item.item_tax_rate;
                     item.data.status = "Pending";
@@ -345,7 +345,7 @@ class TableOrder {
                 customize: true,
                 adjust_height: 25,
                 set_buttons: true,
-                call_back: () => {
+                callback: () => {
                     this.make_divide_account();
                 }
             });
@@ -549,7 +549,6 @@ class TableOrder {
     }
 
     async pay() {
-        console.log("pay")
         if (RM.busy && !RM.crm_customer) return;
         
         if (RM.pos_profile == null) {
@@ -620,7 +619,7 @@ class TableOrder {
             this[form] = new DeskForm({
                 form_name: `restaurant-order-${type}`,
                 doc_name: this.data.name,
-                call_back: self => {
+                callback: self => {
                     self.hide();
 
                     RM.sound_submit();

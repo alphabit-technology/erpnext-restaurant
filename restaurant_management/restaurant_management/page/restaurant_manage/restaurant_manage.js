@@ -20,11 +20,13 @@ frappe.pages['restaurant-manage'].on_page_load = function (wrapper) {
 }
 
 frappe.pages['restaurant-manage'].refresh = function () {
-	if(window.crm_customer){
+	if(window.crm_customer && RM){
 		RM.crm_customer = window.crm_customer;
 		window.crm_customer = null;
-		if(RM.objects[RM.pos_profile.crm_room]){
-			RM.objects[RM.pos_profile.crm_room].select();
+		if(RM.objects[RM.crm_settings.crm_room]){
+			RM.objects[RM.crm_settings.crm_room].select();
+		}else{
+			frappe.throw(__("Please set a CRM Table in POS Profile, to create a new order from CRM"));
 		}
 	}
 };
@@ -186,7 +188,8 @@ RestaurantManage = class RestaurantManage {
 		this.general_edit_button = frappe.jshtml({
 			tag: "div",
 			properties: {
-				class: 'btn-default button general-editor-button'
+				class: 'btn-default button general-editor-button',
+				style: 'display: none'
 			},
 			content: `<span class="fa fa-pencil"></span>`
 		}).on("click", () => {
@@ -396,6 +399,12 @@ RestaurantManage = class RestaurantManage {
 		this.restaurant_permissions = r.pos.restaurant_permissions;
 		this.order_item_editor_form = r.order_item_editor_form;
 		this.tax_template = r.tax_template;
+		this.crm_settings = {};
+		this.allows_to_edit_item = r.allows_to_edit_item;
+		
+		Object.entries(r.crm_settings).forEach(([key, value]) => {
+			this.crm_settings[key] = value[0] || null;
+		});
 
 		if (r.pos.has_pos) {
 			this.#pos_profile = r.pos.pos;
@@ -403,6 +412,7 @@ RestaurantManage = class RestaurantManage {
 				this.pos_profile_description.val(this.pos_profile.name);
 			}
 		}
+
 		this.ready();
 	}
 
@@ -437,7 +447,7 @@ RestaurantManage = class RestaurantManage {
 
 		const check_items_in_process_manage = (items, item_removed = null) => {
 			this.in_rooms(room => {
-				room.in_tables(table => {
+				room.in_tables(table => {	
 					if (table.process_manage != null) {
 						table.process_manage.check_items(items);
 						if (item_removed) {
@@ -537,6 +547,8 @@ RestaurantManage = class RestaurantManage {
 
 		if (!this.permissions.restaurant_object.write) {
 			this.general_edit_button.disable().hide();
+		}else{
+			this.general_edit_button.enable().show();
 		}
 	}
 

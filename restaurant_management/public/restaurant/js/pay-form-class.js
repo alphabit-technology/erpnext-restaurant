@@ -179,11 +179,13 @@ class PayForm extends DeskForm {
     }
 
     disable_input(input, value = true){
-        this.get_field(input).input.disabled = value;
+        const field = this.get_field(input);
+        field && field.input && (field.input.disabled = value);
     }
 
     enable_input(input) {
-        this.get_field(input).input.disabled = false;
+        const field = this.get_field(input);
+        field && field.input && (field.input.disabled = false);
     }
 
     hide_support_elements() {
@@ -420,20 +422,9 @@ class PayForm extends DeskForm {
     }
 
     set_total_payment() {
-        const total_payment = this.get_field("total_payment");
-        const change_amount = this.get_field("change_amount");
-
-        this.payment_button.set_content(`<span style="font-size: 25px; font-weight: 400">{{text}} ${this.order.total_money}</span>`);
-        this.payment_button.val(__("Pay"));
-
-        /*if (this.order.amount > this.get_value("total_payment")) {
-            total_payment.$wrapper.find("input").css("color", "red");
-            change_amount.$wrapper.find("input").css("color", "red");
-            this.payment_button.disable();
-        } else {
-            total_payment.$wrapper.find("input").css("color", "green");
-            change_amount.$wrapper.find("input").css("color", "green");
-            this.payment_button.enable();
-        }*/
+        if(this.payment_button) {
+            this.payment_button.set_content(`<span style="font-size: 25px; font-weight: 400">{{text}} ${this.order.total_money}</span>`);
+            this.payment_button.val(__("Pay"));
+        }
     }
 }

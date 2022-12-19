@@ -50,7 +50,15 @@ class RestaurantSettings(Document):
             exceptions=[item for item in self.restaurant_exceptions if item.role_profile == profile],
             lang=frappe.session.data.lang,
             order_item_editor_form=self.get_order_item_editor_form(),
-            tax_template=frappe.get_doc("Sales Taxes and Charges Template", tax_template) if tax_template else {}
+            tax_template=frappe.get_doc("Sales Taxes and Charges Template", tax_template) if tax_template else {},
+            crm_settings=self.get_crm_settings(),
+            allows_to_edit_item=frappe.get_list("Status Order PC", "name", filters=dict(allows_to_edit_item=1)),
+        )
+
+    def get_crm_settings(self):
+        return dict(
+            crm_room=self.restaurant_access("Room", dict(is_crm=1)),
+            crm_table=self.restaurant_access("Table", dict(is_crm=1)),
         )
 
     def pos_profile_data(self):
@@ -70,9 +78,12 @@ class RestaurantSettings(Document):
         pos_profile = get_pos_profile(frappe.defaults.get_user_default('company'))
         return pos_profile.name if pos_profile else None
 
-    def restaurant_access(self, type='Room'):
-        pos_profile_name = self.get_current_pos_profile_name()
+    def has_access_to_room(self, room):
+        return len(self.restaurant_access("Room", dict(object_name=room))) > 0
 
+    def restaurant_access(self, type="Room", more_filters=None):
+        pos_profile_name = self.get_current_pos_profile_name()
+        
         if pos_profile_name is not None:
             permission_parent = frappe.db.get_value("POS Profile User",
                 filters=dict(
@@ -83,20 +94,31 @@ class RestaurantSettings(Document):
                 fieldname="name"
             )
 
-            restaurant_permissions = frappe.db.get_list("Restaurant Permission", 
-                fields=("object_name"),
-                filters={
-                    "parenttype": "Restaurant Permission Manage",
-                    "parent": permission_parent,
-                }
-            ) if permission_parent else []
+            permissions_filter = dict(
+                parenttype="Restaurant Permission Manage",
+                parent=permission_parent,
+            )
 
+            if more_filters is not None:
+                permissions_filter.update(more_filters)
+
+            restaurant_permissions = frappe.db.get_list("Restaurant Permission", 
+                "object_name",
+                filters=permissions_filter
+            ) if permission_parent else []
+  
             if type == 'Room':
-                restaurant_permissions = frappe.get_list("Restaurant Object", ["room"],
-                    filters={"name": ("in", [item.object_name for item in restaurant_permissions])}
+                restaurant_permissions = frappe.get_list("Restaurant Object", 
+                    ("room","name","type"),
+                    filters=dict(
+                        name=("in",[item.object_name for item in restaurant_permissions])
+                    )
                 )
 
-                return set((item.room for item in restaurant_permissions))
+                rooms_for_table = (item.room for item in restaurant_permissions if item.type != "Room")
+                rooms_for_room = (item.name for item in restaurant_permissions if item.type == "Room")
+
+                return set(rooms_for_table).union(set(rooms_for_room))
 
             return set((item.object_name for item in restaurant_permissions))
 

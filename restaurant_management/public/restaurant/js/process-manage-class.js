@@ -108,11 +108,11 @@ ProcessManage = class ProcessManage {
     in_items(f) {
         Object.keys(this.items).forEach(k => {
             f(this.items[k]);
-        })
+        });
     }
 
     check_items(items) {
-        items.forEach((item) => {
+        items.forEach(item => {
             this.check_item(item);
         });
     }
@@ -120,7 +120,7 @@ ProcessManage = class ProcessManage {
     check_item(item) {
         if (Object.keys(this.items).includes(item.identifier)) {
             const _item = this.items[item.identifier];
-            if (this.include_status(item.status)) {
+            if (this.include_status(item.status) && this.item_available_in_table(item)) {
                 _item.data = item;
                 _item.refresh_html();
             } else {
@@ -128,14 +128,32 @@ ProcessManage = class ProcessManage {
             }
         } else {
             if (this.include_status(item.status) && this.include_item_group(item.item_group)) {
-                this.new_items_keys.push(item.identifier);
-                this.add_item(item);
+                if(this.item_available_in_table(item)){
+                    this.new_items_keys.push(item.identifier);
+                    this.add_item(item);
+                }
             }
         }
     }
 
+    get restricted_tables(){
+        return this.table.data.restricted_tables.map(x => x.table) || [];
+    }
+
+    get restricted_rooms() {
+        return this.table.data.restricted.rooms.map(x => x.table) || [];
+    }
+
+    item_available_in_table(item){
+        if(this.table.data.restricted_to_parent_room === 1 && item.room !== this.table.data.room) return false;
+        if(this.table.data.restricted_to_rooms === 1 && !this.restricted_rooms.includes(item.room)) return false;
+        if(this.table.data.restricted_to_tables === 1 && !this.restricted_tables.includes(item.room)) return false;
+        
+        return true;
+    }
+
     debug_items() {
-        Object.keys(this.items).filter(x => !this.new_items_keys.includes(x)).forEach((r) => {
+        Object.keys(this.items).filter(x => !this.new_items_keys.includes(x)).forEach(r => {
             this.items[r].remove();
         });
     }

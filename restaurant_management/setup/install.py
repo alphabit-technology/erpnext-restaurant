@@ -42,12 +42,13 @@ custom_fields = {
     #)
 }
 
-fields_not_needed = ['parent', 'parenttype', 'restaurant_permissions']
+fields_not_needed = ['parent', 'parenttype', 'restaurant_permissions', 'restaurant_settings', 'crm_room', 'column_break_1', 'crm_table']
 
 def after_install():
-    clear_custom_fields();
+    clear_custom_fields()
     set_custom_fields()
     set_custom_scripts()
+    set_default_process_status()
 
 def clear_custom_fields():
     for doc in custom_fields:
@@ -58,6 +59,52 @@ def clear_custom_fields():
 
                 if test_field is not None:
                     frappe.db.sql("""DELETE FROM `tabCustom Field` WHERE name=%s""", test_field)
+
+
+def set_default_process_status():
+    status = [
+        dict(
+            action="Pending",icon="fa fa-cart-arrow-down", color="red",
+            message="Pending", action_message="Add"
+        ),
+        dict(
+            action="Attending",icon="fa fa-cart-arrow-down", color="orange",
+            message="Attending", action_message="Sent"
+        ),
+        dict(
+            action="Sent", icon="fa fa-paper-plane-o", color="steelblue",
+            message="Whiting", action_message="Confirm"
+        ),
+        dict(
+            action="Processing", icon="fa fa-gear", color="#618685",
+            message="Processing", action_message="Complete"
+        ),
+        dict(
+            action="Completed", icon="fa fa-check", color="green",
+            message="Completed", action_message="Deliver"
+        ),
+        dict(
+            action="Delivering", icon="fa fa-reply", color="#ff7b25",
+            message="Delivering", action_message="Deliver"
+        ),
+        dict(
+            action="Delivered", icon="fa fa-cutlery", color="green",
+            message='Delivered', action_message="Invoice"
+        ),
+        dict(
+            action="Invoiced", icon="fa fa-money", color="green",
+            message="Invoiced", action_message="Invoiced"
+        ),
+    ]
+
+    for status in status:
+        if frappe.db.count("Status Order PC", status["action"]) == 0:
+            PS = frappe.new_doc("Status Order PC")
+
+            for key in status:
+                PS.set(key, status[key])
+
+            PS.insert()
 
 def set_custom_fields():
     for doc in custom_fields:
@@ -100,20 +147,20 @@ frappe.ui.form.on('POS Profile User', {
         new DeskForm({
             form_name: 'Restaurant Permission Manage',
             doc_name: cdn,
-            call_back: (self) => {
+            callback: (self) => {
                 self.hide();
             },
             title: __(`Restaurant Permissions`),
             field_properties: {
                 pos_profile_user: {
-                  value: cdn  
+                  default: cdn  
                 },
                 'restaurant_permission.object_name': {
                     "get_query": () => {
                         return {
                             filters: [
                                 ["company", "=", frm.doc.company],
-                    			['type', '!=', 'Room'],
+                    			//['type', '!=', 'Room'],
                     		]
                         }
                     }

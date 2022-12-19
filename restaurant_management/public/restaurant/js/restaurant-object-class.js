@@ -453,22 +453,62 @@ RestaurantObject = class RestaurantObject {
     }
 
     edit() {
-        if (this.edit_form == null) {
-            this.edit_form = new DeskForm({
-                doctype: "Restaurant Object",
-                doc_name: this.data.name,
-                form_name: this.data.type === "Table" ? "restaurant-table" : "restaurant-production-center",
-                call_back: () => {
-                    this.edit_form.hide();
-                },
-                title: __(`Update ${this.data.type}`),
-                field_properties: {
-                    type: { read_only: true },
-                    room: { read_only: true, hidden: true },
-                }
-            });
-        } else {
-            this.edit_form.show();
+        if(this.data.type === "Table"){
+            if (this.edit_form) {
+                this.edit_form.show();
+            } else {
+                this.edit_form = new DeskForm({
+                    doctype: "Restaurant Object",
+                    doc_name: this.data.name,
+                    form_name: this.data.type === "Table" ? "restaurant-table" : "restaurant-production-center",
+                    callback: (self) => {
+                        self.hide();
+                    },
+                    title: __(`Update ${this.data.type}`),
+                    field_properties: {
+                        type: { read_only: true },
+                        room: { read_only: true, hidden: true },
+                    }
+                });
+            }
+        }
+
+        if(this.data.type === "Production Center") {
+            if (this.ProductionCenterEditor) {
+                this.ProductionCenterEditor.show();
+            }else{
+                this.ProductionCenterEditor = new ProductionCenterEditor({
+                    //doctype: "Restaurant Object",
+                    doc_name: this.data.name,
+                    title: __(`Update ${this.data.description}`),
+                    form_name: "restaurant-production-center",
+                    callback: (self) => {
+                        self.hide();
+                    },
+                    field_properties: {
+                        type: { read_only: true },
+                        room: { read_only: true, hidden: true },
+                        "restricted_rooms.origin": {
+                            "get_query": () => {
+                                return {
+                                    filters: [
+                                        ['type', '=', 'Room'],
+                                    ]
+                                }
+                            }
+                        },
+                        "restricted_tables.origin": {
+                            "get_query": () => {
+                                return {
+                                    filters: [
+                                        ['type', '=', 'Table'],
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                });
+            }
         }
     }
 
@@ -500,4 +540,34 @@ RestaurantObject = class RestaurantObject {
     
     get is_table() { return this.data.type === "Table" }
     get is_round() { return this.data.shape === 'Round' }
+}
+
+class ProductionCenterEditor extends DeskForm {
+    constructor(options) {
+        super(options);
+    }
+
+    async make() {
+        await super.make();
+
+        this.on("restricted_to_parent_room", "change", (field) => {
+            const value = field.get_value();
+            this.get_field("restricted_rooms_container").wrapper[0].style.display = (value === 1 ? "none" : "block");
+            this.get_field("restricted_tables_container").wrapper[0].style.display = (value === 1 ? "none" : "block");
+        });
+
+        this.on("restricted_to_rooms", "change", (field) => {
+            const value = field.get_value();
+            this.get_field("restricted_tables_container").wrapper[0].style.display = (value === 1 ? "none" : "block");
+            this.get_field("restricted_rooms").$wrapper[value === 1 ? "show" : "hide"]();
+        });
+
+        this.on("restricted_to_tables", "change", (field) => {
+            this.get_field("restricted_tables").$wrapper[field.get_value() === 1 ? "show" : "hide"]();
+        });
+
+        setTimeout(() => {
+            this.trigger(["restricted_to_parent_room", "restricted_to_rooms", "restricted_to_tables"], "change");
+        }, 0);
+    }
 }

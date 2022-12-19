@@ -43,17 +43,13 @@ class RestaurantRoom extends ObjectManage {
     make_objects(tables = []) {
         tables.forEach((table, index) => {
             table.index = index;
-
             this.append_table(table);
         });
     }
 
-    clear_tables(news) {
-        const keys_news = news.map(t => t.name);
-        Object.keys(this.childrend || {}).forEach(key => {
-            if (!keys_news.includes(key)) {
-                this.get_child(key).remove();
-            }
+    clear_tables(news=[]) {
+        Object.keys(this.children).filter(x => !(news || []).map(t => t.name).includes(x)).forEach(r => {
+            this.get_child(r).remove();
         });
     }
 
@@ -68,8 +64,8 @@ class RestaurantRoom extends ObjectManage {
                 return new RestaurantObject(this, table);
             },
             always: t => {
-                if(RM.crm_customer && RM.pos_profile.crm_table){
-                    if(t.data.name === RM.pos_profile.crm_table){
+                if (RM.crm_customer && RM.crm_settings.crm_table){
+                    if (t.data.name === RM.crm_settings.crm_table){
                         setTimeout(() => {
                             t.select();
                             this.resize_container(t);
@@ -160,7 +156,7 @@ class RestaurantRoom extends ObjectManage {
     }
 
     in_tables(f, condition = null) {
-        super.in_childs((t, key) => {
+        super.in_child((t, key) => {
             if (condition == null || condition.value === t.data[condition.field]) {
                 f(t, key);
             }
@@ -184,8 +180,8 @@ class RestaurantRoom extends ObjectManage {
             this.edit_form = new DeskForm({
                 doc_name: this.data.name,
                 form_name: "Restaurant Room",
-                call_back: () => {
-                    this.edit_form.hide();
+                callback: (self) => {
+                    self.hide();
                 },
                 title: __("Update Room"),
                 field_properties: {
@@ -234,8 +230,11 @@ class RestaurantRoom extends ObjectManage {
             method: "get_objects",
             args: {},
             always: (r) => {
-                this.clear_tables(r.message);
-                this.make_objects(r.message);
+                if(r.message){
+                    this.update_notifications(r.message.orders_count);
+                    this.clear_tables(r.message.tables);
+                    this.make_objects(r.message.tables);
+                }
                 RM.ready();
             },
             freeze: false,
