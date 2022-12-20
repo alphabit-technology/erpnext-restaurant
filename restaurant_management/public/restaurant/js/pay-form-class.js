@@ -127,9 +127,13 @@ class PayForm extends DeskForm {
         this.on("is_delivery", "change", (field) => {
             if (field.get_value() === 1) {
                 this.get_field("delivery_options").wrapper[0].style.display = "block";
+                this.set_field_property("dinners", "reqd", 0);
+                this.get_field("dinners").$wrapper.hide();
             }else{
-                this.get_field("delivery_options").wrapper[0].style.display = "none"
-                this.set_field_property(["delivery_date", "pick_time", "branch", "address"], "reqd", 0);;
+                this.get_field("delivery_options").wrapper[0].style.display = "none";;
+                this.set_field_property(["delivery_date", "pick_time", "branch", "address"], "reqd", 0);
+                this.set_field_property("dinners", "reqd", 1);
+                this.get_field("dinners").$wrapper.show();
             }
 
             this.trigger("charge_amount", "change");
@@ -174,7 +178,6 @@ class PayForm extends DeskForm {
             this.payment_button.remove_class("btn-default").add_class("btn-primary");
             this.disable_input("payment_button", !RM.can_pay);
             this.trigger(["delivery_branch", "is_delivery"], "change");
-            window.test = this;
         }, 0);
     }
 

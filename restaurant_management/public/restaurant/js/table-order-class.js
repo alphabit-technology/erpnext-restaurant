@@ -616,22 +616,34 @@ class TableOrder {
             this[form].reload();
             this[form].show();
         } else {
-            this[form] = new DeskForm({
-                form_name: `restaurant-order-${type}`,
-                doc_name: this.data.name,
-                callback: self => {
-                    self.hide();
-
-                    RM.sound_submit();
-                    this.data[type] = self.get_value(type);
-                    this.make_invoice();
-                },
-                title: __(`Set ${type}`),
-                after_load: self => {
-                    const input = self.get_field(type);
-                    input.set_focus();
+            if(type === "customer"/* && RM.crm_customer*/){
+                if(this.customer_editor == null){
+                    this.customer_editor = new CustomerEditor({
+                        order: this,
+                        //location: this.order_manage.invoice_wrapper.JQ()
+                    });
+                }else{
+                    this.customer_editor.reload();
+                    this.customer_editor.show();
                 }
-            });
+            } else {
+                this[form] = new DeskForm({
+                    form_name: `restaurant-order-${type}`,
+                    doc_name: this.data.name,
+                    callback: self => {
+                        self.hide();
+
+                        RM.sound_submit();
+                        this.data[type] = self.get_value(type);
+                        this.make_invoice();
+                    },
+                    title: __(`Set ${type}`),
+                    after_load: self => {
+                        const input = self.get_field(type);
+                        input.set_focus();
+                    }
+                });
+            }
         }
     }
 
@@ -659,5 +671,62 @@ class TableOrder {
             item.remove();
             delete this.items[identifier];
         }
+    }
+}
+
+class CustomerEditor extends DeskForm {
+    form_name = "Restaurant Order Customer";
+    constructor(props) {
+        super(props);
+        this.doc_name = this.order.data.name;
+        this.title = __("Set Customer");
+
+        super.initialize();
+    }
+
+    async make(){
+        await super.make();
+
+        this.on(["address"], "change", (field) => {
+            if(field.get_value().length > 0)
+            this.get_delivery_address();
+        });
+
+        this.on("customer", "change", (field) => {
+            this.set_field_property("address", "get_query", () => {
+                return {
+                    filters: {
+                        'link_doctype': 'Customer',
+                        'link_name': field.get_value(),
+                    }
+                }
+            });
+        });
+
+        this.on("customer_primary_address", "change", (field) => {
+            this.set_value("address", field.get_value());
+        });
+
+        this.get_field("customer_primary_address").$wrapper.hide();
+
+        setTimeout(() => {
+            this.trigger(["customer_primary_address"], "change");
+        }, 0);
+    }
+
+    get_delivery_address() {
+        const address = this.get_value("address");
+
+        frappeHelper.api.call({
+            model: "Table Order",
+            name: this.order.data.name,
+            method: "get_delivery_address",
+            args: { origin: "Address", ref: address },
+            always: (r) => {
+                if (r.message) {
+                    this.set_value("delivery_address", r.message.address);
+                }
+            }
+        });
     }
 }
