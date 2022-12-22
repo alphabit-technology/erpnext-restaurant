@@ -65,46 +65,50 @@ def set_default_process_status():
     status = [
         dict(
             action="Pending",icon="fa fa-cart-arrow-down", color="red",
-            message="Pending", action_message="Add"
+            message="Pending", action_message="Add", allows_to_edit_item="1"
         ),
         dict(
             action="Attending",icon="fa fa-cart-arrow-down", color="orange",
-            message="Attending", action_message="Sent"
+            message="Attending", action_message="Sent", allows_to_edit_item="1"
         ),
         dict(
             action="Sent", icon="fa fa-paper-plane-o", color="steelblue",
-            message="Whiting", action_message="Confirm"
+            message="Whiting", action_message="Confirm", allows_to_edit_item="0"
         ),
         dict(
             action="Processing", icon="fa fa-gear", color="#618685",
-            message="Processing", action_message="Complete"
+            message="Processing", action_message="Complete", allows_to_edit_item="0"
         ),
         dict(
             action="Completed", icon="fa fa-check", color="green",
-            message="Completed", action_message="Deliver"
+            message="Completed", action_message="Deliver", allows_to_edit_item="0"
         ),
         dict(
             action="Delivering", icon="fa fa-reply", color="#ff7b25",
-            message="Delivering", action_message="Deliver"
+            message="Delivering", action_message="Deliver", allows_to_edit_item="0"
         ),
         dict(
             action="Delivered", icon="fa fa-cutlery", color="green",
-            message='Delivered', action_message="Invoice"
+            message='Delivered', action_message="Invoice", allows_to_edit_item="0"
         ),
         dict(
             action="Invoiced", icon="fa fa-money", color="green",
-            message="Invoiced", action_message="Invoiced"
+            message="Invoiced", action_message="Invoiced", allows_to_edit_item="0"
         ),
     ]
 
     for status in status:
-        if frappe.db.count("Status Order PC", status["action"]) == 0:
+        exist = frappe.db.count("Status Order PC", filters=dict(name=status["action"])) > 0
+
+        if exist:
+            PS = frappe.get_doc("Status Order PC", status["action"])
+        else:
             PS = frappe.new_doc("Status Order PC")
 
-            for key in status:
-                PS.set(key, status[key])
+        for key in status:
+            PS.set(key, status[key])
 
-            PS.insert()
+        PS.save() if exist else PS.insert()
 
 def set_custom_fields():
     for doc in custom_fields:

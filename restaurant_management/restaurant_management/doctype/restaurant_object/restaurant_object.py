@@ -218,7 +218,7 @@ class RestaurantObject(Document):
 
     def get_data(self):
         fields=["name", "description", "orders_count"] if self.type == "Room" else ["name", "type", "description", "no_of_seats", "identifier", "orders_count",
-                  "data_style", "min_size", "current_user", "color", "shape", "restricted_to_tables"]
+                  "data_style", "min_size", "current_user", "color", "shape", "restricted_to_rooms", "restricted_to_tables", "restricted_to_branches"]
         data={}
 
         for field in fields:
@@ -227,7 +227,9 @@ class RestaurantObject(Document):
         if self.type == "Production Center":
             data["status_managed"]=self._status_managed
             data["items_group"]=self._items_group
+            data["restricted_rooms"] = self.restricted_rooms
             data["restricted_tables"] = self.restricted_tables
+            data["restricted_branches"] = self.restricted_branches
 
         return data
 
@@ -310,6 +312,7 @@ class RestaurantObject(Document):
         if identifier is None:
             status_managed = self._status_managed
             items_group = self._items_group
+
             filters = {
                 "parenttype": "Table Order",
                 "status": ("in", status_managed if len(status_managed) > 0 else [""]),
@@ -332,13 +335,11 @@ class RestaurantObject(Document):
                         type=type
                     ), pluck="origin")
 
-                    parent_filter[type.lower()] = (
-                        "in", restricted if len(restricted) > 0 else [""])
-
-                orders = frappe.get_all(
-                        "Table Order", parent_filter, pluck="name")
-                        
-                filters["parent"] = ("in", orders if len(orders) > 0 else [""])
+                    parent_filter[type.lower()] = ("in", restricted if len(restricted) > 0 else [""])
+            
+            if self.restricted_to_branches == 1:
+                branches = [item.branch for item in self.restricted_branches]
+                parent_filter["branch"] = ("in", branches if len(branches) > 0 else [""])
 
             if self.restricted_to_parent_room == 1:
                 make_filter("Room", self.room)
@@ -347,7 +348,11 @@ class RestaurantObject(Document):
                     make_filter("Room")
                 elif self.restricted_to_tables == 1:
                     make_filter("Table")
-            
+
+            orders = frappe.get_all("Table Order", parent_filter, pluck="name")
+
+            filters["parent"] = ("in", orders if len(orders) > 0 else [""])
+
             return filters
         else:
             return {
@@ -370,6 +375,8 @@ class RestaurantObject(Document):
             item_code=entry.item_code,
             item_name=entry.item_name,
             order_name=entry.parent,
+            room=entry.room,
+            branch=entry.branch,
             table=entry.table,
             table_description=entry.table_description,
             short_name=self.order_short_name(entry.parent),
@@ -407,10 +414,7 @@ class RestaurantObject(Document):
 
     @ staticmethod
     def _status(status="Pending"):
-        #if frappe.db.count("Status Order PC", status) > 0:
         return frappe.get_doc("Status Order PC", status)
-
-        #return dict(icon="fa fa-cart-arrow-down",color="red",message="Pending",action_message="Add")
 
     @ staticmethod
     def status_list():

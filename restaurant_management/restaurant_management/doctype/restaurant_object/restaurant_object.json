@@ -35,7 +35,9 @@
   "restricted_rooms",
   "restricted_to_tables_container",
   "restricted_to_tables",
-  "restricted_tables"
+  "restricted_tables",
+  "restricted_to_branches",
+  "restricted_branches"
  ],
  "fields": [
   {
@@ -191,11 +193,23 @@
    "fieldname": "restricted_to_parent_room",
    "fieldtype": "Check",
    "label": "Restricted to Parent Room"
+  },
+  {
+   "default": "0",
+   "fieldname": "restricted_to_branches",
+   "fieldtype": "Check",
+   "label": "Restricted to Branches"
+  },
+  {
+   "fieldname": "restricted_branches",
+   "fieldtype": "Table",
+   "label": "Restricted Branches",
+   "options": "Production Center Branch"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2022-12-17 12:49:45.835466",
+ "modified": "2022-12-21 20:09:24.570953",
  "modified_by": "Administrator",
  "module": "Restaurant Management",
  "name": "Restaurant Object",

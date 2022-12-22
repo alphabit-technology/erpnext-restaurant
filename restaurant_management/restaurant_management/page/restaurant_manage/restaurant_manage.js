@@ -400,7 +400,13 @@ RestaurantManage = class RestaurantManage {
 		this.order_item_editor_form = r.order_item_editor_form;
 		this.tax_template = r.tax_template;
 		this.crm_settings = {};
-		this.allows_to_edit_item = r.allows_to_edit_item;
+		this.allows_to_edit_item = r.allows_to_edit_item.map(t => t.name);
+		this.has_pending_status = this.allows_to_edit_item.includes("Pending");
+
+		if (!this.has_pending_status) {
+			$("body").show();
+			frappe.throw(__("<strong>Restaurant need a status called 'Pending'</strong><br><br> Please create a status called 'Pending' in the Status Order PC and Allows To Edit Item"));
+		}
 		
 		Object.entries(r.crm_settings).forEach(([key, value]) => {
 			this.crm_settings[key] = value[0] || null;
@@ -441,7 +447,7 @@ RestaurantManage = class RestaurantManage {
 	}
 
 	init_synchronize() {
-		frappe.realtime.on("debug_data", (data) => {
+		frappe.realtime.on("debug", (data) => {
 			console.log(data);
 		});
 

@@ -394,7 +394,7 @@
    "max_length": 0,
    "max_value": 0,
    "read_only": 1,
-   "reqd": 1,
+   "reqd": 0,
    "show_in_filter": 0
   },
   {
@@ -486,7 +486,7 @@
  "is_standard": 1,
  "login_required": 1,
  "max_attachment_size": 0,
- "modified": "2022-12-17 09:57:57.219909",
+ "modified": "2022-12-21 21:06:28.887859",
  "modified_by": "Administrator",
  "module": "Restaurant Management",
  "name": "payment-order",

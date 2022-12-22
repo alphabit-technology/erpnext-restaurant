@@ -28,7 +28,9 @@
   "has_batch_no",
   "batch_no",
   "has_serial_no",
-  "serial_no"
+  "serial_no",
+  "room",
+  "branch"
  ],
  "fields": [
   {
@@ -174,12 +176,22 @@
    "fieldname": "table",
    "fieldtype": "Read Only",
    "label": "Table"
+  },
+  {
+   "fieldname": "room",
+   "fieldtype": "Read Only",
+   "label": "Room"
+  },
+  {
+   "fieldname": "branch",
+   "fieldtype": "Read Only",
+   "label": "Branch"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2022-12-13 18:00:47.663012",
+ "modified": "2022-12-21 21:12:12.972762",
  "modified_by": "Administrator",
  "module": "Restaurant Management",
  "name": "Order Entry Item",

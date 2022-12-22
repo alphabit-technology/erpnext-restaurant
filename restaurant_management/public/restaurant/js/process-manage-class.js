@@ -120,14 +120,14 @@ ProcessManage = class ProcessManage {
     check_item(item) {
         if (Object.keys(this.items).includes(item.identifier)) {
             const _item = this.items[item.identifier];
-            if (this.include_status(item.status) && this.item_available_in_table(item)) {
+            if (this.include_status(item.status) && this.item_available_in_table(item) && this.item_available_in_branch(item)) {
                 _item.data = item;
                 _item.refresh_html();
             } else {
                 _item.remove();
             }
         } else {
-            if (this.include_status(item.status) && this.include_item_group(item.item_group)) {
+            if (this.include_status(item.status) && this.include_item_group(item.item_group) && this.item_available_in_branch(item)) {
                 if(this.item_available_in_table(item)){
                     this.new_items_keys.push(item.identifier);
                     this.add_item(item);
@@ -137,11 +137,15 @@ ProcessManage = class ProcessManage {
     }
 
     get restricted_tables(){
-        return this.table.data.restricted_tables.map(x => x.table) || [];
+        return this.table.data.restricted_tables.map(x => x.origin) || [];
     }
 
     get restricted_rooms() {
-        return this.table.data.restricted.rooms.map(x => x.table) || [];
+        return this.table.data.restricted_rooms.map(x => x.origin) || [];
+    }
+
+    get restricted_branches(){
+        return this.table.data.restricted_branches.map(x => x.branch) || [];
     }
 
     item_available_in_table(item){
@@ -149,6 +153,11 @@ ProcessManage = class ProcessManage {
         if(this.table.data.restricted_to_rooms === 1 && !this.restricted_rooms.includes(item.room)) return false;
         if(this.table.data.restricted_to_tables === 1 && !this.restricted_tables.includes(item.room)) return false;
         
+        return true;
+    }
+
+    item_available_in_branch(item){
+        if (this.table.data.restricted_to_branches === 1 && !this.restricted_branches.includes(item.branch)) return false;
         return true;
     }
 

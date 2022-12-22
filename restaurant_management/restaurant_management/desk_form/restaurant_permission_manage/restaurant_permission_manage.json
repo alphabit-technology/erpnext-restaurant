@@ -100,7 +100,7 @@
  "is_standard": 1,
  "login_required": 1,
  "max_attachment_size": 0,
- "modified": "2022-12-18 19:44:54.579618",
+ "modified": "2022-12-21 20:48:09.839923",
  "modified_by": "Administrator",
  "module": "Restaurant Management",
  "name": "restaurant-permission-manage",

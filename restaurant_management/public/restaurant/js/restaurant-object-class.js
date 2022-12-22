@@ -550,6 +550,11 @@ class ProductionCenterEditor extends DeskForm {
     async make() {
         await super.make();
 
+        this.on("restricted_to_branches", "change", (field) => {
+            const value = field.get_value();
+            this.get_field("restricted_branches_container").wrapper[0].style.display = (value === 1 ? "block" : "none");
+        });
+
         this.on("restricted_to_parent_room", "change", (field) => {
             const value = field.get_value();
             this.get_field("restricted_rooms_container").wrapper[0].style.display = (value === 1 ? "none" : "block");
@@ -567,7 +572,7 @@ class ProductionCenterEditor extends DeskForm {
         });
 
         setTimeout(() => {
-            this.trigger(["restricted_to_parent_room", "restricted_to_rooms", "restricted_to_tables"], "change");
+            this.trigger(["restricted_to_parent_room", "restricted_to_rooms", "restricted_to_tables", "restricted_to_branches"], "change");
         }, 0);
     }
 }
