@@ -66,6 +66,7 @@ RestaurantManage = class RestaurantManage {
 			'js/pos-restaurant-controller.js',
 			'js/restaurant-room-class.js',
 			'js/restaurant-object-class.js',
+			'js/reservation-manage.js',
 
 			'js/order-manage-class.js',
 			'js/product-item-class.js',
@@ -168,6 +169,20 @@ RestaurantManage = class RestaurantManage {
 			this.add_object("Production Center");
 		});
 
+		this.#components.reserve = frappe.jshtml({
+			tag: "button",
+			properties: { class: "btn btn-default btn-flat" },
+			content: `<span class="fa fa-calendar"></span> ${__("Check Reservation")}`
+		}).on("click", () => {
+			if(this.restaurant_reservation){
+				this.restaurant_reservation.reload();
+				this.restaurant_reservation.show();
+				return;
+			}else{
+				this.restaurant_reservation = new CheckReservation({})//.show();
+			}
+		});
+
 		this.#components.edit_room = frappe.jshtml({
 			tag: "button",
 			properties: { class: "btn btn-default btn-flat" },
@@ -257,6 +272,9 @@ RestaurantManage = class RestaurantManage {
 					<div class="floor-map-editor left">
 						${this.components.add_table.html()}
 						${this.components.add_production_center.html()}
+					</div>
+					<div class="floor-map-reserve" style="background:red">
+						${this.components.reserve.html()}
 					</div>
 					<div class="floor-map-editor right">
 						${this.components.edit_room.html()}

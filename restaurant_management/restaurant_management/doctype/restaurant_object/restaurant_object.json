@@ -37,7 +37,8 @@
   "restricted_to_tables",
   "restricted_tables",
   "restricted_to_branches",
-  "restricted_branches"
+  "restricted_branches",
+  "customer"
  ],
  "fields": [
   {
@@ -205,11 +206,17 @@
    "fieldtype": "Table",
    "label": "Restricted Branches",
    "options": "Production Center Branch"
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "label": "Customer",
+   "options": "Customer"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2022-12-21 20:09:24.570953",
+ "modified": "2022-12-22 14:06:46.638716",
  "modified_by": "Administrator",
  "module": "Restaurant Management",
  "name": "Restaurant Object",

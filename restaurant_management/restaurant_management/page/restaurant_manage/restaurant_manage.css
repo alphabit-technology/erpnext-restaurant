@@ -101,6 +101,19 @@
     width: 100%;
 }
 
+.restaurant-manage .floor-map .floor-map-reserve{
+    position: absolute;
+    display: none;
+    margin: 5px 3px 0 0;
+    z-index: 100000;
+    display: block;
+    right: 3px;
+}
+
+.restaurant-manage.editing .floor-map .floor-map-reserve{
+    display: none;
+}
+
 .restaurant-manage.editing .floor-map .floor-map-editor{
     display: block;
 }

@@ -367,16 +367,50 @@ RestaurantObject = class RestaurantObject {
             const open = () => {
                 RM.pos.check_opening_entry(RM.pos_profile.name).then(() => {
                     setTimeout(() => {
-                        if (this.order_manage == null) {
-                            this.order_manage = new OrderManage({
-                                table: this,
-                                identifier: RM.OMName(this.data.name)
-                            });
-                        } else {
-                            this.order_manage.show();
-                        }
+                        const dialog = new frappe.ui.Dialog({
+                            title: __('Option for Table {0}', [this.data.description]),
+                            fields: [
+                                {
+                                    fieldtype: 'Column Break'
+                                },
+                                {
+                                    fieldtype: 'Button', label: __('Set a Customer'),
+                                    fieldname: "set_customer",
+                                    click: () => {
+                                        dialog.hide();
+                                    }
+                                },
+                                
+                                {
+                                    fieldtype: 'Column Break'
+                                },
+                                {
+                                    fieldtype: 'Button', fieldname: "open_table", label: __('Open Table'), primary: 1,
+                                    click: () => {
+                                        dialog.hide();
+                                        if (this.order_manage == null) {
+                                            this.order_manage = new OrderManage({
+                                                table: this,
+                                                identifier: RM.OMName(this.data.name)
+                                            });
+                                        } else {
+                                            this.order_manage.show();
+                                        }
 
-                        RM.object(this.order_manage.identifier, this.order_manage);
+                                        RM.object(this.order_manage.identifier, this.order_manage);
+                                    }
+                                }
+                            ]
+                        });
+                        Object.entries({ width: "100%", height: "50px", fontSize: "20px", fontWeight: "400" }).forEach(([key, value]) => {
+                            dialog.get_field("set_customer").input.style[key] = value;
+                            dialog.get_field("open_table").input.style[key] = value;
+                        });
+
+                        dialog.get_field("set_customer").input.style.marginLeft = "10px";
+                        dialog.get_field("open_table").input.style.marginLeft = "-5px";
+
+                        dialog.show();
                     }, 0);
                 });
             }
