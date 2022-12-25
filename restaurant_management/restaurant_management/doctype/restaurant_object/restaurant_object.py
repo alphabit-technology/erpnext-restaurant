@@ -452,6 +452,16 @@ class RestaurantObject(Document):
     def _delete(self):
         self.delete()
 
+    def check_reservation(self, reservation=None):
+        if frappe.db.count("Restaurant Booking", filters=dict(table=self.name, status="Open")) > 0:
+            frappe.throw("This table is not available")
+            #return dict(status="Available")
+        else:
+            booking=frappe.get_doc("Restaurant Booking", reservation)
+            
+            frappe.throw("This table is not available")
+
+        return False
 
 def load_json(data):
     import json

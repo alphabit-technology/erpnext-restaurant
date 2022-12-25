@@ -15,7 +15,9 @@
   "column_break_4",
   "customer",
   "customer_name",
-  "contact_number"
+  "contact_number",
+  "table",
+  "room"
  ],
  "fields": [
   {
@@ -67,11 +69,23 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Contact Number"
+  },
+  {
+   "fieldname": "table",
+   "fieldtype": "Link",
+   "label": "Table",
+   "options": "Restaurant Object"
+  },
+  {
+   "fetch_from": "table.room",
+   "fieldname": "room",
+   "fieldtype": "Read Only",
+   "label": "Room"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2022-12-22 12:20:22.193946",
+ "modified": "2022-12-23 21:07:11.575866",
  "modified_by": "Administrator",
  "module": "Restaurant Management",
  "name": "Restaurant Booking",

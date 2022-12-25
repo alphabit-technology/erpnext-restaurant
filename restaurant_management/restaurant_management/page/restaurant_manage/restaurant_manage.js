@@ -29,6 +29,13 @@ frappe.pages['restaurant-manage'].refresh = function () {
 			frappe.throw(__("Please set a CRM Table in POS Profile, to create a new order from CRM"));
 		}
 	}
+
+	if(RM && RM.navigate_room){
+		const navigate = RM.navigate_room;
+		RM.navigate_room = null;
+		RM.objects[navigate].select();
+		//RM.navigate_room = null;
+	}
 };
 
 RestaurantManage = class RestaurantManage {
@@ -171,15 +178,15 @@ RestaurantManage = class RestaurantManage {
 
 		this.#components.reserve = frappe.jshtml({
 			tag: "button",
-			properties: { class: "btn btn-default btn-flat" },
-			content: `<span class="fa fa-calendar"></span> ${__("Check Reservation")}`
+			properties: { class: "btn btn-danger", style:"font-size: 16px;"},
+			content: `<span class="fa fa-check"></span> ${__("Check In")}`
 		}).on("click", () => {
-			if(this.restaurant_reservation){
-				this.restaurant_reservation.reload();
-				this.restaurant_reservation.show();
+			if(this.check_in){
+				this.check_in.reload();
+				this.check_in.show();
 				return;
 			}else{
-				this.restaurant_reservation = new CheckReservation({})//.show();
+				this.check_in = new CheckIn({})//.show();
 			}
 		});
 
@@ -273,7 +280,7 @@ RestaurantManage = class RestaurantManage {
 						${this.components.add_table.html()}
 						${this.components.add_production_center.html()}
 					</div>
-					<div class="floor-map-reserve" style="background:red">
+					<div class="floor-map-reserve">
 						${this.components.reserve.html()}
 					</div>
 					<div class="floor-map-editor right">
@@ -666,6 +673,12 @@ RestaurantManage = class RestaurantManage {
 			this.wrapper.find(".restaurant-manage-status").empty().append(__("Ready"))
 		}
 
+		if(this.permanent_message){
+			this.working(this.permanent_message);
+		}else{
+			this.wrapper.find(".restaurant-manage-status").empty().append(__("Ready"))
+		}
+
 		if (message !== false) {
 			frappe.show_alert(message);
 		}
@@ -768,6 +781,10 @@ RestaurantManage = class RestaurantManage {
 
 		return r;
 	}
+
+	/*go_to_table(table, room){
+		frappe.set_route(`restaurant-manage?restaurant_room=${room}`);
+	}*/
 
 	get can_pay() {
 		return this.check_permissions("invoice", null, "create");

@@ -687,8 +687,7 @@ class CustomerEditor extends DeskForm {
     async make(){
         await super.make();
 
-        this.on(["address"], "change", (field) => {
-            if(field.get_value().length > 0)
+        this.on(["address"], "change", () => {
             this.get_delivery_address();
         });
 
@@ -716,6 +715,11 @@ class CustomerEditor extends DeskForm {
 
     get_delivery_address() {
         const address = this.get_value("address");
+
+        if(address.length === 0){
+            this.set_value("delivery_address", "");
+            return;
+        }
 
         frappeHelper.api.call({
             model: "Table Order",

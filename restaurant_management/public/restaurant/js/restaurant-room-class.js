@@ -54,6 +54,12 @@ class RestaurantRoom extends ObjectManage {
     }
 
     append_table(table, adding = false) {
+        const select_table = (t) => {
+            setTimeout(() => {
+                t.select();
+                this.resize_container(t);
+            }, 0);
+        }
         super.append_child({
             child: table,
             exist: t => {
@@ -66,18 +72,31 @@ class RestaurantRoom extends ObjectManage {
             always: t => {
                 if (RM.crm_customer && RM.crm_settings.crm_table){
                     if (t.data.name === RM.crm_settings.crm_table){
-                        setTimeout(() => {
-                            t.select();
-                            this.resize_container(t);
-                        }, 0);
+                        select_table(t);
                         return;
                     }
                 }
+
+                if (RM.navigate_table && RM.navigate_table === t.data.name) {
+                    frappeHelper.api.call({
+                        model: "Restaurant Object",
+                        method: "check_reservation",
+                        args: {
+                            name: RM.navigate_table,
+                        },
+                        callback: (r) => {
+                            if (r.message) {
+                                RM.navigate_table = r.message;
+                            }
+                        },
+                    })
+                    select_table(t);
+                    RM.navigate_table = null;
+                    return;
+                }
+
                 if (RM.editing && adding && t) {
-                    setTimeout(() => {
-                        t.select();
-                        this.resize_container(t);
-                    }, 0);
+                    select_table(t);
                 }
             }
         });
