@@ -91,7 +91,7 @@ frappe.ui.form.on('POS Profile User', {
         new DeskForm({
             form_name: 'Restaurant Permission Manage',
             doc_name: cdn,
-            call_back: (self) => {
+            callback: (self) => {
                 self.hide();
             },
             title: __(`Room Access`),

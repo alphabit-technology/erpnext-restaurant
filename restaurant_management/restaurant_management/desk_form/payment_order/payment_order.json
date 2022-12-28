@@ -10,6 +10,7 @@
  "desk_form_fields": [
   {
    "allow_read_on_all_link_options": 1,
+   "collapsible": 0,
    "default": "",
    "description": "",
    "extra_field": 0,
@@ -27,6 +28,7 @@
   },
   {
    "allow_read_on_all_link_options": 1,
+   "collapsible": 0,
    "default": "",
    "depends_on": "",
    "description": "",
@@ -42,6 +44,7 @@
   },
   {
    "allow_read_on_all_link_options": 1,
+   "collapsible": 0,
    "default": "",
    "depends_on": "",
    "description": "",
@@ -59,11 +62,12 @@
   },
   {
    "allow_read_on_all_link_options": 0,
+   "collapsible": 0,
    "extra_field": 0,
    "fetch_if_empty": 0,
    "fieldname": "delivery_options",
    "fieldtype": "Section Break",
-   "hidden": 0,
+   "hidden": 1,
    "label": "Delivery Options",
    "max_length": 0,
    "max_value": 0,
@@ -73,6 +77,7 @@
   },
   {
    "allow_read_on_all_link_options": 0,
+   "collapsible": 0,
    "extra_field": 1,
    "fetch_if_empty": 0,
    "fieldname": "address",
@@ -88,6 +93,7 @@
   },
   {
    "allow_read_on_all_link_options": 0,
+   "collapsible": 0,
    "extra_field": 1,
    "fetch_if_empty": 0,
    "fieldname": "primary_address",
@@ -102,6 +108,7 @@
   },
   {
    "allow_read_on_all_link_options": 0,
+   "collapsible": 0,
    "extra_field": 0,
    "fetch_if_empty": 0,
    "fieldname": "",
@@ -115,6 +122,7 @@
   },
   {
    "allow_read_on_all_link_options": 0,
+   "collapsible": 0,
    "extra_field": 1,
    "fetch_from": "address.posa_delivery_charges",
    "fetch_if_empty": 0,
@@ -130,19 +138,8 @@
    "show_in_filter": 0
   },
   {
-   "allow_read_on_all_link_options": 0,
-   "extra_field": 0,
-   "fetch_if_empty": 0,
-   "fieldtype": "Attach",
-   "hidden": 0,
-   "max_length": 0,
-   "max_value": 0,
-   "read_only": 0,
-   "reqd": 0,
-   "show_in_filter": 0
-  },
-  {
    "allow_read_on_all_link_options": 1,
+   "collapsible": 0,
    "default": "",
    "depends_on": "",
    "description": "",
@@ -158,6 +155,7 @@
   },
   {
    "allow_read_on_all_link_options": 1,
+   "collapsible": 0,
    "default": "",
    "depends_on": "",
    "description": "",
@@ -175,6 +173,7 @@
   },
   {
    "allow_read_on_all_link_options": 1,
+   "collapsible": 0,
    "default": "",
    "depends_on": "",
    "description": "",
@@ -190,6 +189,7 @@
   },
   {
    "allow_read_on_all_link_options": 1,
+   "collapsible": 0,
    "default": "",
    "depends_on": "",
    "description": "",
@@ -207,6 +207,7 @@
   },
   {
    "allow_read_on_all_link_options": 1,
+   "collapsible": 0,
    "default": "",
    "depends_on": "",
    "description": "",
@@ -222,6 +223,7 @@
   },
   {
    "allow_read_on_all_link_options": 1,
+   "collapsible": 0,
    "default": "",
    "depends_on": "",
    "description": "",
@@ -239,6 +241,7 @@
   },
   {
    "allow_read_on_all_link_options": 1,
+   "collapsible": 0,
    "default": "",
    "depends_on": "",
    "description": "",
@@ -254,6 +257,7 @@
   },
   {
    "allow_read_on_all_link_options": 1,
+   "collapsible": 0,
    "default": "",
    "depends_on": "",
    "description": "",
@@ -271,6 +275,7 @@
   },
   {
    "allow_read_on_all_link_options": 1,
+   "collapsible": 0,
    "default": "",
    "depends_on": "",
    "description": "",
@@ -286,6 +291,7 @@
   },
   {
    "allow_read_on_all_link_options": 1,
+   "collapsible": 0,
    "default": "",
    "description": "",
    "extra_field": 0,
@@ -302,6 +308,7 @@
   },
   {
    "allow_read_on_all_link_options": 1,
+   "collapsible": 0,
    "default": "",
    "depends_on": "",
    "description": "",
@@ -317,6 +324,7 @@
   },
   {
    "allow_read_on_all_link_options": 1,
+   "collapsible": 0,
    "default": "",
    "depends_on": "",
    "description": "",
@@ -340,7 +348,7 @@
  "is_standard": 1,
  "login_required": 1,
  "max_attachment_size": 0,
- "modified": "2022-11-25 09:49:07.593146",
+ "modified": "2022-12-27 21:01:53.845608",
  "modified_by": "Administrator",
  "module": "Restaurant Management",
  "name": "payment-order",

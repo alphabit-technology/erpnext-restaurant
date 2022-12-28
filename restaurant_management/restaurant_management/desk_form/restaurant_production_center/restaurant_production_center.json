@@ -10,6 +10,7 @@
  "desk_form_fields": [
   {
    "allow_read_on_all_link_options": 1,
+   "collapsible": 0,
    "default": "",
    "depends_on": "",
    "description": "",
@@ -27,6 +28,7 @@
   },
   {
    "allow_read_on_all_link_options": 1,
+   "collapsible": 0,
    "default": "",
    "depends_on": "",
    "description": "",
@@ -42,6 +44,7 @@
   },
   {
    "allow_read_on_all_link_options": 1,
+   "collapsible": 0,
    "default": "",
    "description": "",
    "extra_field": 0,
@@ -58,6 +61,7 @@
   },
   {
    "allow_read_on_all_link_options": 0,
+   "collapsible": 0,
    "extra_field": 0,
    "fetch_from": "room.description",
    "fetch_if_empty": 0,
@@ -73,6 +77,7 @@
   },
   {
    "allow_read_on_all_link_options": 1,
+   "collapsible": 0,
    "default": "",
    "depends_on": "",
    "description": "",
@@ -88,6 +93,7 @@
   },
   {
    "allow_read_on_all_link_options": 1,
+   "collapsible": 0,
    "default": "",
    "description": "",
    "extra_field": 0,
@@ -104,6 +110,7 @@
   },
   {
    "allow_read_on_all_link_options": 1,
+   "collapsible": 0,
    "default": "",
    "depends_on": "",
    "description": "",
@@ -119,6 +126,7 @@
   },
   {
    "allow_read_on_all_link_options": 1,
+   "collapsible": 0,
    "default": "",
    "description": "",
    "extra_field": 0,
@@ -135,6 +143,7 @@
   },
   {
    "allow_read_on_all_link_options": 1,
+   "collapsible": 0,
    "default": "",
    "depends_on": "",
    "description": "",
@@ -150,6 +159,7 @@
   },
   {
    "allow_read_on_all_link_options": 1,
+   "collapsible": 0,
    "default": "",
    "description": "",
    "extra_field": 0,
@@ -167,6 +177,7 @@
   },
   {
    "allow_read_on_all_link_options": 1,
+   "collapsible": 0,
    "default": "",
    "depends_on": "",
    "description": "",
@@ -182,6 +193,7 @@
   },
   {
    "allow_read_on_all_link_options": 1,
+   "collapsible": 0,
    "default": "",
    "description": "",
    "extra_field": 0,
@@ -205,7 +217,7 @@
  "is_standard": 1,
  "login_required": 1,
  "max_attachment_size": 0,
- "modified": "2022-11-25 08:29:06.752078",
+ "modified": "2022-12-27 20:54:01.329387",
  "modified_by": "Administrator",
  "module": "Restaurant Management",
  "name": "restaurant-production-center",

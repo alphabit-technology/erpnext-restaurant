@@ -50,7 +50,7 @@ class RMHelperClass {
             customize: true,
             adjust_height: 25,
             title: title,
-            call_back: () => f()
+            callback: () => f()
         });
     }
 

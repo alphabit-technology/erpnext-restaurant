@@ -449,7 +449,7 @@ RestaurantObject = class RestaurantObject {
                 doctype: "Restaurant Object",
                 doc_name: this.data.name,
                 form_name: this.data.type === "Table" ? "restaurant-table" : "restaurant-production-center",
-                call_back: () => {
+                callback: () => {
                     this.edit_form.hide();
                 },
                 title: __(`Update ${this.data.type}`),
