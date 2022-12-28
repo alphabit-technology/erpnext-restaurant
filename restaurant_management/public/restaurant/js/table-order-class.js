@@ -327,7 +327,7 @@ class TableOrder {
                 customize: true,
                 adjust_height: 25,
                 set_buttons: true,
-                call_back: () => {
+                callback: () => {
                     this.make_divide_account();
                 }
             });
@@ -537,14 +537,14 @@ class TableOrder {
             if (this.pay_form == null) {
                 this.pay_form = new PayForm({
                     order: this,
-                    location: this.order_manage.invoice_wrapper.JQ()
+                    //location: this.order_manage.invoice_wrapper.JQ()
                 });
             } else {
                 await this.pay_form.reload();
                 this.pay_form.show();
             }
 
-            this.order_manage.toggle_main_section("invoice");
+//this.order_manage.toggle_main_section("invoice");
         }
     }
 
@@ -593,7 +593,7 @@ class TableOrder {
             this[form] = new DeskForm({
                 form_name: `restaurant-order-${type}`,
                 doc_name: this.data.name,
-                call_back: self => {
+                callback: self => {
                     self.hide();
 
                     RM.sound_submit();

@@ -10,6 +10,7 @@
  "desk_form_fields": [
   {
    "allow_read_on_all_link_options": 1,
+   "collapsible": 0,
    "default": "",
    "depends_on": "",
    "description": "",
@@ -33,7 +34,7 @@
  "is_standard": 1,
  "login_required": 1,
  "max_attachment_size": 0,
- "modified": "2022-11-25 08:29:06.941340",
+ "modified": "2022-12-27 20:54:01.522032",
  "modified_by": "Administrator",
  "module": "Restaurant Management",
  "name": "order-item-note",

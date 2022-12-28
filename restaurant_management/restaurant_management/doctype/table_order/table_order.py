@@ -274,7 +274,7 @@ class TableOrder(Document):
 
         for t in set(in_invoice_taxes):
             invoice.append('taxes', {
-                "charge_type": "On " + apply_discount_on,
+                "charge_type": "On Net Total",# + apply_discount_on,
                 "account_head": t,
                 "rate": 0, 
                 "description": t,
