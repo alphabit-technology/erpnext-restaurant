@@ -13,56 +13,77 @@ class CheckIn extends DeskForm{
     async make(){
         await super.make();
 
-        Object.entries({ width: "100%", height: "50px", fontSize: "20px", fontWeight: "400", }).forEach(([key, value]) => {
-            this.get_field("new_reservation").input.style[key] = value;
+        Object.entries({ width: "100%", height: "50px", fontSize: "18px", fontWeight: "400", }).forEach(([key, value]) => {
+            this.get_field("save").input.style[key] = value;
             this.get_field("attend").input.style[key] = value;
+            this.get_field("cancel").input.style[key] = value;
         });
 
         this.make_buttons();
 
-        this.on("i_have_reservation", "change", (field) => {
-            if (field.get_value() === 1) {
-                this.get_field("reservation").$wrapper.show();
-                this.trigger("reservation", "change");
-                //this.get_field("add_reservation_wrapper").wrapper[0].style.display = "none";
-            } else {
-                if(this.reservation_form){
-                    this.reservation_form.doc_name = null;
-                    this.reservation_form.reload(null, true);
-                }
-
-                this.get_field("reservation").$wrapper.hide();
-                //this.get_field("add_reservation_wrapper").wrapper[0].style.display = "block";
-            }
-        });
-
         const set_reservation_form_doc_name = (doc_name) => {
-            if(this.reservation_form){
+            if (this.reservation_form) {
                 this.reservation_form.doc_name = doc_name;
                 this.reservation_form.reload(null, true);
             }
         }
 
+        this.on("i_have_reservation", "change", (field) => {
+            if (field.get_value() === 1) {
+                this.get_field("reservation").$wrapper.show();
+                this.trigger("reservation", "change");
+            } else {
+                set_reservation_form_doc_name(null);
+
+                this.get_field("reservation").$wrapper.hide();
+            }
+        });
+
         this.on("reservation", "change", (field) => {
             const reservation = field.get_value();
-            if(reservation.length > 0){
-                //this.attend.enable();
-            }else{
-                //this.attend.disable();
-            }
+
             set_reservation_form_doc_name(reservation);
-            //this.attend[field.get_value().length > 0 ? "enable" : "disable"]();
         });
 
-        this.get_field("new_reservation").input.addEventListener("click", (event) => {
-            event.preventDefault();
-            if (this.reservation_form) {
-                this.reservation_form.save();
+        this.set_field_property("reservation", "get_query", () => {
+            return {
+                filters: {
+                    company: ["=", RM.pos_profile.company],
+                    status: ['in', ['Open', 'Waitlisted']],
+                    reservation_time: [">=", moment().startOf('day').format("YYYY-MM-DD HH:mm:ss")],
+                }
             }
         });
 
-        this.get_field("attend").input.addEventListener("click", (event) => {
-            event.preventDefault();
+        this.make_reservation_form();
+
+        setTimeout(() => {
+            this.attend.remove_class("btn-default").add_class("btn-primary");
+            this.save.remove_class("btn-default").add_class("btn-warning");
+            this.cancel.remove_class("btn-default").add_class("btn-danger");
+            
+            $(this.get_field("add_reservation_wrapper").wrapper[0]).show();
+        }, 0);
+    }
+
+    make_reservation_form() {
+        if(!this.reservation_form) {
+            this.reservation_form = new Reservation({
+                reservation_manage: this,
+                location: $(this.get_field("add_reservation_wrapper").wrapper[0])
+            });
+        }
+    }
+
+    make_buttons() {
+        this.attend = frappe.jshtml({
+            from_html: this.get_field("attend").input,
+            properties: {
+                type: "button",
+                class: `btn btn-warning btn-lg btn-flat`,
+                style: "width: 100%; height: 60px;"
+            }
+        }).on("click", () => {
             if (this.reservation_form) {
                 this.reservation_form.save({
                     success: (data) => {
@@ -71,55 +92,42 @@ class CheckIn extends DeskForm{
                 });
             }
         });
-        
-        this.make_reservation_form();
 
-        setTimeout(() => {
-            //this.clear_inputs();
-            this.attend.remove_class("btn-default").add_class("btn-primary");
-            this.new_reservation.remove_class("btn-default").add_class("btn-warning");
-            
-            $(this.get_field("add_reservation_wrapper").wrapper[0]).show();
-            //this.trigger("i_have_reservation", "change");
-        }, 0);
-    }
-
-    make_reservation_form() {
-        this.reservation_form = new Reservation({
-            reservation_manage: this,
-            location: $(this.get_field("add_reservation_wrapper").wrapper[0])
-        });
-    }
-
-    make_buttons() {
-        this.attend = frappe.jshtml({
-            from_html: this.get_field("attend").input,
+        this.save = frappe.jshtml({
+            from_html: this.get_field("save").input,
             properties: {
                 type: "button",
                 class: `btn btn-primary btn-lg btn-flat`,
                 style: "width: 100%; height: 60px;"
             }
         }).on("click", () => {
-            
+            this.reservation_form.execute(true);
         });
 
-        //this.attend.disable();
-
-        this.new_reservation = frappe.jshtml({
-            from_html: this.get_field("new_reservation").input,
+        this.cancel = frappe.jshtml({
+            from_html: this.get_field("cancel").input,
             properties: {
                 type: "button",
-                class: `btn btn-warning btn-lg btn-flat`,
+                class: `btn btn-primary btn-lg btn-flat`,
                 style: "width: 100%; height: 60px;"
-            }
+            },
+            content: "{{text}}",
+            text: "Cancel"
         }).on("click", () => {
-
-        });
+            if (this.reservation_form) {
+                this.reservation_form.set_value("status", "Cancelled");
+                this.reservation_form.save({
+                    success: (data) => {
+                        this.reservation_form.execute(true);
+                    }
+                });
+            }
+        }, DOUBLE_CLICK_DELAY);
     }
 
 }
 
-class Reservation extends DeskForm{
+class Reservation extends DeskForm {
     form_name = "Check In";
     title = "Reservation";
     has_primary_action = false;
@@ -131,36 +139,52 @@ class Reservation extends DeskForm{
         super.initialize();
     }
 
-    execute(){
+    set_button_status() {
+        const table = this.get_value("table_description");
+        if (table && table.length > 0) {
+            this.reservation_manage.get_field("attend").input.innerHTML = "Check In " + table;
+            this.reservation_manage.save.enable();
+        } else {
+            this.reservation_manage.save.disable();
+            this.reservation_manage.get_field("attend").input.innerHTML = "Check Table";
+        }
+
+        if(this.doc_name){
+            this.reservation_manage.cancel.enable();
+        }else{
+            this.reservation_manage.cancel.disable();
+        }
+    }
+
+    execute(change_table=false){
         const table = this.get_value("table");
         const room = this.get_value("room");
 
-        if(table.length > 0){
+        if(table.length > 0 && change_table === false){
             RM.navigate_room = room;
             RM.navigate_table = table;
             frappe.set_route(`restaurant-manage?restaurant_room=${room}`);
-            //RM.go_to_table(table, room);
         }else{
-            RM.reservation = this.doc_name;
-            //RM.permanent_message = "Checking for available table..."
-            //RM.working("Checking for available table...");
-            /*new WaitingMessage({
-                reservation_manage: this.reservation_manage,
-                title: "Checking for available table...",
-            });*/
+            RM.reservation = this;
+            RM.working("Checking for available table...");
             this.reservation_manage.hide();
         }
     }
 
     clear_inputs() {
-        this.fields.forEach((field) => {
-            this.set_value(field.fieldname, "");
-        });
+        this.set_value("status", "Open");
+        this.set_value("table", "");
     }
 
-    make(){
-        super.make();
-        console.log(["Reservation make", this._wrapper])
+    async make(){
+        await super.make();
+
+        this.on("table_description", "change", (field) => {
+            this.set_button_status();
+        });
+
+        this.hide_field(["table", "room", "table_description"]);
+
         setTimeout(() => {
             this.show();
             
@@ -171,21 +195,21 @@ class Reservation extends DeskForm{
 
 class WaitingMessage{
     constructor(props){
-        this.props = props;
+        Object.assign(this, props);
         this.make();
     }
 
     make(){
         this.dialog = new frappe.ui.Dialog({
-            title: this.props.title,
-            static: true,
+            title: this.title,
+            static: this.static || false,
             fields: [
                 {
                     fieldtype: "HTML",
                     fieldname: "message",
                     options: `<div class="text-center">
-                        <i class="fa fa-spinner fa-spin fa-3x fa-fw"></i>
-                        <span class="sr-only">Loading...</span>
+                        ${this.icon || ""}
+                        <span class="sr-only">${this.message}</span>
                     </div>`
                 }
             ]
@@ -193,4 +217,13 @@ class WaitingMessage{
 
         this.dialog.show();
     }
+}
+
+const spinner = (props) => {
+    return new WaitingMessage({
+        title: props.title,
+        message: props.message,
+        icon: `<i class="fa fa-spinner fa-spin fa-3x fa-fw hide"></i>`,
+        static: props.static || false
+    });
 }

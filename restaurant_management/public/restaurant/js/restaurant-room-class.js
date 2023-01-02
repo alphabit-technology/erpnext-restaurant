@@ -78,7 +78,7 @@ class RestaurantRoom extends ObjectManage {
                 }
 
                 if (RM.navigate_table && RM.navigate_table === t.data.name) {
-                    frappeHelper.api.call({
+                    /*frappeHelper.api.call({
                         model: "Restaurant Object",
                         method: "check_reservation",
                         args: {
@@ -89,9 +89,9 @@ class RestaurantRoom extends ObjectManage {
                                 RM.navigate_table = r.message;
                             }
                         },
-                    })
+                    })*/
                     select_table(t);
-                    RM.navigate_table = null;
+                    //RM.navigate_table = null;
                     return;
                 }
 

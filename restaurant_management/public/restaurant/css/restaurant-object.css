@@ -110,6 +110,24 @@
     z-index: 10;
 }
 
+.restaurant-manage .floor-map .d-table .has-customer {
+    display: block;
+    position: absolute;
+    top: 50%;
+    margin-top: -40px;
+    height: 80px;
+    left: 50%;
+    margin-left: -40px;
+    width: 80px;
+    background: var(--dark);
+    color: var(--gray);
+    font-size: 75px;
+    border-radius: 50px;
+    background-color: var(--yellow);
+    opacity: 0.5;
+    box-shadow: inset 0 0 0 1px var(--warning);
+}
+
 .restaurant-manage .floor-map .d-table .order-count.block {
     background: red !important;
 }

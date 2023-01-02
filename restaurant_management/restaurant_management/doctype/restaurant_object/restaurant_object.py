@@ -8,6 +8,8 @@ import frappe
 from frappe import _
 import random
 from frappe.model.document import Document
+from frappe.utils import get_datetime
+from datetime import timedelta
 
 
 class RestaurantObject(Document):
@@ -25,6 +27,12 @@ class RestaurantObject(Document):
         ))
 
     def on_update(self):
+        if self.customer:
+            current_reservation = self.current_reservation("customer")
+            
+            if current_reservation and current_reservation != self.customer:
+                frappe.throw(_("You can't set {0} because there is an active reservation for {1}").format(self.customer, current_reservation))
+
         self._on_update()
 
     def _on_update(self):
@@ -164,8 +172,6 @@ class RestaurantObject(Document):
 
     @property
     def orders_count(self):
-        settings = frappe.get_single("Restaurant Settings")
-
         if self.type == "Production Center":
             return self.orders_count_in_production_center
 
@@ -175,6 +181,7 @@ class RestaurantObject(Document):
         }
 
         if self.type == "Room":
+            settings = frappe.get_single("Restaurant Settings")
             filters["room"] = self.name
 
             if not settings.user_has_admin_role() and not settings.has_access_to_room(self.name):
@@ -218,7 +225,7 @@ class RestaurantObject(Document):
 
     def get_data(self):
         fields=["name", "description", "orders_count"] if self.type == "Room" else ["name", "type", "description", "no_of_seats", "identifier", "orders_count",
-                  "data_style", "min_size", "current_user", "color", "shape", "restricted_to_rooms", "restricted_to_tables", "restricted_to_branches"]
+                  "data_style", "min_size", "current_user", "color", "shape", "restricted_to_rooms", "restricted_to_tables", "restricted_to_branches", "customer"]
         data={}
 
         for field in fields:
@@ -230,6 +237,8 @@ class RestaurantObject(Document):
             data["restricted_rooms"] = self.restricted_rooms
             data["restricted_tables"] = self.restricted_tables
             data["restricted_branches"] = self.restricted_branches
+        else:
+            data["status"] = self.status
 
         return data
 
@@ -452,16 +461,34 @@ class RestaurantObject(Document):
     def _delete(self):
         self.delete()
 
-    def check_reservation(self, reservation=None):
-        if frappe.db.count("Restaurant Booking", filters=dict(table=self.name, status="Open")) > 0:
-            frappe.throw("This table is not available")
-            #return dict(status="Available")
+    def is_enabled_to_reservation(self, reservation=None):
+        if reservation is not None:
+            return frappe.db.count("Restaurant Booking", filters=dict(
+                table=self.name,
+                status=("in", ("Open", "Waitlisted")),
+                reservation_end_time=(">", get_datetime(get_datetime(reservation.reservation_time) - timedelta(minutes=30))),
+                reservation_time=("<", get_datetime(get_datetime(
+                    reservation.reservation_end_time) + timedelta(minutes=30))),
+                name=("!=", reservation.name)
+            )) == 0
         else:
-            booking=frappe.get_doc("Restaurant Booking", reservation)
-            
-            frappe.throw("This table is not available")
+            return frappe.db.count("Restaurant Booking", filters=dict(
+                table=self.name,
+                status=("in", ("Open", "Waitlisted")),
+                reservation_time=(">", get_datetime(get_datetime() - timedelta(minutes=30)))
+            )) == 0
+    
+    def current_reservation(self, field):        
+        return frappe.db.get_value("Restaurant Booking", dict(
+            table=self.name,
+            status=("in", ("Open", "Waitlisted")),
+            reservation_time=("<=", get_datetime(get_datetime() + timedelta(minutes=30))),
+            reservation_end_time=(">=", get_datetime(get_datetime() - timedelta(minutes=30)))
+        ), field or "name")
 
-        return False
+    @ property
+    def status(self):
+        return "Available" if self.is_enabled_to_reservation() else "Reserved"
 
 def load_json(data):
     import json

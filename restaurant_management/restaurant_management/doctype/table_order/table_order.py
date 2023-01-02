@@ -19,6 +19,9 @@ class TableOrder(Document):
         if self.link_invoice:
             return
 
+        if self.customer is None and self._table is not None:
+                self.customer = self._table.customer
+
         entry_items = self.items_list()
 
         if len(entry_items) == 0:

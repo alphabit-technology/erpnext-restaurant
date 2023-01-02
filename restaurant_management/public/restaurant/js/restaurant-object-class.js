@@ -280,8 +280,17 @@ RestaurantObject = class RestaurantObject {
                 class: `order-count ${hide_class}`,
                 style: `background-color: ${block_style}`
             },
-            content: '<span class="fa fa-cutlery" style="font-size: 12px"></span> {{text}}',
+            content: `<span class="fa fa-cutlery" style="font-size: 12px"></span> {{text}}`,
             text: this.data.orders_count
+        });
+
+        this.has_customer = frappe.jshtml({
+            tag: "span",
+            properties: {
+                class: `has-customer ${(this.data.customer || this.data.status === "Reserved") ? "" : "hide"}`,
+                style: `background-color: ${block_style}`
+            },
+            content: `<span class="fa fa-user has-customer-icon"></span>`// style="float:right; font-size: 20px; /*margin-right:6px; margin-top:3px*/"></span>`,
         });
 
         this.edit_button = frappe.jshtml({
@@ -327,6 +336,7 @@ RestaurantObject = class RestaurantObject {
             <div class="resize-handle c ne"></div><div class="resize-handle c nw"></div><div class="resize-handle c sw"></div><div class="resize-handle c se"></div>
 		    <div class="resize-handle b v w"></div><div class="resize-handle b v e"></div><div class="resize-handle b h n"></div><div class="resize-handle b h s"></div>
             ${this.indicator.html()}
+            ${this.has_customer.html()}
             ${this.description.html()}
 		</div>
 		<div class="d-toll-box">
@@ -364,8 +374,27 @@ RestaurantObject = class RestaurantObject {
                 return;
             }
 
+            const _open = () => {
+                if (this.order_manage == null) {
+                    this.order_manage = new OrderManage({
+                        table: this,
+                        identifier: RM.OMName(this.data.name)
+                    });
+                } else {
+                    this.order_manage.show();
+                }
+
+                RM.object(this.order_manage.identifier, this.order_manage);
+            }
+
             const open = () => {
                 RM.pos.check_opening_entry(RM.pos_profile.name).then(() => {
+                    if (RM.navigate_table){
+                        RM.navigate_table = null;
+                        _open();
+                        return;
+                    }
+                    
                     setTimeout(() => {
                         const dialog = new frappe.ui.Dialog({
                             title: __('Option for Table {0}', [this.data.description]),
@@ -374,41 +403,34 @@ RestaurantObject = class RestaurantObject {
                                     fieldtype: 'Column Break'
                                 },
                                 {
-                                    fieldtype: 'Button', label: __('Set a Customer'),
-                                    fieldname: "set_customer",
-                                    click: () => {
-                                        dialog.hide();
-                                    }
-                                },
-                                
-                                {
-                                    fieldtype: 'Column Break'
+                                    fieldtype: 'Link', label: __('Customer'),
+                                    fieldname: "customer",
+                                    options: "Customer",
+                                    default: this.data.customer,
+                                    /*get_query: () => {
+                                        return {
+                                            filters: {
+                                                "customer_group": RM.pos_profile.customer_group
+                                            }
+                                        }
+                                    }*/
                                 },
                                 {
                                     fieldtype: 'Button', fieldname: "open_table", label: __('Open Table'), primary: 1,
                                     click: () => {
-                                        dialog.hide();
-                                        if (this.order_manage == null) {
-                                            this.order_manage = new OrderManage({
-                                                table: this,
-                                                identifier: RM.OMName(this.data.name)
-                                            });
-                                        } else {
-                                            this.order_manage.show();
-                                        }
+                                        frappe.db.set_value("Restaurant Object", this.data.name, "customer", dialog.get_value("customer")).then(() => {
+                                            dialog.hide();
 
-                                        RM.object(this.order_manage.identifier, this.order_manage);
+                                            _open();
+                                        });
                                     }
                                 }
                             ]
                         });
+
                         Object.entries({ width: "100%", height: "50px", fontSize: "20px", fontWeight: "400" }).forEach(([key, value]) => {
-                            dialog.get_field("set_customer").input.style[key] = value;
                             dialog.get_field("open_table").input.style[key] = value;
                         });
-
-                        dialog.get_field("set_customer").input.style.marginLeft = "10px";
-                        dialog.get_field("open_table").input.style.marginLeft = "-5px";
 
                         dialog.show();
                     }, 0);
@@ -432,8 +454,26 @@ RestaurantObject = class RestaurantObject {
                     },
                     freeze: true
                 });
-            } else {
+            }else if(RM.reservation){
+                RM.reservation.set_value("table", this.data.name);
+
+                RM.reservation.save({
+                    success: r => {
+                        if (r.message) {
+                            RM.reservation = null;
+                            _open();
+                        }
+                    },
+                    error: r => {
+                        RM.reservation.show();
+                    },
+                    always: r => {
+                        RM.ready();
+                    }
+                });
+            }else{
                 RM.transfer_order = null;
+                RM.reservation = null;
                 RM.ready();
                 open();
             }
@@ -555,6 +595,12 @@ RestaurantObject = class RestaurantObject {
         )
         this.description.val(this.data.description);
         this.no_of_seats.val(this.data.no_of_seats);
+        if(this.data.customer || this.data.status === "Reserved"){
+            this.has_customer.remove_class("hide");
+        }else{
+            this.has_customer.add_class("hide");
+        }
+        //this.has_customer_display.val(this.data.has_customer_display);
     }
 
     set_orders_count() {

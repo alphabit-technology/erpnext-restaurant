@@ -20,7 +20,7 @@ class ProductItem {
 				<tbody>
 				<tr>
 					<td style="max-height: 60px;">
-						<div class="fields row">
+                        <div class="fields row" style="padding-top:10px">
 							<div class="search-field col-md-7">
 							</div>
 							<div class="item-group-field col-md-5">
@@ -92,6 +92,47 @@ class ProductItem {
             parent: this.wrapper.find('.item-group-field'),
             render_input: true
         });
+
+        const table_fields = [
+            {
+                fieldname: "customer", label: "Customer", fieldtype: "Link",
+                options: "Customer", in_list_view: 1, read_only: 1
+            },
+            {
+                fieldname: "reservation_time", label: "From", fieldtype: "Date",
+                in_list_view: 1, read_only: 1
+            },
+            {
+                fieldname: "reservation_end_time", label: "To", fieldtype: "Date",
+                in_list_view: 1, read_only: 1
+            }
+        ];
+
+        const fet_reservations = () => {
+            const data = this.order_manage.table.data;
+            const wrapper = this.wrapper.find('.reservation-field').append(`
+                <table class="layout-table">
+                    <tbody class="rows"></tbody>
+                </table>
+            `);
+
+            frappe.db.get_list("Restaurant Booking", {fields: ["*"], filters: {table: data.name}}).then(bookings => {
+                //rows.append(
+                wrapper.find('.rows').append(
+                    bookings.map(booking => {
+                        const row = $(`<tr></tr>`);
+                        row.append(
+                            table_fields.map(field => {
+                                return $(`<td>${booking[field.fieldname]}</td>`);
+                            })
+                        );
+                        return row; 
+                    })
+                );
+            });
+        }
+
+        fet_reservations();
     }
 
     init_clusterize() {

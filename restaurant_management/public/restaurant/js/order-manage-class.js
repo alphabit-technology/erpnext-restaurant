@@ -46,6 +46,7 @@ class OrderManage extends ObjectManage {
     reload() {
         if (!this.is_enabled_to_open()) return;
         this.modal.load_data();
+        this.make_reservation();
     }
 
     remove() {
@@ -55,7 +56,7 @@ class OrderManage extends ObjectManage {
 
     initialize() {
         if (!this.is_enabled_to_open()) return;
-        this.title = this.table.room.data.description + " (" + this.table.data.description + ")";
+        this.title = `${this.table.room.data.description} (${this.table.data.description}) ${this.table.data.customer || ""}`;
         this.modal = RMHelper.default_full_modal(
             this.title,
             () => {
@@ -102,6 +103,8 @@ class OrderManage extends ObjectManage {
             }
             this.transferring_order = false;
         }
+
+        this.make_reservation();
     }
 
     close() {
@@ -151,13 +154,95 @@ class OrderManage extends ObjectManage {
 
         this.modal.title_container.empty().append(
             RMHelper.return_main_button(this.title, () => this.modal.hide()).html()
-        )
+        );
 
         this.modal.buttons_container.prepend(`
 			${this.components.delete.html()}
             ${this.components.customer.html()}
 			${this.components.dinners.html()}
 		`);
+
+        this.make_reservation();
+    }
+
+    make_reservation(){
+        const fields = [
+            {
+                fieldname: "customer", label: "Customer"
+            },
+            {
+                fieldname: "reservation_time", label: "From"
+            },
+            /*{
+                fieldname: "reservation_end_time", label: "To"
+            }*/
+        ];
+
+        const fet_reservations = () => {
+            const data = this.table.data;
+            this.reservation_wrapper.empty().append(`
+                <table class="layout-table">
+                    <tbody class="rows"></tbody>
+                </table>
+            `);
+
+            const datesAreOnSameDay = (first, second) =>
+                first.getFullYear() === second.getFullYear() &&
+                first.getMonth() === second.getMonth() &&
+                first.getDate() === second.getDate();
+
+            frappe.db.get_list("Restaurant Booking", { 
+                fields: ["*"],
+                filters: { 
+                    table: data.name ,
+                    reservation_time: [">=", moment().startOf('day').format("YYYY-MM-DD HH:mm:ss")],
+                },
+                order_by: "reservation_time"
+            }).then(bookings => {
+                this.reservation_wrapper.JQ().find('.rows').append(
+                    bookings.map(booking => {
+                        const row = $(`<tr></tr>`);
+                        
+                        row.append(
+                            
+
+                            fields.map(field => {
+                                let value = booking[field.fieldname];
+
+                                if(field.fieldname == "customer"){
+                                    value = "<strong><span class='fa fa-user'></span></strong> " + booking.customer_name;
+                                }
+
+                                if (field.fieldname == "reservation_time") {
+                                    var a = moment(booking.reservation_end_time);
+                                    var b = moment();
+                                    const diff = a.diff(b, "days");
+                                    const join = " <strong style='color:orange;'>-></strong> ";
+
+                                    if (datesAreOnSameDay(new Date(booking.reservation_time), new Date(booking.reservation_end_time))){
+                                        if(diff < 7){
+                                            value = moment(value).calendar();
+                                        }else{
+                                            value = moment(value).format("LLLL");
+                                        }
+                                        value += join + moment(booking.reservation_end_time).format("h:mm a");
+                                    }else{
+                                        value = moment(value).calendar() + join + moment(booking.reservation_end_time).calendar();
+                                    }
+
+                                    value = "<strong><span class='fa fa-calendar'></span></strong> " + value;
+                                }
+
+                                return $(`<td>${value}</td>`);
+                            })
+                        );
+                        return row;
+                    })
+                );
+            });
+        }
+
+        fet_reservations();
     }
 
     template() {
@@ -179,6 +264,18 @@ class OrderManage extends ObjectManage {
             },
         });
 
+        this.reservation_wrapper = frappe.jshtml({
+            tag: 'div',
+            properties: {
+                class: "card-body",
+                style: "padding-top: 0px;"
+            },
+            content: `
+            <table class="layout-table">
+                <tbody class="rows"></tbody>
+            </table>`
+        });
+
         return `
 		<div class="order-manage" id="${this.identifier}">
 			<table class="layout-table">
@@ -188,6 +285,22 @@ class OrderManage extends ObjectManage {
 					</td>
 					<td class="erp-items" style="width: 100%">
 						<div class="content-container">
+                            <div id="accordion" style="padding:5px">
+                                <div style="border:var(--default_line); border-radius: 5px;">
+                                    <div id="headingOne">
+                                        <h5 class="mb-0">
+                                            <button style="margin-bottom:-15px" class="btn btn-link" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                                                <h4>${__("Reservations")}</h4>
+                                            </button>
+                                        </h5>
+                                    </div>
+
+                                    <div id="collapseOne" class="collapse" aria-labelledby="headingOne" data-parent="#accordion">
+                                        ${this.reservation_wrapper.html()}
+                                    </div>
+                                </div>
+                            </div>
+
 							${this.items_wrapper.html()}
                             <div style="overflow-y:auto;position:absolute;height:100%;width:calc(100% - 545px)">
                                 ${this.invoice_wrapper.html()}

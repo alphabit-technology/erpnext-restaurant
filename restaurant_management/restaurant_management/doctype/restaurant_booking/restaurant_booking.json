@@ -8,6 +8,8 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
+  "company",
+  "section_break_2",
   "status",
   "no_of_people",
   "reservation_time",
@@ -17,7 +19,8 @@
   "customer_name",
   "contact_number",
   "table",
-  "room"
+  "room",
+  "table_description"
  ],
  "fields": [
   {
@@ -81,11 +84,28 @@
    "fieldname": "room",
    "fieldtype": "Read Only",
    "label": "Room"
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_2",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fetch_from": "table.description",
+   "fieldname": "table_description",
+   "fieldtype": "Read Only",
+   "label": "Room"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2022-12-23 21:07:11.575866",
+ "modified": "2022-12-30 16:35:23.296073",
  "modified_by": "Administrator",
  "module": "Restaurant Management",
  "name": "Restaurant Booking",
@@ -106,7 +126,7 @@
  ],
  "quick_entry": 1,
  "restrict_to_domain": "Hospitality",
- "search_fields": "customer,customer_name,contact_number",
+ "search_fields": "customer,customer_name,contact_number,table_description",
  "sort_field": "modified",
  "sort_order": "DESC",
  "track_changes": 1

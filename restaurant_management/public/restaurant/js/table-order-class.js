@@ -559,7 +559,7 @@ class TableOrder {
             this.validate_items();
 
             if (this.pay_form == null) {
-                this.order_manage.invoice_wrapper.JQ().empty();
+                //this.order_manage.invoice_wrapper.JQ().empty();
 
                 this.pay_form = new PayForm({
                     order: this,
@@ -684,6 +684,20 @@ class CustomerEditor extends DeskForm {
         super.initialize();
     }
 
+    save() {
+        super.save({
+            success: () => {
+                this.hide();
+                if(this.order.pay_form){
+                    this.order.order_manage.toggle_main_section("pay");
+                    this.order.pay_form.set_value("customer", this.get_value("customer"));
+                }else{
+                    this.order.pay();
+                }
+            }
+        });
+    }
+
     async make(){
         await super.make();
 
@@ -707,6 +721,8 @@ class CustomerEditor extends DeskForm {
         });
 
         this.get_field("customer_primary_address").$wrapper.hide();
+
+        this.hide_field(["address", "delivery_address"]);
 
         setTimeout(() => {
             this.trigger(["customer_primary_address"], "change");

@@ -40,8 +40,14 @@ class PayForm extends DeskForm {
         });
     }
 
+    show() {
+        this.wrapper.removeClass("hide").addClass("show").siblings(".pay-form.show").removeClass("show").addClass("hide");
+        super.show();
+    }
+
     async make() {
         await super.make();
+        this.wrapper.addClass("pay-form");
 
         this.init_synchronize();
 
@@ -123,6 +129,8 @@ class PayForm extends DeskForm {
             const from_value = this.get_value(from);
             this.set_value(to, from_value);
         }
+
+        this.hide_field("is_delivery");
 
         this.on("is_delivery", "change", (field) => {
             if (field.get_value() === 1) {

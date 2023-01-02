@@ -1,6 +1,6 @@
 /**RestaurantManagement**/
 var RM = null;
-const [TRANSFER, UPDATE, DELETE, INVOICED, ADD, QUEUE, SPLIT] = ["Transfer", "Update", "Delete", "Invoiced", "Add", "queue", "Split"];
+const [TRANSFER, UPDATE, DELETE, INVOICED, ADD, QUEUE, SPLIT, DOUBLE_CLICK_DELAY] = ["Transfer", "Update", "Delete", "Invoiced", "Add", "queue", "Split", "double_click"];
 frappe.provide('erpnext.PointOfSale');
 
 frappe.pages['restaurant-manage'].on_page_load = function (wrapper) {
@@ -176,13 +176,13 @@ RestaurantManage = class RestaurantManage {
 			this.add_object("Production Center");
 		});
 
-		this.#components.reserve = frappe.jshtml({
+		this.#components.reservation = frappe.jshtml({
 			tag: "button",
-			properties: { class: "btn btn-danger", style:"font-size: 16px;"},
+			properties: { class: "btn btn-danger", style:"font-size: 16px; opacity: 0.6;"},
 			content: `<span class="fa fa-check"></span> ${__("Check In")}`
 		}).on("click", () => {
 			if(this.check_in){
-				this.check_in.reload();
+				//this.check_in.reload();
 				this.check_in.show();
 				return;
 			}else{
@@ -281,7 +281,7 @@ RestaurantManage = class RestaurantManage {
 						${this.components.add_production_center.html()}
 					</div>
 					<div class="floor-map-reserve">
-						${this.components.reserve.html()}
+						${this.components.reservation.html()}
 					</div>
 					<div class="floor-map-editor right">
 						${this.components.edit_room.html()}
