@@ -651,6 +651,8 @@ class ProductionCenterEditor extends DeskForm {
             this.get_field("restricted_tables").$wrapper[field.get_value() === 1 ? "show" : "hide"]();
         });
 
+        this.hide_field(["restricted_to_branches", "restricted_branches"]);
+
         setTimeout(() => {
             this.trigger(["restricted_to_parent_room", "restricted_to_rooms", "restricted_to_tables", "restricted_to_branches"], "change");
         }, 0);
