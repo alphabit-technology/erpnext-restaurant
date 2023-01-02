@@ -179,13 +179,13 @@ frappe.ui.form.on('POS Profile User', {
             script= """
 frappe.ui.form.on('Customer', {
     refresh(frm) {
-        if(!frm.doc.__islocal) {
+        /*if(!frm.doc.__islocal) {
             frm.add_custom_button(__('Restaurant Order'), function () {
                 window.crm_customer = frm.doc.name;
 
                 frappe.set_route('restaurant-manage');
             }, __('Create'));
-        }
+        }*/
     }
 })"""
         )
