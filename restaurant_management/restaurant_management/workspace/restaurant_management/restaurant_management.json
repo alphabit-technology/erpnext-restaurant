@@ -1,59 +1,94 @@
 {
  "category": "Modules",
- "charts_label": "Orders",
- "creation": "2021-04-27 14:16:35.253523",
+ "charts": [],
+ "creation": "2022-11-29 14:33:45.038200",
  "developer_mode_only": 0,
  "disable_user_customization": 0,
  "docstatus": 0,
  "doctype": "Workspace",
  "extends_another_page": 0,
+ "for_user": "",
  "hide_custom": 0,
+ "icon": "sell",
  "idx": 0,
  "is_default": 0,
  "is_standard": 1,
  "label": "Restaurant Management",
- "links": [],
- "modified": "2021-04-27 18:13:55.605857",
+ "links": [
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "POS Restaurant",
+   "link_to": "restaurant-manage",
+   "link_type": "Page",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Profile",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "POS Profile",
+   "link_to": "POS Profile",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Shift",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Opening Entry",
+   "link_to": "POS Opening Entry",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Settings",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Settings",
+   "link_to": "Restaurant Settings",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  }
+ ],
+ "modified": "2023-01-05 21:51:17.030615",
  "modified_by": "Administrator",
  "module": "Restaurant Management",
  "name": "Restaurant Management",
  "owner": "Administrator",
  "pin_to_bottom": 0,
  "pin_to_top": 0,
- "publish": 1,
  "shortcuts": [
   {
-   "doc_view": "",
-   "icon": "fa fa-gear",
-   "label": "Settings",
-   "link_to": "Restaurant Settings",
-   "type": "DocType"
-  },
-  {
-   "doc_view": "",
-   "icon": "fa fa-clone",
-   "label": "Objects",
-   "link_to": "Restaurant Object",
-   "type": "DocType"
-  },
-  {
-   "color": "#ff8989",
-   "doc_view": "",
-   "format": "{} Pending",
-   "icon": "fa fa-list-ul",
-   "label": "Order",
-   "link_to": "Table Order",
-   "stats_filter": "{ \"status\": \"Attending\" }",
-   "type": "DocType"
-  },
-  {
-   "doc_view": "",
-   "icon": "fa fa-cutlery ",
-   "label": "Restaurant",
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "POS Restaurant",
    "link_to": "restaurant-manage",
    "type": "Page"
   }
  ],
- "icon": "dashboard-list",
- "title": "POS Restaurant"
+ "title": "Restaurant Management",
+ "public": 1
 }
