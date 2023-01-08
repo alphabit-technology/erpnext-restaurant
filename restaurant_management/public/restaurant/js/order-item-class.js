@@ -51,13 +51,13 @@ class OrderItem {
         this.notes.val(this.data.notes);
         this.icon.val(`<i class="${ps.icon}" style="color: ${ps.color}"></i>`);
 
-        if(this.form_editor) this.form_editor.reload(this.data, false);
+        this.form_editor && this.form_editor.reload(this.data, false);
     }
 
     delete() {
         if (RM.busy_message() || !this.is_enabled_to_delete) return;
         this.data.qty = 0;
-        if(this.data.status === "Pending") {
+        if (this.data.status === "Pending") {
             this.order.delete_item(this.data.identifier);
         } else {
             this.update(true);
@@ -82,7 +82,8 @@ class OrderItem {
         this.order.current_item = this;
         this.order.order_manage.check_item_editor_status(this);
         this.row.toggle_common('media.event', 'selected');
-        
+        //this.order.order_manage.toggle_main_section("items");
+
         if (scroller) this.order.scroller();
     }
 
@@ -92,6 +93,7 @@ class OrderItem {
     }
 
     update(server = true) {
+        if (this.edit_item) return;
         if (this.data.qty === 0 && !this.is_enabled_to_delete) {
             frappe.throw(__("You do not have permissions to delete Items"));
         }
@@ -121,9 +123,10 @@ class OrderItem {
             method: this.data.qty > 0 ? "push_item" : "delete_item",
             args: { item: this.data.qty > 0 ? this.data : this.data.identifier },
             always: (r) => {
-                if(r.exc) {
+                if (r.exc) {
                     this.order.check_items({ items: [...Object.values(this.order.items).map(item => item.data), this.data] });
                 }
+                this.order.aggregate(true);
 
                 window.saving = false;
                 RM.ready();
@@ -142,7 +145,8 @@ class OrderItem {
         this.order.aggregate(true);
     }
 
-    calculate_form(input){
+    calculate_form(input, value) {
+        //console.log("calculate_form", input)
         /**TODO: merge with general order management function */
         const set_data = (qty, discount, rate) => {
             this.data.qty = qty;
@@ -151,7 +155,7 @@ class OrderItem {
         }
 
         if (input && ["qty", "rate", "discount_percentage"].includes(input)) {
-            const input_field = this.form_editor.get_field(input);
+            //const input_field = this.form_editor.get_field(input);
             if (!this.is_enabled_to_edit) {
                 return;
             }
@@ -166,7 +170,7 @@ class OrderItem {
             const base_rate = flt(this.data.price_list_rate);
 
             if (input === "qty") {
-                if (input_field.get_value() === 0 && this.is_enabled_to_delete) {
+                if (value === 0 && this.is_enabled_to_delete) {
                     frappe.msgprint(__("You do not have permissions to delete Items"));
                     return;
                 }
@@ -183,6 +187,8 @@ class OrderItem {
                 discount = _discount >= 0 ? _discount : 0
                 set_data(qty, discount, rate);
             }
+        } else {
+            this.data[input] = value;
         }
         /**merge with general order management function */
     }
@@ -240,7 +246,7 @@ class OrderItem {
 
         this.amount = frappe.jshtml({
             tag: 'a',
-            properties: { class: 'pull-right'},
+            properties: { class: 'pull-right' },
             content: RM.format_currency(this.data.amount)
         });
 
@@ -281,27 +287,15 @@ class OrderItem {
     }
 
     async make_form_editor() {
-        const update = () => {
-            this.calculate();
-            this.update();
-        }
-
-        if(this.form_editor){
+        if (this.form_editor) {
             const selected = this.row.has_class("selected");
             await this.form_editor.reload(this.data);
 
             this.form_editor[!selected || this.form_editor.in_modal ? "show" : "toggle"]();
-        }else{
-            this.form_editor = new DeskForm({
-                reload_from_doc: true,
-                primary_action_label: __("Update"),
-                primary_action: () => {
-                    update();
-                },
-                title: __("Item Editor"),
+        } else {
+            this.form_editor = new OrderItemEditor({
+                order_item: this,
                 location: this.form_editor_container.JQ(),
-                desk_form: RM.order_item_editor_form,
-                disabled_to_save: true,
                 doc: this.data,
                 field_properties: {
                     item_code: {
@@ -338,25 +332,8 @@ class OrderItem {
                             }
                         }
                     },
-                },
-                on_refresh_dependency: (self) => {
-                    this.check_status();
                 }
             });
-            
-            await this.form_editor.initialize();
-
-            ["qty", "rate", "discount_percentage", "notes", "batch_no"].forEach(fieldname => {
-                this.form_editor.fields_dict[fieldname].df.onchange = () => {
-                    setTimeout(() => {
-                        this.calculate_form(fieldname);
-
-                        this.form_editor.execute_primary_action();
-                    }, 100);
-                }
-            });
-
-            this.form_editor.get_input("notes").css("height", "100px");
         }
     }
 
@@ -370,7 +347,7 @@ class OrderItem {
                 this.form_editor.set_field_property(field_name, "read_only", !enabled);
             });
 
-            const pos_profile = RM.pos_profile
+            const pos_profile = RM.pos_profile;
 
             this.form_editor.set_field_property("qty", "read_only", !this.is_enabled_to_edit);
             this.form_editor.set_field_property("discount_percentage", "read_only", !this.is_enabled_to_edit || !pos_profile.allow_discount_change);
@@ -388,5 +365,44 @@ class OrderItem {
 			</small>` : ''
 
         return `${this.data.qty} x @${RM.format_currency(rate)} ${discount_info}`;
+    }
+}
+
+class OrderItemEditor extends DeskForm {
+    reload_from_doc = true;
+    primary_action_label = __("Update");
+    title = __("Item Editor");
+    desk_form = RM.order_item_editor_form;
+    disabled_to_save = true;
+
+    constructor(opts) {
+        super(opts);
+
+        this.order_item = opts.order_item;
+        super.initialize();
+    }
+
+    async make() {
+        await super.make();
+
+        const update = (field) => {
+            if (this.order_item.data[field.df.fieldname] === field.get_value()) return;
+
+            this.order_item.calculate_form(field.df.fieldname, field.get_value());
+            this.order_item.calculate();
+            this.order_item.update();
+        }
+
+        this.on(["qty", "rate", "discount_percentage", "batch_no"], "change", (field) => {
+            update(field);
+        });
+
+        this.get_input("notes").css("height", "100px").on("focusout", (e) => {
+            update(this.get_field("notes"));
+        });
+    }
+
+    on_refresh_dependency() {
+        this.order_item.check_status();
     }
 }
