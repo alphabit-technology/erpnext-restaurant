@@ -13,7 +13,7 @@ class CheckIn extends DeskForm{
     async make(){
         await super.make();
 
-        Object.entries({ width: "100%", height: "50px", fontSize: "18px", fontWeight: "400", }).forEach(([key, value]) => {
+        Object.entries({fontSize: "18px"}).forEach(([key, value]) => {
             this.get_field("save").input.style[key] = value;
             this.get_field("attend").input.style[key] = value;
             this.get_field("cancel").input.style[key] = value;
@@ -58,9 +58,14 @@ class CheckIn extends DeskForm{
         this.make_reservation_form();
 
         setTimeout(() => {
-            this.attend.remove_class("btn-default").add_class("btn-primary");
-            this.save.remove_class("btn-default").add_class("btn-warning");
-            this.cancel.remove_class("btn-default").add_class("btn-danger");
+            ["save", "attend", "cancel"].forEach((field_name) => {
+                this.super_container_field(field_name).style.padding = "5px";
+                //this.super_container_field(field_name).style.paddingRight = "unset";
+            });
+
+            this.attend.remove_class("btn-default btn-xs").add_class("btn-primary btn-lg btn-block");
+            this.save.remove_class("btn-default btn-xs").add_class("btn-warning btn-lg btn-block");
+            this.cancel.remove_class("btn-default btn-xs").add_class("btn-danger btn-lg btn-block");
             
             $(this.get_field("add_reservation_wrapper").wrapper[0]).show();
         }, 0);
@@ -190,6 +195,101 @@ class Reservation extends DeskForm {
             
             this.reservation_manage.trigger("i_have_reservation", "change");
         }, 0);
+    }
+
+    static render(table, wrapper) {
+        const id = RM.uuid();
+        const fields = [
+            {
+                fieldname: "customer", label: "Customer"
+            },
+            {
+                fieldname: "reservation_time", label: "From"
+            },
+        ];
+
+        wrapper.empty().append(`
+            <div id="${id}" style="padding:5px">
+                <div style="border:var(--default_line); border-radius: 5px;">
+                    <div id="headingOne">
+                        <h5 class="mb-0">
+                            <button style="margin-bottom:-15px" class="btn btn-link" data-toggle="collapse" data-target="#${id}-container" aria-expanded="true" aria-controls="collapseOne">
+                                <h4>${__("Reservations")}</h4>
+                            </button>
+                        </h5>
+                    </div>
+
+                    <div id="${id}-container" class="collapse" aria-labelledby="headingOne" data-parent="#${id}">
+                        <table class="table table-condensed no-border" style="margin:0;">
+                            <tbody class="rows"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        `);
+
+        const datesAreOnSameDay = (first, second) =>
+            first.getFullYear() === second.getFullYear() &&
+            first.getMonth() === second.getMonth() &&
+            first.getDate() === second.getDate();
+
+        frappe.db.get_list("Restaurant Booking", {
+            fields: ["*"],
+            filters: {
+                table: table,
+                reservation_time: [">=", moment().startOf('day').format("YYYY-MM-DD HH:mm:ss")],
+            },
+            order_by: "reservation_time"
+        }).then(bookings => {
+            if(bookings.length === 0){
+                wrapper.find('.rows').append(`
+                    <tr>
+                        <td colspan="2" style="text-align:center;">
+                            <h4>${__("No reservations for this table")}</h4>
+                        </td>
+                    </tr>
+                `);
+            }else{
+                wrapper.find('.rows').append(
+                    bookings.map(booking => {
+                        const row = $(`<tr></tr>`);
+
+                        row.append(
+                            fields.map(field => {
+                                let value = booking[field.fieldname];
+
+                                if (field.fieldname == "customer") {
+                                    value = "<strong><span class='fa fa-user'></span></strong> " + (booking.customer || booking.customer_name);
+                                }
+
+                                if (field.fieldname == "reservation_time") {
+                                    const end = moment(booking.reservation_end_time);
+                                    const start = moment();
+                                    const diff = end.diff(start, "days");
+                                    const join = " <strong style='color:orange;'>-></strong> ";
+
+                                    if (datesAreOnSameDay(new Date(booking.reservation_time), new Date(booking.reservation_end_time))) {
+                                        if (diff < 7) {
+                                            value = moment(value).calendar();
+                                        } else {
+                                            value = moment(value).format("LLLL");
+                                        }
+                                        value += join + moment(booking.reservation_end_time).format("h:mm a");
+                                    } else {
+                                        value = moment(value).calendar() + join + moment(booking.reservation_end_time).calendar();
+                                    }
+
+                                    value = "<strong><span class='fa fa-calendar'></span></strong> " + value;
+                                }
+
+                                return $(`<td>${value}</td>`);
+                            })
+                        );
+                        return row;
+                    })
+                );
+            }
+        });
     }
 }
 

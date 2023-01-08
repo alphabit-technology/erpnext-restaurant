@@ -397,7 +397,7 @@ RestaurantObject = class RestaurantObject {
                     
                     setTimeout(() => {
                         const dialog = new frappe.ui.Dialog({
-                            title: __('Option for Table {0}', [this.data.description]),
+                            title: __('Table {0}', [this.data.description]),
                             fields: [
                                 {
                                     fieldtype: 'Column Break'
@@ -414,6 +414,12 @@ RestaurantObject = class RestaurantObject {
                                             }
                                         }
                                     }*/
+                                },
+                                {
+                                    fieldtype: 'HTML', fieldname: "reservation"
+                                },
+                                {
+                                    fieldtype: 'Section Break'
                                 },
                                 {
                                     fieldtype: 'Button', fieldname: "open_table", label: __('Open Table'), primary: 1,
@@ -433,6 +439,8 @@ RestaurantObject = class RestaurantObject {
                         });
 
                         dialog.show();
+
+                        Reservation.render(this.data.name, dialog.get_field("reservation").$wrapper);
                     }, 0);
                 });
             }
@@ -550,6 +558,7 @@ RestaurantObject = class RestaurantObject {
         if(this.data.type === "Production Center") {
             if (this.ProductionCenterEditor) {
                 this.ProductionCenterEditor.show();
+                this.ProductionCenterEditor.reload(null, true);
             }else{
                 this.ProductionCenterEditor = new ProductionCenterEditor({
                     //doctype: "Restaurant Object",
