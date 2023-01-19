@@ -376,7 +376,7 @@ RestaurantObject = class RestaurantObject {
 
             const _open = () => {
                 if (this.order_manage == null) {
-                    this.order_manage = new OrderManage({
+                    this.order_manage = new OrderManageMob({
                         table: this,
                         identifier: RM.OMName(this.data.name)
                     });
@@ -394,8 +394,9 @@ RestaurantObject = class RestaurantObject {
                         _open();
                         return;
                     }
+                    _open();
                     
-                    setTimeout(() => {
+                    /*setTimeout(() => {
                         const dialog = new frappe.ui.Dialog({
                             title: __('Table {0}', [this.data.description]),
                             fields: [
@@ -407,13 +408,13 @@ RestaurantObject = class RestaurantObject {
                                     fieldname: "customer",
                                     options: "Customer",
                                     default: this.data.customer,
-                                    /*get_query: () => {
-                                        return {
-                                            filters: {
-                                                "customer_group": RM.pos_profile.customer_group
-                                            }
-                                        }
-                                    }*/
+                                    //get_query: () => {
+                                    //    return {
+                                    //        filters: {
+                                    //            "customer_group": RM.pos_profile.customer_group
+                                    //        }
+                                    //    }
+                                    //}
                                 },
                                 {
                                     fieldtype: 'HTML', fieldname: "reservation"
@@ -441,7 +442,7 @@ RestaurantObject = class RestaurantObject {
                         dialog.show();
 
                         Reservation.render(this.data.name, dialog.get_field("reservation").$wrapper);
-                    }, 0);
+                    }, 0)*/
                 });
             }
 

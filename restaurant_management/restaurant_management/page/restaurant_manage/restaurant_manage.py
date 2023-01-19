@@ -181,9 +181,25 @@ def get_customer_branches(doctype, txt, searchfield, start, page_len, filters):
             'link_name': link_name,'txt': '%%%s%%' % txt
         })
 
+@frappe.whitelist()
+def group_items_count():
+    groups = frappe.db.get_list("Item Group", fields=["name", "lft", "rgt"], order_by="lft asc")
+
+    items = []
+    for group in groups:
+        items.append(
+            dict(
+                item_group=group.name,
+                items_count=frappe.db.count("Item", filters={
+                    "item_group": ["in", frappe.db.sql_list("select name from `tabItem Group` where lft >= %s and rgt <= %s", (group.lft, group.rgt))]
+                })
+            )
+        )
+
+    return items
 
 @frappe.whitelist()
-def get_items(start, page_length, price_list, item_group, pos_profile, search_value=""):
+def get_items(start, page_length, price_list, item_group, pos_profile, search_value="", force_parent=0):
     data = dict()
     result = []
 
@@ -223,6 +239,8 @@ def get_items(start, page_length, price_list, item_group, pos_profile, search_va
         bin_join_selection = ", `tabBin` bin"
         bin_join_condition = "AND bin.warehouse = %(warehouse)s AND bin.item_code = item.name AND bin.actual_qty > 0"
 
+    item_group = "='%s'" % item_group if force_parent == '1' else "in (SELECT name FROM `tabItem Group` WHERE lft >= %s AND rgt <= %s)" % (lft, rgt)
+
     items_data = frappe.db.sql("""
 		SELECT
 			item.name AS item_code,
@@ -238,7 +256,7 @@ def get_items(start, page_length, price_list, item_group, pos_profile, search_va
 			AND item.has_variants = 0
 			AND item.is_sales_item = 1
 			AND item.is_fixed_asset = 0
-			AND item.item_group in (SELECT name FROM `tabItem Group` WHERE lft >= {lft} AND rgt <= {rgt})
+			AND item.item_group {item_group}
 			AND {condition}
 			{bin_join_condition}
 		ORDER BY
@@ -248,8 +266,7 @@ def get_items(start, page_length, price_list, item_group, pos_profile, search_va
         .format(
         start=start,
         page_length=page_length,
-        lft=lft,
-        rgt=rgt,
+        item_group=item_group,
         condition=condition,
         bin_join_selection=bin_join_selection,
         bin_join_condition=bin_join_condition

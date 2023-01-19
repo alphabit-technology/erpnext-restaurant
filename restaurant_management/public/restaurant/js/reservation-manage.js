@@ -19,6 +19,7 @@ class CheckIn extends DeskForm{
             this.get_field("cancel").input.style[key] = value;
         });
 
+        this.make_reservation_form();
         this.make_buttons();
 
         const set_reservation_form_doc_name = (doc_name) => {
@@ -40,9 +41,7 @@ class CheckIn extends DeskForm{
         });
 
         this.on("reservation", "change", (field) => {
-            const reservation = field.get_value();
-
-            set_reservation_form_doc_name(reservation);
+            set_reservation_form_doc_name(field.get_value());
         });
 
         this.set_field_property("reservation", "get_query", () => {
@@ -55,12 +54,9 @@ class CheckIn extends DeskForm{
             }
         });
 
-        this.make_reservation_form();
-
         setTimeout(() => {
             ["save", "attend", "cancel"].forEach((field_name) => {
                 this.super_container_field(field_name).style.padding = "5px";
-                //this.super_container_field(field_name).style.paddingRight = "unset";
             });
 
             this.attend.remove_class("btn-default btn-xs").add_class("btn-primary btn-lg btn-block");
@@ -146,6 +142,7 @@ class Reservation extends DeskForm {
 
     set_button_status() {
         const table = this.get_value("table_description");
+
         if (table && table.length > 0) {
             this.reservation_manage.get_field("attend").input.innerHTML = "Check In " + table;
             this.reservation_manage.save.enable();
@@ -181,12 +178,20 @@ class Reservation extends DeskForm {
         this.set_value("table", "");
     }
 
-    async make(){
-        await super.make();
+    on_reload() {
+        this.trigger("table_description", "change");
+    }
 
+    make_events() {
         this.on("table_description", "change", (field) => {
             this.set_button_status();
         });
+    }
+
+    async make(){
+        await super.make();
+
+        this.make_events();
 
         this.hide_field(["table", "room", "table_description"]);
 

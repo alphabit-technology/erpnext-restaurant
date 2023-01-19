@@ -8,6 +8,7 @@ ProcessManage = class ProcessManage {
         this.new_items_keys = [];
 
         this.initialize();
+        window["test"] = this;
     }
 
     reload() {

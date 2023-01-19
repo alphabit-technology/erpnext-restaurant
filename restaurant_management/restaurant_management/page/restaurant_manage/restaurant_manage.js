@@ -76,7 +76,9 @@ RestaurantManage = class RestaurantManage {
 			'js/reservation-manage.js',
 
 			'js/order-manage-class.js',
+			'js/order-manage-mob-class.js',
 			'js/product-item-class.js',
+			'js/items-tree-class.js',
 			'js/order-item-class.js',
 
 			'js/process-manage-class.js',

@@ -1,4 +1,4 @@
-class OrderManage extends ObjectManage {
+class OrderManageMob extends ObjectManage {
     #objects = {};
     #components = {};
     #items = {};
@@ -65,6 +65,10 @@ class OrderManage extends ObjectManage {
         );
     }
 
+    set_title() {
+        this.title = `${this.table.room.data.description} (${this.table.data.description}) ${this.table.data.customer || ""}`;
+    }
+
     is_enabled_to_open() {
         if (!RM.can_open_order_manage(this.table)) {
             this.close();
@@ -113,17 +117,20 @@ class OrderManage extends ObjectManage {
 
     make() {
         this.make_dom();
-        this.get_orders();
-        this.make_items();
-        this.make_edit_input();
-        this.make_pad();
 
-        if (this.transferring_order && this.current_order != null) {
-            this.current_order.edit_form = null;
-            this.current_order.divide_account_modal = null;
-            this.current_order.pay_form = null;
-            this.transferring_order = null;
-        }
+        setTimeout(() => {
+            this.get_orders();
+            this.make_items();
+            this.make_edit_input();
+            this.make_pad();
+
+            if (this.transferring_order && this.current_order != null) {
+                this.current_order.edit_form = null;
+                this.current_order.divide_account_modal = null;
+                this.current_order.pay_form = null;
+                this.transferring_order = null;
+            }
+        }, 100);
     }
 
     is_open() {
@@ -163,6 +170,35 @@ class OrderManage extends ObjectManage {
 		`);
 
         this.make_reservation();
+
+        setTimeout(() => {
+            this.empty_carts.show();
+
+            if (this.customer_editor) {
+                this.customer_editor.reload();
+            } else {
+                this.customer_editor = new DeskForm({
+                    form_name: `Table Customer`,
+                    doc_name: this.table.data.name,
+                    location: this.customer_wrapper.JQ(),
+                    on_save: () => {
+                        this.table.data.customer = this.customer_editor.doc.customer;
+                        this.set_title();
+                        this.modal.title_container.empty().append(
+                            RMHelper.return_main_button(this.title, () => this.modal.hide()).html()
+                        );
+                    },
+                    primary_action_label: "Save",
+                    after_load: () => {
+                        this.customer_editor.on("customer", "change", () => {
+                            this.customer_editor.save();
+                        });
+                    }
+                });
+
+                
+            }
+        }, 0);
     }
 
     make_reservation(){
@@ -172,12 +208,13 @@ class OrderManage extends ObjectManage {
     }
 
     template() {
+        const self = this;
         this.invoice_wrapper = frappe.jshtml({
             tag: 'div',
             properties: {
                 id: this.invoice_container_name,
                 class: 'product-list',
-                style: "height: 100%; padding: 20px;"
+                style: "height: 100%; overflow-y: auto;"
             },
         });
 
@@ -186,7 +223,15 @@ class OrderManage extends ObjectManage {
             properties: {
                 id: this.item_container_name,
                 class: 'product-list',
-                style: "height: 100%;"
+                style: "position: relative; height: 100%;"
+                //style: "height: calc(100% - 30px); overflow-y: auto;"
+            },
+        });
+
+        this.item_parent_wrapper = frappe.jshtml({
+            tag: 'div',
+            properties: {
+                style: "overflow-y: auto; display: flex;"
             },
         });
 
@@ -194,41 +239,106 @@ class OrderManage extends ObjectManage {
             tag: 'div'
         });
 
-        return `
-		<div class="order-manage" id="${this.identifier}">
-			<table class="layout-table">
-				<tr class="content-row">
-					<td>
-						<div class="order-container" id="${this.order_container_name}"></div>
-					</td>
-					<td class="erp-items" style="width: 100%">
-						<div class="content-container">
-                            ${this.reservation_wrapper.html()}
+        this.customer_wrapper = frappe.jshtml({
+            tag: 'div',
+            properties: {
+                class: 'col-md-12'
+            }
+        });
 
-							${this.items_wrapper.html()}
-                            <div style="overflow-y:auto;position:absolute;height:100%;width:calc(100% - 545px)">
-                                ${this.invoice_wrapper.html()}
+        const template = $(`
+        <style>
+            .om-mob-container {
+                flex-direction: column;
+                height: 100%;
+                display: none !important;
+                position: relative;
+            }
+            .om-mob-container.active {
+                display: block !important;
+            }
+        </style>
+		<div class="order-manage" id="${this.identifier}">
+            <div class="content-container" style="height:calc(100% - 40px);">
+                <div class="om-mob-container options active">
+                    <div class="options-container">
+                        <div class="customer-container">
+                            <div class="customer-wrapper">
                             </div>
-						</div>
-					</td>
-					<td class="container-order-items erp-items">
-						<div class="panel-order-items">
-							<ul class="products-list" id="${this.order_entry_container_name}">
-								
-							</ul>
-							${this.empty_carts.html()}
-							${this.not_selected_order.html()}
-						</div>
-						<table class="table no-border table-condensed panel-order-edit" id ="${this.editor_container_name}">
+                        </div>
+                         <div class="customer-container">
+                            ${this.customer_wrapper.html()}
+                        </div>
+                        <div class="reservation-container">
+                            ${this.reservation_wrapper.html()}
+                        </div>
+                    </div>
+                </div>
+                <div class="om-mob-container items">
+                    ${this.item_parent_wrapper.html()}
+                    ${this.items_wrapper.html()}
+                </div>
+                <div class="om-mob-container item-cart">
+                    <div class="panel-order-items" style="height: calc(100% - 336px); position: relative; width: 100%;overflow:auto;")>
+                        <ul class="products-list" id="${this.order_entry_container_name}">
+                            
+                        </ul>
+                        ${this.empty_carts.html()}
+                        ${this.not_selected_order.html()}
+                    </div>
+                    <table class="table no-border table-condensed panel-order-edit" style="position: absolute; bottom: 265px" id ="${this.editor_container_name}">
 						
-						</table>
-						<table class="table no-border order-manage-control-buttons pad-container" id="${this.pad_container_name}">
-						
-						</table>
-					</td>
-				</tr>
-			</table>
-		</div>`
+                    </table>
+                    <table class="table no-border order-manage-control-buttons pad-container" style="position: absolute; bottom: 0" id="${this.pad_container_name}">
+                    
+                    </table>
+                </div>
+            </div>
+            <footer class="footer-container" style="padding:5px; position: absolute;">
+                <div class="footer-buttons">
+                    <button class="btn btn-default btn-flat options-action item-action active" data-tab="options">
+                        <span class="fa fa-cog"></span> Options
+                    </button>
+                    <button class="btn btn-default btn-flat items-action item-action" data-tab="items">
+                        <span class="fa fa-list"></span> Items
+                    </button>
+                    <button class="btn btn-default btn-flat items-cart-action item-action" data-tab="item-cart">
+                        <span class="fa fa-shopping-cart"></span> ${__("Cart")}
+                        <span class="badge badge-pill badge-primary cart-count">0</span>
+                    </button>
+                </div>
+            </footer>
+
+		</div>`)
+
+        this.item_cart = template.find('.item-cart');
+        this.cart_count = template.find('.cart-count');
+
+        template.find('.item-action').click(function (){
+            $(this).addClass('active').siblings().removeClass('active');
+            const tab = $(this).data('tab');
+
+            template.find('.om-mob-container').hide().removeClass('active');
+            template.find(`.om-mob-container.${tab}`).show().addClass('active');
+
+            if (tab === 'item-cart'){
+                self.select_last_order();
+            }
+        });
+
+        return template;
+    }
+
+    get last_order() {
+        return this.last_child;
+    }
+    
+    select_last_order() {
+        if (this.last_order){
+            this.last_order.select();
+        }else{
+            this.add_order();
+        }
     }
 
     toggle_main_section(option){
@@ -700,7 +810,7 @@ class OrderManage extends ObjectManage {
     }
 
     make_items() {
-        this.#items = new ProductItem({
+        this.#items = new ItemsTree({
             wrapper: $(`#${this.item_container_name}`),
             order_manage: this,
         });
@@ -721,6 +831,7 @@ class OrderManage extends ObjectManage {
                 RM.ready();
                 if (typeof r.message != "undefined") {
                     RM.sound_submit();
+                    this.select_last_order();
                 }
             },
         });
@@ -821,6 +932,8 @@ class OrderManage extends ObjectManage {
         if (this.#components.new_order_button) {
             $(this.order_container).prepend(new_order_button.html());
         }
+
+        this.select_last_order();
     }
 
     append_order(order, current = null) {

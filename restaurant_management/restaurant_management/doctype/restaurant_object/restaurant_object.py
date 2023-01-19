@@ -33,6 +33,9 @@ class RestaurantObject(Document):
             if current_reservation and current_reservation != self.customer:
                 frappe.throw(_("You can't set {0} because there is an active reservation for {1}").format(self.customer, current_reservation))
 
+            frappe.msgprint(_("The table {0} is assigned to {1}").format(
+                self.description, self.customer), indicator='green', alert=True)
+
         self._on_update()
 
     def _on_update(self):
@@ -107,6 +110,9 @@ class RestaurantObject(Document):
         # last_user = self.current_user
         self.validate_transaction(frappe.session.user, from_crm)
 
+        if self.customer is None:
+            frappe.throw(_("You must set a customer to this table"))
+
         self.validate_table(from_crm)
 
         from erpnext.stock.get_item_details import get_pos_profile
@@ -116,10 +122,11 @@ class RestaurantObject(Document):
         pos_profile = get_pos_profile(company)
 
         order = frappe.new_doc("Table Order")
+        order.customer = self.customer
         if pos_profile:
             order.pos_profile = None if pos_profile is None else pos_profile.name
-            order.customer = frappe.db.get_value(
-                'POS Profile', pos_profile.name, 'customer')
+            #order.customer = frappe.db.get_value(
+            #    'POS Profile', pos_profile.name, 'customer')
             taxes_and_charges = frappe.db.get_value(
                 'POS Profile', pos_profile.name, 'taxes_and_charges')
             # if taxes_and_charges is None:

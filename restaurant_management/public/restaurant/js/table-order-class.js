@@ -49,7 +49,6 @@ class TableOrder {
 
             this.container = frappe.jshtml({
                 tag: "div",
-                properties: { style: "display: none;", class: `order-entry-container hide` },
                 wrapper: this.order_manage.order_entry_container
             });
 
@@ -225,15 +224,16 @@ class TableOrder {
         let test_item = null, current_item = null;
 
         items.forEach((item, index) => {
+            
             test_item = this.get_item(item.identifier) || this.add_locale_item(item);
-            if (test_item != null) {
+            if (test_item) {
                 test_item.data = item;
                 test_item.update(false);
-            }
-
-            if (test_item != null && test_item.data.qty > 0) {
-                test_item.order = this;
-                if (index === items.length - 1 && this.current_item == null) current_item = test_item;
+            
+                if (test_item.data.qty > 0) {
+                    test_item.order = this;
+                    if (index === items.length - 1 && this.current_item == null) current_item = test_item;
+                }
             }
         });
 
@@ -270,8 +270,7 @@ class TableOrder {
     }
 
     get_item(identifier) {
-        const item = this.items[identifier];
-        return typeof item == "undefined" ? null : item;
+        return this.items[identifier] || null;
     }
 
     get items_count() {
@@ -332,6 +331,7 @@ class TableOrder {
 
     show_items_count() {
         this.button.val(this.data.items_count);
+        this.order_manage.cart_count && this.order_manage.cart_count.text(this.data.items_count);
     }
 
     divide() {
@@ -563,7 +563,7 @@ class TableOrder {
 
                 this.pay_form = new PayForm({
                     order: this,
-                    location: this.order_manage.invoice_wrapper.JQ()
+                    //location: this.order_manage.invoice_wrapper.JQ()
                 });
             } else {
                 //await this.pay_form.reload(null, true);

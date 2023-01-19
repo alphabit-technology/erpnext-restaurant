@@ -19,8 +19,8 @@ class TableOrder(Document):
         if self.link_invoice:
             return
 
-        if self.customer is None and self._table is not None:
-                self.customer = self._table.customer
+        #if self.customer is None and self._table is not None:
+        #    self.customer = self._table.customer
 
         entry_items = self.items_list()
 
@@ -30,7 +30,8 @@ class TableOrder(Document):
         self.calculate_order(entry_items)
 
     def validate(self):
-        self.set_default_customer()
+        if self.customer is None and self._table is not None:
+            self.customer = self._table.customer
 
     def set_default_customer(self):
         if self.customer:
@@ -585,6 +586,10 @@ class TableOrder(Document):
         self.reload()
         item = self.items_list(item)
         self.synchronize(dict(items=item))
+
+    def before_save(self):
+        self.synchronize(dict(items=self.items_list()))
+        self._table.synchronize()
 
     @property
     def get_items(self):

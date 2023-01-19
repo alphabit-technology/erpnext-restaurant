@@ -1,43 +1,42 @@
 class ProductItem {
-    constructor({ wrapper, order_manage }) {
-        this.wrapper = wrapper;
-        this.order_manage = order_manage;
-        this.items = {};
-        this.currency = RM.pos_profile.currency;
+    have_search = true;
+    items = {};
+    currency = RM.pos_profile.currency;
+    constructor(opts) {
+        Object.assign(this, opts);
 
-        frappe.db.get_value("Item Group", { lft: 1, is_group: 1 }, "name", async (r) => {
-            this.parent_item_group = r.name;
+        //frappe.db.get_value("Item Group", { item_group: this.item_group }, "name", async (r) => {
+            this.parent_item_group = this.item_group;
             this.make_dom();
-            this.make_fields();
+            this.have_search && this.make_fields();
             this.init_clusterize();
-            await this.load_items_data();
-        });
+            this.load_items_data();
+        //});
     }
 
     make_dom() {
+        const search_field_wrapper = this.have_search ? $(`
+            <div class="fields row" style="padding-top:10px">
+                <div class="search-field col-md-7">
+                </div>
+                <div class="item-group-field col-md-5">
+                </div>
+            </div>
+        `) : '';
+                        
         this.wrapper.html(`
-			<table class="layout-table">
-				<tbody>
-				<tr>
-					<td style="max-height: 60px;">
-                        <div class="fields row" style="padding-top:10px">
-							<div class="search-field col-md-7">
-							</div>
-							<div class="item-group-field col-md-5">
-							</div>
-						</div>
-					</td>
-				</tr>
-				<tr>
-					<td class="items-wrapper" style="height: 100%"></td>
-				</tr>
-				</tbody>
-			</table>
+			<div class="layout-table" style="height:unset !important;">
+				${search_field_wrapper}
+				<div class="items-wrapper" style="height: 100%"></div>
+			</div>
 		`);
 
         this.items_wrapper = this.wrapper.find('.items-wrapper');
         this.items_wrapper.append(`
-			<div class="panel pos-items" style="height: 100%; overflow-y: auto; margin-bottom: 0" >
+			<div class="panel pos-items widget-group " style="height: 100%; overflow-y: auto; margin-bottom: 0;">
+                <div class="widget-group-body grid-col-3">
+                
+                </div>
 			</div>
 		`);
     }
@@ -111,14 +110,13 @@ class ProductItem {
         const fet_reservations = () => {
             const data = this.order_manage.table.data;
             const wrapper = this.wrapper.find('.reservation-field').append(`
-                <table class="layout-table">
+                <table class="layout-table" style="height:unset !important;">
                     <tbody class="rows"></tbody>
                 </table>
             `);
 
             frappe.db.get_list("Restaurant Booking", {fields: ["*"], filters: {table: data.name}}).then(bookings => {
-                //rows.append(
-                wrapper.find('.rows').append(
+                 wrapper.find('.rows').append(
                     bookings.map(booking => {
                         const row = $(`<tr></tr>`);
                         row.append(
@@ -138,7 +136,7 @@ class ProductItem {
     init_clusterize() {
         this.clusterize = new Clusterize({
             scrollElem: this.wrapper.find('.panel')[0],
-            contentElem: this.wrapper.find('.pos-items')[0],
+            contentElem: this.wrapper.find('.widget-group-body')[0],
             rows_in_block: 6
         });
     }
@@ -153,12 +151,13 @@ class ProductItem {
     get_items({ start = 0, page_length = 40, search_value = '', item_group = this.parent_item_group } = {}) {
         const price_list = RM.pos_profile.selling_price_list;
         const pos_profile = RM.pos_profile.name;
+        const force_parent = 0;
 
         return new Promise(res => {
             frappe.call({
-                method: "erpnext.selling.page.point_of_sale.point_of_sale.get_items",
+                method: RM.url_manage + 'get_items',
                 freeze: true,
-                args: { start, page_length, price_list, item_group, search_value, pos_profile }
+                args: { start, page_length, price_list, item_group, search_value, pos_profile, force_parent }
             }).then(r => {
                 res(r.message);
             });
@@ -166,10 +165,19 @@ class ProductItem {
     }
 
     render_items(items) {
-        const raw_items = Object.values(items || this.items).map(item => this.get_item_html(item));
+        const raw_items = Object.values(items || this.items)
+            //.filter(item => {console.log(item); return item.item_group === this.parent_item_group})
+            .map(item => this.get_item_html(item));
         raw_items.reduce((acc, item) => acc += item, '');
 
         this.clusterize.update(raw_items);
+
+        this.wrapper.find('[data-item-code]').on('click', (e) => {
+            const item_code = $(e.currentTarget).attr('data-item-code');
+            //console.log(item_code, this.items);
+            this.add_item_in_order(this.get(item_code));
+            //this.add_to_cart(item_code);
+        });
     }
 
     reset_items() {
@@ -202,7 +210,7 @@ class ProductItem {
             }
         } else if (item_group === this.parent_item_group) {
             this.items = this.all_items;
-            
+            S
             return this.render_items(this.all_items);
         }
 
@@ -264,19 +272,80 @@ class ProductItem {
 
     get_item_html(item) {
         const price_list_rate = format_currency(item.price_list_rate, this.currency);
-        const { item_code, item_name, item_image } = item;
+        const { item_code, item_name, item_image, description } = item;
         const item_title = item_name || item_code;
+        //const template = _template();
 
         return frappe.jshtml({
-            tag: "article",
-            properties: { class: "pos-item-wrapper product non-selectable" },
+            tag: "div",
+            properties: { 
+                class: "widget widget-shadow shortcut-widget-box",
+                style: "padding: 0; margin: 0;"
+            },
             content: template()
         }).on("click", () => {
             this.add_item_in_order(item);
         }).html();
 
+        /*const template = $(item_html);
+
+        const item_plus = $(template).find(".fa-plus");
+        const item_minus = $(template).find(".fa-minus");
+        const item_add_value = $(template).find(".item-add-value");
+        const add_item = $(template).find(".btn-add-item");
+
+        item_plus.on("click", () => {
+            console.log("plus")
+            item_add_value.text(parseInt($(template).find(".item-add-value").text()) + 1);
+        });
+
+        item_minus.on("click", () => {
+            if (parseInt($(template).find(".item-add-value").text()) > 1) {
+                item_add_value.text(parseInt(item_add_value.text()) - 1);
+            }
+            //this.add_item_in_order(item);
+        });
+
+        add_item.on("click", () => {
+            console.log("add")
+            this.add_item_in_order(item_add_value.text(), item);
+        });
+
+        return item_html;*/
+
         function template() {
             return `
+                <div class="small-box item">
+                    <div class="inner" style="position: inherit; z-index: 100">
+                        <h4 class="title">${item_title}</h4>
+                        <p>${description}</p>
+                    </div>
+                    <div class="icon">
+                        ${item_image ? `<img src="${item_image}" alt="${item_title}"></img>` : 
+                             `<span class="no-image placeholder-text" style="font-size: 72px; color: #d1d8dd;"> ${frappe.get_abbr(item_title)}</span>`}
+                    </div>
+                    <div class="small-box-footer" style="padding:3px; background-color: transparent;">
+                        <div class="form-group" style="position: absolute;">
+                            <div class="input-group bg-danger" style="border-radius: 5px; opacity: 0.9; background-color: #e24c4c47!important; color: black;">
+                                <div class="input-group-prepend" data-target="${item_name}-amount" data-value="1">
+                                    <span class="input-group-text fa fa-minus" style="background-color: transparent; border: none; color:orangered;"></span>
+                                </div>
+                                <div class="custom-file" style="display: block; padding-top:6px; min-width:20px;">
+                                    <strong class="item-add-value" data-ref="${item_name}-amount">1</strong>
+                                </div>
+                                <div class="input-group-append" data-target="${item_name}-amount" data-value="-1">
+                                    <span class="input-group-text fa fa-plus" style="background-color: transparent; border: none; color:orangered;"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <a class="btn btn-danger bg-danger" data-item-code="${item_code}" style="float:right;">
+                            <span class="sr-only">Add</span>
+                            Add ${price_list_rate}
+                        </a>
+                    </div>
+                </div>`;
+
+            /*return `
             <div class="product-img"> ${item_image ?
                 `<img src="${item_image}" alt="${item_title}">` : 
                 `<span class="placeholder-text" style="font-size: 72px; color: #d1d8dd;"> ${frappe.get_abbr(item_title)}</span>`}
@@ -286,7 +355,7 @@ class ProductItem {
 			</div>
 			<div class="product-name">
 				${item_title}
-			</div>`
+			</div>`*/
         }
     }
 

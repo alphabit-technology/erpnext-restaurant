@@ -8,26 +8,20 @@ class ObjectManage{
     append_child(opts) {
         const children = this.children;
         const child = opts.child || null;
-        const exist_f = opts.exist || null;
         const not_exist_f = opts.not_exist || null;
-        const always_f = opts.always || null;
 
         if(!child) return;
 
         if (this.has_child(child.name)) {
-            if(exist_f) exist_f(children[child.name]);
+            opts.exist && opts.exist(children[child.name]);
         } else {
             if(not_exist_f) this.#children[child.name] = not_exist_f();
         }
 
-        if(always_f){
-            always_f(this.get_child(child.name));
-        }
+        opts.always && opts.always(this.get_child(child.name));
 
         return this.get_child(child.name);
     }
-
-
 
     has_child(child){
         const children = this.children;
@@ -66,5 +60,53 @@ class ObjectManage{
 
     delete_child(child){
         if (this.has_child(child)) delete this.#children[child];
+    }
+
+    clear_children(){
+        this.#children = {};
+    }
+
+    get child_count(){
+        return Object.keys(this.children).length;
+    }
+
+    get child_names(){
+        return Object.keys(this.children);
+    }
+
+    get child_values(){
+        return Object.values(this.children);
+    }
+
+    get_child_by_name(name){
+        return this.get_child(name);
+    }
+
+    get_child_by_value(value){
+        let child = null;
+        this.in_child((c, key) => {
+            if (c == value) child = c;
+        });
+        return child;
+    }
+
+    get_child_by_index(index){
+        return this.child_values[index];
+    }
+
+    get_child_by_key(key){
+        return this.get_child(key);
+    }
+
+    get_child_by_keys(keys){
+        let child = this;
+        keys.forEach(key => {
+            child = child.get_child_by_key(key);
+        });
+        return child;
+    }
+
+    get last_child(){
+        return this.get_child_by_index(this.child_count - 1);
     }
 }

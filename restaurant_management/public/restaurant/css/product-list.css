@@ -1,18 +1,19 @@
-.erp-items .product-list {
-    padding: 0 10px 10px 10px;
+.product-list {
+    /*padding: 0 10px 10px 10px;*/
     text-align: left;
     -webkit-transform: translate3d(0, 0, 0);
 }
 
-.erp-items .product {
+.product {
     position: relative;
     vertical-align: top;
     display: inline-block;
     line-height: 100px;
     font-size: 11px;
-    margin: var(--margin-grid) !important;
-    width: 122px;
-    height: 115px;
+    /*margin: var(--margin-grid) !important;*/
+    /*width: 122px;*/
+    /*min-width: 300px;*/
+    height: 140px;
     background: #fff;
     border: var(--default_line);
     border-radius: 3px;
@@ -21,23 +22,30 @@
     cursor: pointer;
 }
 
+/*@media (100px <= width <= 600px) {.product {width: 100%;}}
+@media (600px <= width <= 800px) {.product {width: 50%;}}
+@media (800px <= width <= 1000px) {.product {width: 33.33333333333333%; }}
+@media (1000px <= width <= 1500px) {.product {width: 25%;}}
+@media (width > 1500px) {.product {width: 20%;}}*/
+
+
 article {
     display: block;
 }
 
-.erp-items .product .product-img {
+/*.erp-items .product .product-img {
     position: relative;
     width: 120px;
     height: 100px;
     background: white;
     text-align: center;
-}
+}*/
 
 div {
     display: block;
 }
 
-.erp-items .product .product-name {
+.product .product-name {
     color: var(--gray-dark);
     position: absolute;
     -webkit-box-sizing: border-box;
@@ -56,7 +64,7 @@ div {
     padding: 15px 3px 3px;
 }
 
-.erp-items .product .price-tag {
+.product .price-tag {
     position: absolute;
     top: 2px;
     right: 2px;
@@ -69,8 +77,96 @@ div {
     border-radius: 2px;
 }
 
-.erp-items .product .no-image {
+.product .no-image {
     font-size: 6em;
     padding-top: 25px;
-    color: #b0bac2
+    /*color: #b0bac2*/
+}
+
+
+
+
+
+.small-box.item {
+    background: #fff;
+    border: var(--default_line);
+    border-radius: 3px;
+    border-bottom-width: 2px;
+    padding-bottom: 3px;
+    overflow: hidden;
+    cursor: pointer;
+
+    display: block;
+    position: relative;
+    /*margin-bottom: 20px;
+    color: black;
+}
+
+
+.bg-info, .bg-info>a {
+    /*color: #fff!important;*/
+}
+
+.bg-info {
+    background-color: #17a2b8!important;
+}
+
+.bg-info {
+    background-color: #17a2b8!important;
+}
+
+.small-box>.inner {
+    padding: 10px;
+}
+
+.small-box .icon {
+    position: absolute;
+    float: right;
+    top: 3px;
+    right: 3px;
+    width: 100px;
+    height: 100px;
+    border-radius: 5px;
+}
+
+.small-box .icon>i.ion {
+    font-size: 70px;
+    top: 20px;
+}
+
+.small-box .icon>img {
+    width: 100%;
+    height: 100%;
+    border-radius: 10px;
+}
+
+.small-box .icon .no-image {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.small-box>.small-box-footer {
+    background-color: rgba(0,0,0,.1);
+    /*color: rgba(255,255,255,.8);*/
+    display: block;
+    padding: 3px 0;
+    position: relative;
+    text-align: center;
+    text-decoration: none;
+    z-index: 10;
+}
+
+.item .title {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0;
+    padding: 0;
+    line-height: 1.1;
+    color: #444 !important;
+    /*color: #fff;*/
+    text-shadow: 0 1px 1px rgba(0,0,0,.2);
+    position: relative;
+    z-index: 2;
 }
