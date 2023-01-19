@@ -570,7 +570,7 @@ class TableOrder {
                 this.pay_form.show();
             }
 
-            this.order_manage.toggle_main_section();
+            //this.order_manage.toggle_main_section();
         }
     }
 

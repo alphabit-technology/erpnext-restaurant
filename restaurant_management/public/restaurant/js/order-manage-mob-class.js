@@ -223,7 +223,7 @@ class OrderManageMob extends ObjectManage {
             properties: {
                 id: this.item_container_name,
                 class: 'product-list',
-                style: "position: relative; height: 100%;"
+                style: "position: relative; height: calc(100% - 35px); overflow: auto;"
                 //style: "height: calc(100% - 30px); overflow-y: auto;"
             },
         });
