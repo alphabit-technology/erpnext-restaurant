@@ -15,16 +15,21 @@ class ItemsTree {
 
     render_parent_group(groups) {
         const self = this;
+        //groups.push({ name: "Options", parent_item_group: null, icon: "fa fa-cog" });
+
         groups.forEach(group => {
+            const icon_class = group.name === "All Item Groups" ? "fa fa-list" : group.icon || "fa fa-chevron-right";
+            const style = group.name === "Options" ? "float: right; position:absolute; right:0;" : "";
             this.order_manage.item_parent_wrapper.append(`
-                <button class="btn btn-default btn-flat item-group-action" data-group="${group.name}">
-                    <span class="fa fa-check"></span> ${group.name}
+                <button class="btn btn-default btn-flat item-group-action" data-group="${group.name}" style="${style}">
+                    <span class="${icon_class}" icon-group="icon-group"></span>
+                    ${group.name === "All Item Groups" ? __("All") : group.name}
                 </button>
             `)
         });
 
         this.order_manage.item_parent_wrapper.find(".item-group-action").click(function (e) {
-            $(this).addClass('active').siblings().removeClass('active');
+            $(this).addClass('active').removeClass("text-muted").siblings().removeClass('active').addClass("text-muted");
             const item_group = $(this).attr('data-group');
 
             const filter = item_group === "All Item Groups" ? {name: item_group} : { parent_item_group: item_group };
@@ -39,13 +44,9 @@ class ItemsTree {
 
     make_dom() {
         this.wrapper.html(`
-			<div class="items-wrapper col-md-12 layout-main-section-wrapper" style="position:absolute; padding: 5px;">
-                <div class="layout-main-section frappe-card">
-                    
-                </div>
-
-                <div class="layout-main-section frappe-card">
-                    <div class="tree with-skeleton opened">
+			<div class="items-wrapper col-md-12 ayout-main-section-wrapper" style="padding: 0; min-width: 330px;">
+                <div class="layout-main-section frappe-card" style="background-color:unset !important;">
+                    <div class="tree with-skeleton opened" style="padding:0;">
                     
                     </div>
                 </div>
@@ -60,7 +61,7 @@ class ItemsTree {
             const icon = frappe.jshtml({
                 tag: "use",
                 properties: {
-                    href: (item.is_group ? "#icon-folder-normal" : "#icon-primitive-dot")
+                    href: "#icon-right"
                 }
             });
 
@@ -72,41 +73,45 @@ class ItemsTree {
                 content: 0
             });
 
-            const node = frappe.jshtml({
+            const action = frappe.jshtml({
                 tag: "li",
                 properties: {
-                    class: "tree-node"
+                    class: "tree-node",
+                    style: `padding-top: 5px; ${item.name === "All Item Groups" ? "display: none;" : ";"}`
                 },
                 content: `
-                    <span class="tree-label" data-children="${item.name}"></span>
-                    <svg class="icon icon-${item.is_group ? 'md' : 'xs'}" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
-                        ${icon.html()}
-                    </svg>
+                    <span class="tree-item">
+                        <span class="tree-label" data-children="${item.name}"></span>
+                        <svg class="icon icon-md" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                            ${icon.html()}
+                        </svg>
+                        </span">
+                            <a class="tree-label"> ${item.name}</a>
+                            ${this[`${item.name}_count`].html()}
+                        </span>
                     </span>
-                        <a class="tree-label"> ${item.name}</a>
-                        ${this[`${item.name}_count`].html()}
-                    </span>
-
-                    <ul class="tree-children" area-children="${item.name}" style="display:none;"></ul>
-                    <div class="col md-12" area-items="${item.name}" style="display:none;">
-
-                    </div>
                 `
             });
 
-            wrapper.append(node.html());
+            wrapper.append(`
+                <li class="tree-node">
+                    ${action.html()}
+                    <ul class="tree-children" area-children="${item.name}" style="display:none;"></ul>
+                    <div class="col md-12" area-items="${item.name}" style="display:none; top: 5px;">
+
+                    </div>
+                </li>
+            `);
 
             const open_children = () => {
-                const children_wrapper = node.find(`[area-children="${item.name}"]`);
-                const items_container = node.find(`[area-items="${item.name}"]`);
+                const children_wrapper = wrapper.find(`[area-children="${item.name}"]`);
+                const items_container = wrapper.find(`[area-items="${item.name}"]`);
 
-                if (item.is_group) {
-                    const children = data.filter(group => (group.parent_item_group === item.name));
-                    this.render_tree(children, children_wrapper);
-
-                    children_wrapper.toggle();
-                    icon.obj.setAttribute("href", `#icon-folder-${children_wrapper.is(":visible") ? 'open' : 'normal'}`)                   
-                }
+                const children = data.filter(group => (group.parent_item_group === item.name));
+                
+                this.render_tree(children, children_wrapper);
+                children_wrapper.toggle();
+                icon.obj.setAttribute("href", `#icon-${children_wrapper.is(":visible") ? 'down' : 'right'}`);
 
                 items_container.empty().toggle();
 
@@ -120,11 +125,13 @@ class ItemsTree {
                 this.update_items_count();
             }
 
+            this.update_items_count();
             setTimeout(() => {
-                opened && open_children();
+                item.name === "All Item Groups" && open_children();
+                //opened && open_children();
             }, 0);
 
-            node.on('click', (e) => {
+            action.on('click', (e) => {
                 open_children();
             });
         });

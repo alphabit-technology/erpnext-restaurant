@@ -26,6 +26,7 @@ RestaurantObject = class RestaurantObject {
                 if (this.room.data.name === RM.current_room.data.name) {
                     if (data.action === UPDATE) {
                         this.set_data_style(null, null, data.data.data_style, data.data.color);
+                        const last_group_by = this.data.group_items_by_order; 
                         this.reset_data(data.data);
 
                         if (this.edit_form != null) {
@@ -33,7 +34,7 @@ RestaurantObject = class RestaurantObject {
                         }
 
                         if (this.process_manage != null) {
-                            this.process_manage.reload();
+                            this.process_manage.reload(last_group_by !== this.data.group_items_by_order);
                         }
                     } else if (data.action === DELETE) {
                         this.remove();

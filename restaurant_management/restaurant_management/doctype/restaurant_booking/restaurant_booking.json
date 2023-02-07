@@ -59,13 +59,13 @@
    "options": "Customer"
   },
   {
+   "fetch_from": "customer.name",
    "fieldname": "customer_name",
-   "fieldtype": "Data",
+   "fieldtype": "Read Only",
    "in_global_search": 1,
    "in_list_view": 1,
    "in_standard_filter": 1,
-   "label": "Customer Name",
-   "reqd": 1
+   "label": "Customer Name"
   },
   {
    "fieldname": "contact_number",
@@ -105,7 +105,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2022-12-30 16:35:23.296073",
+ "modified": "2023-02-06 20:14:14.664594",
  "modified_by": "Administrator",
  "module": "Restaurant Management",
  "name": "Restaurant Booking",

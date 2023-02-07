@@ -2,7 +2,7 @@ class PayForm extends DeskForm {
     payment_methods = {};
     form_name = "Payment Order";
     has_primary_action = false;
-    
+
     constructor(options) {
         super(options);
 
@@ -40,14 +40,8 @@ class PayForm extends DeskForm {
         });
     }
 
-    show() {
-        this.wrapper.removeClass("hide").addClass("show").siblings(".pay-form.show").removeClass("show").addClass("hide");
-        super.show();
-    }
-
     async make() {
         await super.make();
-        this.wrapper.addClass("pay-form");
 
         this.init_synchronize();
 
@@ -77,15 +71,15 @@ class PayForm extends DeskForm {
 
         this.on(["delivery_branch", "address"], "change", () => {
             const set_reqd_status = (delivery_branch) => {
-                if(this.is_delivery){
-                    if(delivery_branch){
+                if (this.is_delivery) {
+                    if (delivery_branch) {
                         this.set_field_property(["delivery_date", "pick_time", "branch"], "reqd", 1);
                         this.set_field_property("address", "reqd", 0);
-                    }else{
+                    } else {
                         this.set_field_property(["delivery_date", "pick_time", "branch"], "reqd", 0);
                         this.set_field_property("address", "reqd", 1);
                     }
-                }else{
+                } else {
                     this.set_field_property(["delivery_date", "pick_time", "branch", "address"], "reqd", 0);
                 }
             }
@@ -105,7 +99,7 @@ class PayForm extends DeskForm {
                 ["delivery_address", "charge_amount"].forEach(fieldname => {
                     this.get_field(fieldname).$wrapper.hide();
                 });
-            }else{
+            } else {
                 this.set_field_property("branch", {
                     read_only: 1,
                     reqd: 0,
@@ -124,20 +118,18 @@ class PayForm extends DeskForm {
 
             this.get_delivery_address();
         });
-        
+
         const set_related = (from, to) => {
             const from_value = this.get_value(from);
             this.set_value(to, from_value);
         }
-
-        this.hide_field("is_delivery");
 
         this.on("is_delivery", "change", (field) => {
             if (field.get_value() === 1) {
                 this.get_field("delivery_options").wrapper[0].style.display = "block";
                 this.set_field_property("dinners", "reqd", 0);
                 this.get_field("dinners").$wrapper.hide();
-            }else{
+            } else {
                 this.get_field("delivery_options").wrapper[0].style.display = "none";;
                 this.set_field_property(["delivery_date", "pick_time", "branch", "address"], "reqd", 0);
                 this.set_field_property("dinners", "reqd", 1);
@@ -154,7 +146,7 @@ class PayForm extends DeskForm {
         this.on("customer_primary_address", "change", () => {
             set_related("customer_primary_address", "address");
         });
-        
+
         this.on("address_branch", "change", () => {
             set_related("address_branch", "branch");
         });
@@ -164,32 +156,111 @@ class PayForm extends DeskForm {
 
         this.hide_support_elements();
 
-        Object.entries({width: "100%", height: "60px", fontSize: "25px", fontWeight: "400", }).forEach(([key, value]) => {
-            this.get_field("place_order").input.style[key] = value;
-            this.get_field("payment_button").input.style[key] = value;
-        });
-
-        this.get_field("place_order").input.addEventListener("click", () => {
-            this.save({
-                success: () => {
-                    this.order.select(true,false);
-                    RM.ready("Order Placed");
-                }
-            });
-        });
         
-        this.make_inputs();
-        this.make_payment_button();
+
         set_address_query();
 
+        this.make_actions();
+
         setTimeout(() => {
-            this.payment_button.remove_class("btn-default").add_class("btn-primary");
             this.disable_input("payment_button", !RM.can_pay);
             this.trigger(["delivery_branch", "is_delivery"], "change");
         }, 0);
+        setTimeout(() => {
+            this.make_inputs();
+        }, 300);
     }
 
-    disable_input(input, value = true){
+    make_actions() {
+        this.get_field("actions").$wrapper.append(`
+            <div class='widget-group'>
+                <div class="widget-group-body grid-col-2"></div>
+            </div>
+        `)
+
+        this.add_action({
+            name: "save", label: "Save", action: () => {
+                this.save({
+                    success: () => {
+                        this.order.select(true, false);
+                        RM.ready("Order Placed");
+                    }
+                });
+            }, opts: { classes: "btn btn-success" }
+        });
+
+        this.add_action({ name: "complete", label: "Complete", opts: { classes: "btn btn-info" } });
+        this.add_action({ name: "cancel", label: "Cancel", opts: { classes: "btn btn-danger" } });
+        this.add_action({ name: "pay", label: "Pay", opts: { classes: "btn btn-primary" } });
+
+        this.make_payment_button();
+        this.make_order_button();
+        this.make_cancel_button();
+    }
+
+    add_action({ name, label, action, opts } = {}) {
+        const classes = opts && opts.classes ? opts.classes : "";
+        const style = opts && opts.style ? opts.style : "";
+
+        const element = this.get_field("actions").$wrapper.find(".widget-group-body").append(`
+            <button class="widget widget-shadow shortcut-widget-box ${classes}"
+                style="align-items:center;${style}"
+                data-widget-name="${name}"
+            >
+                ${this.action_content(label)}
+            </button>
+            `);
+
+        action && element.find(`[data-widget-name="${name}"]`).on("click", action);
+
+        return element;
+    }
+
+    action_content(value, template = "") {
+        return `
+        <div class="widget-head">
+            <div>
+                <div class="widget-title ellipsis" style="font-size: 1.5em;">${template} ${value}</div>
+                    <div class="widget-subtitle"></div>
+                </div>
+                <div class="widget-control"></div>
+            </div>
+        </div>`
+    }
+
+    make_payment_button() {
+        this.payment_button = frappe.jshtml({
+            from_html: this.get_field("actions").$wrapper.find(`[data-widget-name="pay"]`).get(0),
+            content: this.action_content(this.order.total_money, "{{text}}"),
+            text: `${__("Pay")}`
+        }).on("click", () => {
+            if (!RM.can_pay) return;
+            this.payment_button.disable().val(__("Paying"));
+            this.send_payment();
+        }, !RM.restrictions.to_pay ? DOUBLE_CLICK : null).prop("disabled", !RM.can_pay);
+    }
+
+    make_order_button() {
+        this.order_button = frappe.jshtml({
+            from_html: this.get_field("actions").$wrapper.find(`[data-widget-name="complete"]`).get(0),
+            content: this.action_content("", "{{text}}"),
+            text: `${__("Complete")}`
+        }).on("click", () => {
+            frappe.db.set_value("Table Order", this.order.data.name, "status", "Sent");
+        }, DOUBLE_CLICK);
+    }
+
+    make_cancel_button() {
+        this.order_button = frappe.jshtml({
+            from_html: this.get_field("actions").$wrapper.find(`[data-widget-name="cancel"]`).get(0),
+            content: this.action_content("", "{{text}}"),
+            text: `${__("Cancel")}`
+        }).on("click", () => {
+            frappe.db.set_value("Table Order", this.order.data.name, "status", "Cancelled");
+        }, DOUBLE_CLICK);
+    }
+
+    disable_input(input, value = true) {
         const field = this.get_field(input);
         field && field.input && (field.input.disabled = value);
     }
@@ -209,23 +280,23 @@ class PayForm extends DeskForm {
         const type_delivery = this.get_value("delivery_branch") === 1 ? "Branch" : "Address";
         const address = this.get_value("address");
 
-        if(type_delivery === "Address" && address.length === 0){
+        if (type_delivery === "Address" && address.length === 0) {
             this.set_value("delivery_address", "");
             this.set_value("charge_amount", 0);
             return
         };
 
-        if(type_delivery === "Branch"){
+        if (type_delivery === "Branch") {
             this.set_value("delivery_address", "");
             this.set_value("charge_amount", 0);
             return
         };
-        
+
         frappeHelper.api.call({
             model: "Table Order",
             name: this.order.data.name,
             method: "get_delivery_address",
-            args: {origin: "Address", ref: address},
+            args: { origin: "Address", ref: address },
             always: (r) => {
                 if (r.message) {
                     this.set_value("delivery_address", r.message.address);
@@ -241,7 +312,7 @@ class PayForm extends DeskForm {
         });
     }
 
-    async reload(){
+    async reload() {
         await super.reload(null, true);
         this.update_paid_value();
     }
@@ -261,6 +332,10 @@ class PayForm extends DeskForm {
                 this.order.order_manage.num_pad.input = obj;
             }).float();
 
+            window["mode_of_payment"] = this.payment_methods[mode_of_payment.mode_of_payment]
+
+            console.log(["Mode of Payment", mode_of_payment.mode_of_payment, this.payment_methods[mode_of_payment.mode_of_payment]])
+
             if (mode_of_payment.default === 1) {
                 this.payment_methods[mode_of_payment.mode_of_payment].val(this.order.data.amount);
 
@@ -270,7 +345,7 @@ class PayForm extends DeskForm {
                 }, 200);
             }
 
-            payment_methods += this.form_tag (
+            payment_methods += this.form_tag(
                 mode_of_payment.mode_of_payment, this.payment_methods[mode_of_payment.mode_of_payment]
             );
         });
@@ -293,23 +368,6 @@ class PayForm extends DeskForm {
                 ${input.html()}
             </div>
          </div>`
-    }
-    
-    make_payment_button() {
-        this.payment_button = frappe.jshtml({
-            from_html: this.get_field("payment_button").input,
-            properties: {
-                type: "button",
-                class: `btn btn-primary btn-lg btn-flat`,
-                style: "width: 100%; height: 60px;"
-            },
-            content: `<span style="font-size: 25px; font-weight: 400">{{text}} ${this.order.total_money}</span>`,
-            text: `${__("Pay")}`
-        }).on("click", () => {
-            if (!RM.can_pay) return;
-            this.payment_button.disable().val(__("Paying"));
-            this.send_payment();
-        }, !RM.restrictions.to_pay ? DOUBLE_CLICK : null).prop("disabled", !RM.can_pay);
     }
 
     get payments_values() {
@@ -374,7 +432,7 @@ class PayForm extends DeskForm {
             error: (r) => {
                 RM.ready();
                 this.reset_payment_button();
-                if(r !== false && typeof r === "string") {
+                if (r !== false && typeof r === "string") {
                     frappe.msgprint(r);
                 }
             }
@@ -433,7 +491,7 @@ class PayForm extends DeskForm {
     }
 
     set_total_payment() {
-        if(this.payment_button) {
+        if (this.payment_button) {
             this.payment_button.set_content(`<span style="font-size: 25px; font-weight: 400">{{text}} ${this.order.total_money}</span>`);
             this.payment_button.val(__("Pay"));
         }

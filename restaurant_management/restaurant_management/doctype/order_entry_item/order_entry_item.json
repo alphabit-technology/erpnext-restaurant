@@ -30,7 +30,11 @@
   "has_serial_no",
   "serial_no",
   "room",
-  "branch"
+  "branch",
+  "room_description",
+  "sub_items",
+  "from_customize",
+  "is_customizable"
  ],
  "fields": [
   {
@@ -120,8 +124,9 @@
    "label": "Item Tax Rate"
   },
   {
+   "fetch_from": "table.description",
    "fieldname": "table_description",
-   "fieldtype": "Data",
+   "fieldtype": "Read Only",
    "label": "Table Description"
   },
   {
@@ -174,8 +179,9 @@
   },
   {
    "fieldname": "table",
-   "fieldtype": "Read Only",
-   "label": "Table"
+   "fieldtype": "Link",
+   "label": "Table",
+   "options": "Restaurant Object"
   },
   {
    "fieldname": "room",
@@ -186,12 +192,35 @@
    "fieldname": "branch",
    "fieldtype": "Read Only",
    "label": "Branch"
+  },
+  {
+   "fetch_from": "room.description",
+   "fieldname": "room_description",
+   "fieldtype": "Read Only",
+   "label": "Room Description"
+  },
+  {
+   "fieldname": "sub_items",
+   "fieldtype": "Text",
+   "label": "Sub Items"
+  },
+  {
+   "default": "0",
+   "fieldname": "from_customize",
+   "fieldtype": "Check",
+   "label": "From Customize"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_customizable",
+   "fieldtype": "Check",
+   "label": "Is Customizable"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2022-12-21 21:12:12.972762",
+ "modified": "2023-02-05 20:23:19.528835",
  "modified_by": "Administrator",
  "module": "Restaurant Management",
  "name": "Order Entry Item",

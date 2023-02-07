@@ -11,6 +11,7 @@
   "customer",
   "status",
   "is_delivery",
+  "show_in_pos",
   "column_break_2",
   "table_description",
   "room_description",
@@ -44,7 +45,8 @@
   "amount",
   "amended_from",
   "section_break_32",
-  "notes"
+  "notes",
+  "ordered_time"
  ],
  "fields": [
   {
@@ -61,9 +63,9 @@
   },
   {
    "fieldname": "status",
-   "fieldtype": "Select",
+   "fieldtype": "Link",
    "label": "Status",
-   "options": "Attending\nInvoiced"
+   "options": "Status Order PC"
   },
   {
    "fetch_from": "table.room",
@@ -269,12 +271,23 @@
    "fieldname": "charge_amount",
    "fieldtype": "Read Only",
    "label": "Charge Amount"
+  },
+  {
+   "default": "1",
+   "fieldname": "show_in_pos",
+   "fieldtype": "Check",
+   "label": "Show in POS"
+  },
+  {
+   "fieldname": "ordered_time",
+   "fieldtype": "Datetime",
+   "label": "Ordered Tyme"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2022-12-12 08:45:41.771245",
+ "modified": "2023-02-06 15:32:17.364927",
  "modified_by": "Administrator",
  "module": "Restaurant Management",
  "name": "Table Order",

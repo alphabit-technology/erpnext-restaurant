@@ -29,12 +29,24 @@ custom_fields = {
     ),
     "POS Invoice Item": dict(
         identifier=dict(label="Identifier", fieldtype="Data"),
+        from_customize=dict(label="From Customize", fieldtype="Check"),
+        customize_parent=dict(label="Customize Parent", fieldtype="Data", hidden=1),
     ),
     "Sales Invoice Item": dict(
         identifier=dict(label="Identifier", fieldtype="Data"),
+        from_customize=dict(label="From Customize", fieldtype="Check"),
+        customize_parent=dict(label="Customize Parent", fieldtype="Data", hidden=1),
     ),
     "Address": dict(
         branch=dict(label="Branch", fieldtype="Link", options="Branch", insert_after="address_line1"),
+    ),
+    "Item Group": dict(
+        icon=dict(label="Icon", fieldtype="Data"),
+    ),
+    "Item": dict(
+        customizable=dict(label="Customizable", fieldtype="Section Break", insert_after="description", collapsible=1),
+        is_customizable=dict(label="Is Customizable", fieldtype="Check", insert_after="customizable", description="If checked, the item will be customizable"),
+        customizable_options=dict(label="Customizable Options", fieldtype="Table", options="Item Customizable", insert_after="is_customizable")
     ),
     #"Delivery Charges": dict(
     #    shipping_rule=dict(label="Shipping Rule", fieldtype="Link",

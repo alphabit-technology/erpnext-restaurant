@@ -104,7 +104,22 @@ RestaurantManage = class RestaurantManage {
 			this.make();
 		});
 
-		
+		this.onResize(() => {
+			this.is_mobile = window.innerWidth < 768;
+			this.is_tablet = window.innerWidth < 992;
+			this.is_desktop = window.innerWidth >= 992;
+			this.is_landscape = window.innerWidth > window.innerHeight;
+			this.is_portrait = window.innerWidth < window.innerHeight;
+			this.is_small = window.innerWidth < 576;
+		});
+	}
+
+	onResize(fn) {
+		window.addEventListener('resize', () => {
+			fn();
+		});
+
+		fn();
 	}
 
 	make() {
@@ -180,7 +195,7 @@ RestaurantManage = class RestaurantManage {
 
 		this.#components.reservation = frappe.jshtml({
 			tag: "button",
-			properties: { class: "btn btn-danger", style:"font-size: 16px; opacity: 0.6;"},
+			properties: { class: "btn btn-danger", style:"font-size: 16px; opacity: 0.8;"},
 			content: `<span class="fa fa-check"></span> ${__("Check In")}`
 		}).on("click", () => {
 			if(this.check_in){

@@ -3,6 +3,7 @@ import frappe
 from erpnext.accounts.doctype.pos_profile.pos_profile import get_item_groups
 from erpnext.accounts.doctype.pos_invoice.pos_invoice import get_stock_availability
 
+
 class RestaurantManage:
     @staticmethod
     def production_center_notify(status):
@@ -37,7 +38,8 @@ class RestaurantManage:
 
             filters["name"] = ("in", rooms_enabled)
 
-        rooms = frappe.get_list("Restaurant Object", "name,description", filters=filters)
+        rooms = frappe.get_list("Restaurant Object",
+                                "name,description", filters=filters)
 
         for room in rooms:
             t = frappe.get_doc("Restaurant Object", room.name)
@@ -65,7 +67,8 @@ class RestaurantManage:
                 return data
 
             if d == "Table":
-                cond = "and `table` in (%s)" % (', '.join([f"'{row}'" for row in data[d]["data"]]))
+                cond = "and `table` in (%s)" % (
+                    ', '.join([f"'{row}'" for row in data[d]["data"]]))
 
                 oc = frappe.db.sql(f"""
                         SELECT `table` as name, count(`table`) as count
@@ -78,7 +81,8 @@ class RestaurantManage:
                     data[d]["data"][o.name]["count"] = o.count
 
             if d == "Room":
-                cond = "and `room` in (%s)" % (', '.join([f"'{row}'" for row in data[d]["data"]]))
+                cond = "and `room` in (%s)" % (
+                    ', '.join([f"'{row}'" for row in data[d]["data"]]))
 
                 oc = frappe.db.sql(f"""
                         SELECT `room` as name, count(`room`) as count
@@ -97,7 +101,8 @@ class RestaurantManage:
                     data[d]["data"][pc]["count"] = production_center.orders_count_in_production_center
 
             if d == "Process":
-                production_center = frappe.get_doc("Restaurant Object", data[d]["data"])
+                production_center = frappe.get_doc(
+                    "Restaurant Object", data[d]["data"])
                 status_managed = production_center.status_managed
 
                 filters = {
@@ -106,7 +111,8 @@ class RestaurantManage:
                     "parent": ("!=", "")
                 }
 
-                data = dict(Process=frappe.get_all("Order Entry Item", "identifier,status", filters=filters))
+                data = dict(Process=frappe.get_all(
+                    "Order Entry Item", "identifier,status", filters=filters))
 
         return data
 
@@ -151,8 +157,10 @@ def pos_profile_data():
     restaurant_settings = frappe.get_single("Restaurant Settings")
     return restaurant_settings.pos_profile_data()
 
+
 def set_settings_data(doc, method=None):
     frappe.publish_realtime("update_settings")
+
 
 def set_pos_profile(doc, method=None):
     frappe.publish_realtime("pos_profile_update", pos_profile_data())
@@ -178,7 +186,7 @@ def get_customer_branches(doctype, txt, searchfield, start, page_len, filters):
 			and `tabDynamic Link`.link_doctype = 'Customer'
 			and `tabAddress`.branch like %(txt)s
 		""", {
-            'link_name': link_name,'txt': '%%%s%%' % txt
+            'link_name': link_name, 'txt': '%%%s%%' % txt
         })
 
 @frappe.whitelist()
@@ -203,7 +211,8 @@ def get_items(start, page_length, price_list, item_group, pos_profile, search_va
     data = dict()
     result = []
 
-    allow_negative_stock = frappe.db.get_single_value('Stock Settings', 'allow_negative_stock')
+    allow_negative_stock = frappe.db.get_single_value(
+        'Stock Settings', 'allow_negative_stock')
     warehouse, hide_unavailable_items = frappe.db.get_value('POS Profile', pos_profile,
                                                             ['warehouse', 'hide_unavailable_items'])
 
@@ -213,7 +222,8 @@ def get_items(start, page_length, price_list, item_group, pos_profile, search_va
     if search_value:
         data = search_serial_or_batch_or_barcode_number(search_value)
 
-    item_code = data.get("item_code") if data.get("item_code") else search_value
+    item_code = data.get("item_code") if data.get(
+        "item_code") else search_value
     serial_no = data.get("serial_no") if data.get("serial_no") else ""
     batch_no = data.get("batch_no") if data.get("batch_no") else ""
     barcode = data.get("barcode") if data.get("barcode") else ""
@@ -221,8 +231,7 @@ def get_items(start, page_length, price_list, item_group, pos_profile, search_va
     if data:
         item_info = frappe.db.get_value(
             "Item", data.get("item_code"),
-            ["name as item_code", "item_name", "description", "stock_uom", "image as item_image", "is_stock_item"]
-            , as_dict=1)
+            ["name as item_code", "item_name", "description", "stock_uom", "image as item_image", "is_stock_item"], as_dict=1)
         item_info.setdefault('serial_no', serial_no)
         item_info.setdefault('batch_no', batch_no)
         item_info.setdefault('barcode', barcode)
@@ -248,7 +257,8 @@ def get_items(start, page_length, price_list, item_group, pos_profile, search_va
 			item.description,
 			item.stock_uom,
 			item.image AS item_image,
-			item.is_stock_item
+			item.is_stock_item,
+            item.is_customizable
 		FROM
 			`tabItem` item {bin_join_selection}
 		WHERE
@@ -275,7 +285,8 @@ def get_items(start, page_length, price_list, item_group, pos_profile, search_va
     if items_data:
         items = [d.item_code for d in items_data]
         item_prices_data = frappe.get_all("Item Price",
-                                          fields=["item_code", "price_list_rate", "currency"],
+                                          fields=[
+                                              "item_code", "price_list_rate", "currency"],
                                           filters={'price_list': price_list, 'item_code': ['in', items]})
 
         item_prices = {}
@@ -287,8 +298,8 @@ def get_items(start, page_length, price_list, item_group, pos_profile, search_va
             item_price = item_prices.get(item_code) or {}
             if allow_negative_stock:
                 item_stock_qty = \
-                frappe.db.sql("""select ifnull(sum(actual_qty), 0) from `tabBin` where item_code = %s""", item_code)[0][
-                    0]
+                    frappe.db.sql("""select ifnull(sum(actual_qty), 0) from `tabBin` where item_code = %s""", item_code)[0][
+                        0]
             else:
                 item_stock_qty = get_stock_availability(item_code, warehouse)
 
@@ -307,17 +318,19 @@ def get_items(start, page_length, price_list, item_group, pos_profile, search_va
 
     return res
 
+
 def get_conditions(item_code, serial_no, batch_no, barcode):
 	if serial_no or batch_no or barcode:
 		return "item.name = {0}".format(frappe.db.escape(item_code))
 
 	return """(item.name like {item_code}
-		or item.item_name like {item_code})""".format(item_code = frappe.db.escape('%' + item_code + '%'))
+		or item.item_name like {item_code})""".format(item_code=frappe.db.escape('%' + item_code + '%'))
+
 
 def get_item_group_condition(pos_profile):
 	cond = "and 1=1"
 	item_groups = get_item_groups(pos_profile)
 	if item_groups:
-		cond = "and item.item_group in (%s)"%(', '.join(['%s']*len(item_groups)))
+		cond = "and item.item_group in (%s)" % (', '.join(['%s']*len(item_groups)))
 
 	return cond % tuple(item_groups)

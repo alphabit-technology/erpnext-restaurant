@@ -33,7 +33,7 @@ class ProductItem {
 
         this.items_wrapper = this.wrapper.find('.items-wrapper');
         this.items_wrapper.append(`
-			<div class="panel pos-items widget-group " style="height: 100%; overflow-y: auto; margin-bottom: 0;">
+			<div class="panel pos-items widget-group " style="height: 100%; margin-bottom:5px;">
                 <div class="widget-group-body grid-col-3">
                 
                 </div>
@@ -165,6 +165,7 @@ class ProductItem {
     }
 
     render_items(items) {
+        const self = this;
         const raw_items = Object.values(items || this.items)
             //.filter(item => {console.log(item); return item.item_group === this.parent_item_group})
             .map(item => this.get_item_html(item));
@@ -172,12 +173,140 @@ class ProductItem {
 
         this.clusterize.update(raw_items);
 
-        this.wrapper.find('[data-item-code]').on('click', (e) => {
+
+        this.wrapper.find('.item-code').each(function(){
+            const item_code = $(this).attr('item-code');
+            const minus_btn = $(this).find('.minus-btn');
+            const add_btn = $(this).find('.add-btn');
+            const add_qty = $(this).find('.add-qty');
+            const is_customizable = !!parseInt($(this).attr('is-customizable'));
+            const add_item = $(this).find('.add-item');
+
+            minus_btn.on('click', (e) => {
+                e.stopPropagation();
+
+                const qty = parseInt(add_qty.html());
+                qty > 1 && add_qty.html(qty - 1);
+            });
+
+            add_btn.on('click', (e) => {
+                e.stopPropagation();
+
+                add_qty.html(parseInt(add_qty.html()) + 1);
+            });
+
+            add_item.on('click', (e) => {
+                e.stopPropagation();
+                const qty = parseInt(add_qty.html());
+
+                if (is_customizable){
+                    self.show_customization_modal(item_code, qty);
+                    return;
+                }
+
+                add_qty.html(1);
+                self.add_item_in_order(self.get(item_code), qty);
+            });
+        });
+        /*this.wrapper.find('[data-item-code]').on('click', (e) => {
             const item_code = $(e.currentTarget).attr('data-item-code');
             //console.log(item_code, this.items);
             this.add_item_in_order(this.get(item_code));
             //this.add_to_cart(item_code);
+        });*/
+    }
+
+    async show_customization_modal(item_code, qty){
+        const item = this.get(item_code);
+
+        const customization_items = () => {
+            return new Promise(res => {
+                frappe.db.get_list("Item Customizable", {
+                    fields: ["item", "rate", "qty","included"],
+                    filters: {parent: item_code}
+                }).then(customization_items => {
+                    const fields = customization_items.map(item => {
+                        return {
+                            customization_item: item.item,
+                            qty: item.qty,
+                            rate: item.rate,
+                            included: item.included
+                        }
+                    });
+
+                    res(fields);
+                });
+            });
+        }
+
+        const modal = new frappe.ui.Dialog({
+            title: `Customize ${item.item_name}`,
+            selectable: false,
+            fields: [
+                {
+                    fieldname: 'customization',
+                    fieldtype: 'Table',
+                    label: 'Customization',
+                    in_list_view: 1,
+                    fields: [
+                        {
+                            fieldname: 'customization_item',
+                            fieldtype: 'Link',
+                            label: 'Item',
+                            options: 'Item',
+                            in_list_view: 1,
+                            read_only: 1
+                            /*get_query: () => {
+                                return {
+                                    filters: {
+                                        is_customizable: 1
+                                    }
+                                }
+                            }*/
+                        },
+                        {
+                            fieldname: 'qty',
+                            fieldtype: 'Float',
+                            label: 'QTY',
+                            in_list_view: 1,
+                            read_only: 1
+                        },
+                        {
+                            fieldname: 'rate',
+                            fieldtype: 'Currency',
+                            label: 'Rate',
+                            in_list_view: 1,
+                            read_only: 1
+                        },
+                        {
+                            fieldname: "included",
+                            fieldtype: "Check",
+                            label: "Included",
+                            in_list_view: 1
+                        }
+                    ],
+                    data: await customization_items(),
+                    in_place_edit: true,
+                    cannot_add_rows: true,
+                }
+            ],
+            primary_action: (values) => {
+                const customization_items = values.customization.map(item => {
+                    return {
+                        item_code: item.customization_item,
+                        qty: item.qty,
+                        rate: item.rate,
+                        included: item.included
+                    }
+                });
+                item.is_customizable = 1;
+                item.sub_items = JSON.stringify(customization_items);
+                this.add_item_in_order(item, qty);
+                modal.hide();
+            }
         });
+        modal.wrapper.find('.grid-footer').hide();
+        modal.show();
     }
 
     reset_items() {
@@ -272,7 +401,7 @@ class ProductItem {
 
     get_item_html(item) {
         const price_list_rate = format_currency(item.price_list_rate, this.currency);
-        const { item_code, item_name, item_image, description } = item;
+        const { item_code, item_name, item_image, description, is_customizable } = item;
         const item_title = item_name || item_code;
         //const template = _template();
 
@@ -283,9 +412,9 @@ class ProductItem {
                 style: "padding: 0; margin: 0;"
             },
             content: template()
-        }).on("click", () => {
+        }).html()/*.on("click", () => {
             this.add_item_in_order(item);
-        }).html();
+        }).html();*/
 
         /*const template = $(item_html);
 
@@ -315,60 +444,58 @@ class ProductItem {
 
         function template() {
             return `
-                <div class="small-box item">
-                    <div class="inner" style="position: inherit; z-index: 100">
-                        <h4 class="title">${item_title}</h4>
-                        <p>${description}</p>
-                    </div>
-                    <div class="icon">
-                        ${item_image ? `<img src="${item_image}" alt="${item_title}"></img>` : 
-                             `<span class="no-image placeholder-text" style="font-size: 72px; color: #d1d8dd;"> ${frappe.get_abbr(item_title)}</span>`}
-                    </div>
-                    <div class="small-box-footer" style="padding:3px; background-color: transparent;">
-                        <div class="form-group" style="position: absolute;">
-                            <div class="input-group bg-danger" style="border-radius: 5px; opacity: 0.9; background-color: #e24c4c47!important; color: black;">
-                                <div class="input-group-prepend" data-target="${item_name}-amount" data-value="1">
-                                    <span class="input-group-text fa fa-minus" style="background-color: transparent; border: none; color:orangered;"></span>
-                                </div>
-                                <div class="custom-file" style="display: block; padding-top:6px; min-width:20px;">
-                                    <strong class="item-add-value" data-ref="${item_name}-amount">1</strong>
-                                </div>
-                                <div class="input-group-append" data-target="${item_name}-amount" data-value="-1">
-                                    <span class="input-group-text fa fa-plus" style="background-color: transparent; border: none; color:orangered;"></span>
-                                </div>
+            <div class="small-box item item-code" item-code="${item_code}" is-customizable=${is_customizable}>
+                <div class="inner" style="position: inherit; z-index: 100">
+                    <h4 class="title">${item_title}</h4>
+                    <p>${description}</p>
+                </div>
+                <div class="icon">
+                    ${item_image ? `<img src="${item_image}" alt="${item_title}"></img>` : 
+                            `<span class="no-image placeholder-text" style="font-size: 72px; color: #d1d8dd;"> ${frappe.get_abbr(item_title)}</span>`}
+                </div>
+                <div class="small-box-footer" style="padding:3px; background-color: transparent;">
+                    <div class="form-group" style="position: absolute;">
+                        <div class="input-group bg-danger" style="border-radius: 5px; opacity: 0.9; background-color: #e24c4c47!important; color: black;">
+                            <div class="input-group-prepend minus-btn" data-target="${item_name}-amount" data-value="-1">
+                                <span class="input-group-text fa fa-minus" style="background-color: transparent; border: none; color:orangered;"></span>
+                            </div>
+                            <div class="custom-file" style="display: block; padding-top:6px; min-width:20px;">
+                                <strong class="add-qty" data-ref="${item_name}-amount">1</strong>
+                            </div>
+                            <div class="input-group-append add-btn" data-target="${item_name}-amount" data-value="1">
+                                <span class="input-group-text fa fa-plus" style="background-color: transparent; border: none; color:orangered;"></span>
                             </div>
                         </div>
-                        <a class="btn btn-danger bg-danger" data-item-code="${item_code}" style="float:right;">
-                            <span class="sr-only">Add</span>
-                            Add ${price_list_rate}
-                        </a>
                     </div>
-                </div>`;
-
-            /*return `
-            <div class="product-img"> ${item_image ?
-                `<img src="${item_image}" alt="${item_title}">` : 
-                `<span class="placeholder-text" style="font-size: 72px; color: #d1d8dd;"> ${frappe.get_abbr(item_title)}</span>`}
-				<span class="price-tag">
-                    ${price_list_rate}
-                </span>
-			</div>
-			<div class="product-name">
-				${item_title}
-			</div>`*/
+                    <a class="btn btn-danger bg-danger add-item" data-action="add" style="float:right;">
+                        <span class="sr-only">Add</span>
+                        Add ${price_list_rate}
+                    </a>
+                </div>
+            </div>`;
         }
     }
 
-    add_item_in_order(item) {
+    add_item_in_order(item, qty) {
+        let rate = item.price_list_rate;
+
+        if(item.is_customizable === 1) {
+            const parse_sub_items = JSON.parse(item.sub_items);
+
+            rate = parse_sub_items.filter(sub_item => sub_item.included === 1).reduce((acc, sub_item) => {
+                return acc + (sub_item.rate * sub_item.qty);
+            }, 0);
+        }
+
         const base_item = {
             name: null,
             entry_name: null,
 
             item_code: item.item_code,
             item_name: item.item_name,
-            qty: 1,
-            rate: item.price_list_rate,
-            price_list_rate: item.price_list_rate,
+            qty: qty,
+            rate: rate,
+            price_list_rate: rate,
             discount_percentage: 0,
             discount_amount: 0,
             stock_uom: item.stock_uom,
@@ -378,7 +505,8 @@ class ProductItem {
             has_serial_no: 0,
             serial_no: null,
             has_batch_no: 0,
-            batch_no: null
+            batch_no: null,
+            //sub_items: sub_items,
         };
 
         const current_order = this.order_manage.current_order;
@@ -408,7 +536,11 @@ class ProductItem {
                     icon: 'fa fa-cart-arrow-down',
                     status_message: 'Add',
                 }
-                item_to_push.qty = 1;
+                item_to_push.qty = qty;
+                item_to_push.sub_items = item.sub_items;
+                item_to_push.is_customizable = item.is_customizable;
+                item_to_push.rate = rate;
+                item_to_push.price_list_rate = rate;
 
                 current_order.push_item(item_to_push);
             });

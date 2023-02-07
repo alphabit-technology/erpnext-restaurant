@@ -109,6 +109,9 @@ class OrderManageMob extends ObjectManage {
         }
 
         this.make_reservation();
+
+        this.customer_editor && this.customer_editor.reload(null, true);
+
     }
 
     close() {
@@ -171,6 +174,8 @@ class OrderManageMob extends ObjectManage {
 
         this.make_reservation();
 
+        RM.onResize(() => this.resize());
+
         setTimeout(() => {
             this.empty_carts.show();
 
@@ -195,8 +200,6 @@ class OrderManageMob extends ObjectManage {
                         });
                     }
                 });
-
-                
             }
         }, 0);
     }
@@ -248,19 +251,66 @@ class OrderManageMob extends ObjectManage {
 
         const template = $(`
         <style>
-            .om-mob-container {
+            .order-manage.mob .tab {
                 flex-direction: column;
                 height: 100%;
                 display: none !important;
                 position: relative;
             }
-            .om-mob-container.active {
+
+            .order-manage.desk .tab {
+                flex-direction: column;
+                height: 100%;
+                position: relative;
+            }
+
+            .order-manage.mob .tab.active {
                 display: block !important;
             }
+
+            .order-manage .table {
+                margin: 0;
+            }
+
+            .order-manage.desk .tab {
+                display: block !important;
+            }
+
+            .order-manage.desk .tab.options {
+                display: none !important;
+            }
+
+            .order-manage.desk .tab.items-cart {
+                height: 100%;
+                right: 0;
+                width: 400px;
+                position: absolute;
+            }
+
+            .order-manage.desk .tab.items {
+                right: 400px;
+                width: calc(100% - 490px);
+                position: absolute;
+                border-left: var(--default-line);
+                border-right: var(--default-line);
+            }
+
+            .order-manage.desk .footer-container {
+                display: none;
+            }
+
+            .order-manage.desk .tab.orders {
+                position: absolute;
+                width: 90px;
+                padding: 5px;
+            }
         </style>
-		<div class="order-manage" id="${this.identifier}">
+		<div class="order-manage desk" id="${this.identifier}">
             <div class="content-container" style="height:calc(100% - 40px);">
-                <div class="om-mob-container options active">
+                <div class="tab orders order-container" id="${this.order_container_name}">
+
+                </div>
+                <div class="tab options">
                     <div class="options-container">
                         <div class="customer-container">
                             <div class="customer-wrapper">
@@ -274,11 +324,11 @@ class OrderManageMob extends ObjectManage {
                         </div>
                     </div>
                 </div>
-                <div class="om-mob-container items">
+                <div class="tab items">
                     ${this.item_parent_wrapper.html()}
                     ${this.items_wrapper.html()}
                 </div>
-                <div class="om-mob-container item-cart">
+                <div class="tab items-cart">
                     <div class="panel-order-items" style="height: calc(100% - 336px); position: relative; width: 100%;overflow:auto;")>
                         <ul class="products-list" id="${this.order_entry_container_name}">
                             
@@ -296,37 +346,71 @@ class OrderManageMob extends ObjectManage {
             </div>
             <footer class="footer-container" style="padding:5px; position: absolute;">
                 <div class="footer-buttons">
-                    <button class="btn btn-default btn-flat options-action item-action active" data-tab="options">
-                        <span class="fa fa-cog"></span> Options
+                    <button class="btn btn-default btn-flat options-action item-action" data-tab="options">
+                        <span class="fa fa-cog"></span> ${__("Options")}
                     </button>
                     <button class="btn btn-default btn-flat items-action item-action" data-tab="items">
-                        <span class="fa fa-list"></span> Items
+                        <span class="fa fa-cubes"></span> ${__("Items")}
                     </button>
-                    <button class="btn btn-default btn-flat items-cart-action item-action" data-tab="item-cart">
+                    <button class="btn btn-default btn-flat items-cart-action item-action" data-tab="items-cart">
                         <span class="fa fa-shopping-cart"></span> ${__("Cart")}
                         <span class="badge badge-pill badge-primary cart-count">0</span>
                     </button>
                 </div>
-            </footer>
-
+            </footer>  
 		</div>`)
 
         this.item_cart = template.find('.item-cart');
         this.cart_count = template.find('.cart-count');
 
-        template.find('.item-action').click(function (){
-            $(this).addClass('active').siblings().removeClass('active');
+        template.find('.item-action').each(function (){
             const tab = $(this).data('tab');
-
-            template.find('.om-mob-container').hide().removeClass('active');
-            template.find(`.om-mob-container.${tab}`).show().addClass('active');
-
-            if (tab === 'item-cart'){
-                self.select_last_order();
-            }
+            self["tab-button"+tab] = $(this);
+            self["tab-container"+tab] = template.find(`.tab.${tab}`);
         });
 
+        template.find('.item-action').click(function (){
+            const tab = $(this).data('tab');
+           
+            self.current_tab = tab;
+
+            const select_tab = (tab) => {
+                self["tab-button"+tab].addClass('active').siblings().removeClass('active');
+                self["tab-container" + tab].show().addClass('active').siblings().hide().removeClass('active');
+                self.current_tab = tab;
+            }
+
+            if (RM.is_mobile && !self.current_tab) {
+                select_tab("items");
+                return;
+            }
+            
+            select_tab(tab);
+        });
+
+        RM.is_mobile && template.find('.item-action').click();
+
         return template;
+    }
+
+    resize(){
+        const set_width = () => {
+            if(RM.is_mobile){
+                this.modal.container.find(".order-manage").addClass("mob").removeClass("desk");
+
+                if(!this.current_tab){
+                    this["tab-buttonitems"] && this["tab-buttonitems"].addClass('active').siblings().removeClass('active');
+                    this["tab-containeritems"] && this["tab-containeritems"].show().addClass('active').siblings().hide().removeClass('active');
+                    this.current_tab = "items";
+
+                    this.select_last_order();
+                }
+            }else{
+                this.modal.container.find(".order-manage").addClass("desk").removeClass("mob");
+            }
+        }
+
+        set_width();
     }
 
     get last_order() {
@@ -342,7 +426,7 @@ class OrderManageMob extends ObjectManage {
     }
 
     toggle_main_section(option){
-        this.current_layout = option || (this.current_layout === "items" ? "invoice" : "items");
+        /*this.current_layout = option || (this.current_layout === "items" ? "invoice" : "items");
         if (this.current_layout === "items"){
             this.items_wrapper.show();
             this.invoice_wrapper.hide();
@@ -350,7 +434,7 @@ class OrderManageMob extends ObjectManage {
         }else{
             this.items_wrapper.hide();
             this.invoice_wrapper.show();
-        }
+        }*/
     }
 
     in_objects(f) {
@@ -831,7 +915,7 @@ class OrderManageMob extends ObjectManage {
                 RM.ready();
                 if (typeof r.message != "undefined") {
                     RM.sound_submit();
-                    this.select_last_order();
+                    //RM.is_mobile && this.select_last_order();
                 }
             },
         });
@@ -879,13 +963,16 @@ class OrderManageMob extends ObjectManage {
         return super.append_child({
             child: _data,
             exist: o => {
-                if ([UPDATE, QUEUE, SPLIT].includes(data.action)) {
+                if (!o) return;
+                if ([UPDATE, QUEUE, SPLIT].includes(data.action) && _data.show_in_pos === 1) {
                     o.reset_data(data.data, data.action);
-                } else if ([DELETE, INVOICED, TRANSFER].includes(data.action)) {
+                } else if ([DELETE, INVOICED, TRANSFER].includes(data.action) || _data.show_in_pos !== 1) {
                     this.delete_order(o.data.name);
                 }
             },
             not_exist: () => {
+                if (_data.show_in_pos !== 1) return;
+
                 const new_order = new TableOrder({
                     order_manage: this,
                     data: Object.assign({}, _data)
@@ -933,7 +1020,7 @@ class OrderManageMob extends ObjectManage {
             $(this.order_container).prepend(new_order_button.html());
         }
 
-        this.select_last_order();
+        RM.is_mobile && this.select_last_order();
     }
 
     append_order(order, current = null) {
@@ -981,6 +1068,8 @@ class OrderManageMob extends ObjectManage {
         const order = this.get_order(order_name);
         if (order != null) {
             order.delete_items();
+            order.pay_form && order.pay_form.remove();
+            order.pay_form = null;
             if (this.is_same_order(order)) {
                 this.current_order = null;
                 this.clear_current_order();

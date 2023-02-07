@@ -186,6 +186,14 @@ class Reservation extends DeskForm {
         this.on("table_description", "change", (field) => {
             this.set_button_status();
         });
+
+        this.on("customer", "change", (field) => {
+            frappe.db.get_value("Customer", field.value, "mobile_no").then((data) => {
+                if (data.message && data.message.mobile_no && data.message.mobile_no.length > 0){
+                    this.set_value("contact_number", data.message.mobile_no);
+                }
+            });
+        });
     }
 
     async make(){
@@ -193,7 +201,7 @@ class Reservation extends DeskForm {
 
         this.make_events();
 
-        this.hide_field(["table", "room", "table_description"]);
+        //this.hide_field(["table", "room", "table_description"]);
 
         setTimeout(() => {
             this.show();

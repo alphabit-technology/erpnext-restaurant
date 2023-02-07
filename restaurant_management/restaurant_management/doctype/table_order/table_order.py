@@ -16,28 +16,40 @@ status_attending = "Attending"
 
 class TableOrder(Document):
     def before_save(self):
+        self.synchronize(dict(status=self.status))
+        self._table.synchronize()
+
         if self.link_invoice:
             return
 
-        #if self.customer is None and self._table is not None:
-        #    self.customer = self._table.customer
-
         entry_items = self.items_list()
 
-        if len(entry_items) == 0:
-            return
-
-        self.calculate_order(entry_items)
+        if len(entry_items) > 0:
+            self.calculate_order(entry_items)
 
     def validate(self):
-        if self.customer is None and self._table is not None:
-            self.customer = self._table.customer
+        if self.status is None:
+           self.status = "Opened"
+           self.show_in_pos = 1
+
+        if self.status == "Cancelled":
+            self.show_in_pos = 0
+
+        if self.status == "Sent":
+            self.show_in_pos = 0
+            self.ordered_time = frappe.utils.now_datetime()
+
+        self.set_default_customer()
 
     def set_default_customer(self):
         if self.customer:
             return
 
-        self.customer = frappe.db.get_value('POS Profile', self.pos_profile, 'customer')
+        if self._table and self._table.customer:
+            self.customer = self._table.customer
+        else:
+            self.customer = frappe.db.get_value(
+                'POS Profile', self.pos_profile, 'customer')
 
     @property
     def short_name(self):
@@ -101,7 +113,7 @@ class TableOrder(Document):
                     room=self.room,
                     branch=self.branch,
                     table=self.table,
-                    table_description=f'{self.room_description} ({self.table_description})',
+                    #table_description=self.table_info,
                     has_batch_no=item.has_batch_no,
                     batch_no=item.batch_no,
                     has_serial_no=item.has_serial_no,
@@ -171,9 +183,10 @@ class TableOrder(Document):
         invoice.submit()
 
         self.status = "Invoiced"
+        self.show_in_pos = 0
         self.link_invoice = invoice.name
         self.save()
-        
+
         frappe.db.set_value("Table Order", self.name, "docstatus", 1)
 
         frappe.msgprint(_('Invoice Created'), indicator='green', alert=True)
@@ -197,13 +210,15 @@ class TableOrder(Document):
 
         self.save()
 
-        for i in self.entry_items:
-            table_description = f'{self.room_description} ({self.table_description})'
-            frappe.db.set_value("Order Entry Item", {"identifier": i.identifier}, "table_description",
-                                table_description)
+        #table_description = self.table_info
+
+        #for i in self.entry_items:
+        #    frappe.db.set_value("Order Entry Item", {"identifier": i.identifier}, "table_description",
+        #                        table_description)
 
         self.reload()
-        self.synchronize(dict(action="Transfer", client=client, last_table=last_table_name))
+        self.synchronize(
+            dict(action="Transfer", client=client, last_table=last_table_name))
 
         last_table.synchronize()
         return True
@@ -226,9 +241,11 @@ class TableOrder(Document):
         invoice.items = []
         invoice.taxes = []
         taxes = {}
-        
+
         for i in entry_items:
             item = entry_items[i]
+            is_customizable = True if "is_customizable" in item and item["is_customizable"] == 1 else False
+
             if item["qty"] > 0:
                 rate = 0 if item["rate"] is None else item["rate"]
                 price_list_rate = 0 if item["price_list_rate"] is None else item["price_list_rate"]
@@ -249,12 +266,29 @@ class TableOrder(Document):
 
                     has_serial_no=item["has_serial_no"],
                     serial_no=item["serial_no"],
-                    
+
                     has_batch_no=item["has_batch_no"],
                     batch_no=item["batch_no"],
 
                     conversion_factor=1,
                 ))
+
+                frappe.publish_realtime("debug", dict(data=item))
+
+                if is_customizable:
+                    sub_items = json.loads(item["sub_items"])
+
+                    for sub_item in sub_items:
+                        if sub_item["included"] == 1:
+                            invoice.append('items', dict(
+                                item_code=sub_item["item_code"],
+                                qty=sub_item["qty"],
+                                rate=0,
+                                price_list_rate=0,
+                                from_customize=1,
+                                customize_parent=item["identifier"],
+                                conversion_factor=1,
+                            ))
 
                 if "item_tax_rate" in item:
                     if not item["item_tax_rate"] in taxes:
@@ -267,14 +301,16 @@ class TableOrder(Document):
                 for t in json.loads(tax):
                     in_invoice_taxes.append(t)
 
-        included_in_print_rate = frappe.db.get_value("POS Profile", self.pos_profile, "posa_tax_inclusive")
+        included_in_print_rate = frappe.db.get_value(
+            "POS Profile", self.pos_profile, "posa_tax_inclusive")
 
         cost_center = frappe.db.get_value(
             "POS Profile", self.pos_profile, "cost_center")
 
         invoice.cost_center = cost_center
 
-        tax_template = frappe.db.get_value("Sales Taxes and Charges Template", {"company": self.company})
+        tax_template = frappe.db.get_value(
+            "Sales Taxes and Charges Template", {"company": self.company})
 
         for t in set(in_invoice_taxes):
             tax = frappe.db.get_value("Sales Taxes And Charges", dict(
@@ -292,22 +328,24 @@ class TableOrder(Document):
                 invoice.append('taxes', {
                     "charge_type": tax.charge_type,
                     "account_head": t,
-                    "rate": tax.rate,
-                    "tax_amount": tax.amount,
+                    "rate": tax.rate or 0,
+                    "tax_amount": tax.amount or 0,
                     "description": t,
                     "included_in_print_rate": included_in_print_rate or tax.included_in_print_rate
                 })
 
         if self.is_delivery == 1 and self.delivery_branch != 1:
-            address = frappe.db.get_value("Address", self.address, "posa_delivery_charges")
-            shipping_data = frappe.db.get_value("Delivery Charges", address, ["default_rate", "shipping_account", "cost_center"], as_dict=True)
+            address = frappe.db.get_value(
+                "Address", self.address, "posa_delivery_charges")
+            shipping_data = frappe.db.get_value("Delivery Charges", address, [
+                                                "default_rate", "shipping_account", "cost_center"], as_dict=True)
 
             if not isinstance(shipping_data, type(None)):
                 invoice.append('taxes', {
                     "charge_type": "Actual",
                     "account_head": shipping_data.shipping_account,
                     "rate": 0,
-                    "tax_amount": shipping_data.default_rate,
+                    "tax_amount": shipping_data.default_rate or 0,
                     "description": shipping_data.shipping_account,
                     "cost_center": shipping_data.cost_center,
                     "included_in_print_rate": 0
@@ -331,7 +369,8 @@ class TableOrder(Document):
     def set_queue_items(self, all_items):
         from restaurant_management.restaurant_management.restaurant_manage import check_exceptions
         check_exceptions(
-            dict(name="Table Order", short_name="order", action="write", data=self),
+            dict(name="Table Order", short_name="order",
+                 action="write", data=self),
             "You cannot modify an order from another User"
         )
         self.calculate_order(all_items, True)
@@ -348,12 +387,18 @@ class TableOrder(Document):
     def push_item(self, item):
         if self.customer is None:
             frappe.throw(_("Please set a Customer"))
-            
+
         from restaurant_management.restaurant_management.restaurant_manage import check_exceptions
         check_exceptions(
-            dict(name="Table Order", short_name="order", action="write", data=self),
+            dict(name="Table Order", short_name="order",
+                 action="write", data=self),
             "You cannot modify an order from another User"
         )
+
+        if self.status == "Opened":
+            self.status = "Attending"
+            self.save()
+
         action = self.update_item(item)
 
         if action == "db_commit":
@@ -367,16 +412,19 @@ class TableOrder(Document):
         if not unrestricted:
             from restaurant_management.restaurant_management.restaurant_manage import check_exceptions
             check_exceptions(
-                dict(name="Table Order", short_name="order", action="write", data=self),
+                dict(name="Table Order", short_name="order",
+                     action="write", data=self),
                 "You cannot modify an order from another User"
             )
 
-        status = frappe.db.get_value("Order Entry Item", {'identifier': item}, "status")
+        status = frappe.db.get_value(
+            "Order Entry Item", {'identifier': item}, "status")
         frappe.db.delete('Order Entry Item', {'identifier': item})
         self.db_commit()
 
         if synchronize and frappe.db.count("Order Entry Item", {"identifier": item}) == 0:
-            self.synchronize(dict(action='queue', item_removed=item, status=[status]))
+            self.synchronize(
+                dict(action='queue', item_removed=item, status=[status]))
 
     def db_commit(self):
         frappe.db.commit()
@@ -396,7 +444,8 @@ class TableOrder(Document):
 
     def update_item(self, entry, unrestricted=False, synchronize_on_delete=True):
         if entry["qty"] == 0:
-            self.delete_item(entry["identifier"], unrestricted, synchronize_on_delete)
+            self.delete_item(entry["identifier"],
+                             unrestricted, synchronize_on_delete)
             return "db_commit"
         else:
             invoice = self.get_invoice({entry["identifier"]: entry})
@@ -412,19 +461,24 @@ class TableOrder(Document):
                 amount=invoice.grand_total,
                 discount_percentage=item.discount_percentage,
                 discount_amount=item.discount_amount,
-                status="Attending" if entry["status"] in ["Pending", "", None] else entry["status"],
+                status="Attending" if entry["status"] in [
+                    "Pending", "", None] else entry["status"],
                 identifier=entry["identifier"],
                 notes=entry["notes"],
                 room=self.room,
                 branch=self.branch,
                 table=self.table,
-                table_description=f'{self.room_description} ({self.table_description})',
-                ordered_time=entry["ordered_time"] or frappe.utils.now_datetime(),
+                #table_description=self.table_info,
+                ordered_time=entry["ordered_time"]or frappe.utils.now_datetime(),
                 has_batch_no=entry["has_batch_no"],
                 batch_no=entry["batch_no"],
                 has_serial_no=entry["has_serial_no"],
                 serial_no=entry["serial_no"],
+                sub_items=entry["sub_items"],
+                is_customizable=entry["is_customizable"],
             )
+
+            frappe.publish_realtime("debug", dict(debug_item=data))
 
             self.validate()
 
@@ -432,7 +486,8 @@ class TableOrder(Document):
                 self.append('entry_items', data)
                 return "aggregate"
             else:
-                _data = ','.join('='.join((f"`{key}`", f"'{'' if val is None else val}'")) for (key, val) in data.items())
+                _data = ','.join('='.join((f"`{key}`", f"'{'' if val is None else val}'")) for (
+                    key, val) in data.items())
                 frappe.db.sql("""UPDATE `tabOrder Entry Item` set {data} WHERE `identifier` = '{identifier}'""".format(
                     identifier=entry["identifier"], data=_data)
                 )
@@ -444,6 +499,8 @@ class TableOrder(Document):
 
         self.entry_items = []
         for item in invoice.items:
+            if item.from_customize == 1:
+                continue
             entry_item = entry_items[item.identifier] if item.identifier in entry_items else None
 
             self.append('entry_items', dict(
@@ -458,20 +515,23 @@ class TableOrder(Document):
                 amount=item.amount,
                 discount_percentage=item.discount_percentage,
                 discount_amount=item.discount_amount,
-                status="Attending" if entry_item["status"] in ["Pending", "", None] else entry_item["status"],
+                status="Attending" if entry_item["status"] in [
+                    "Pending", "", None] else entry_item["status"],
                 identifier=entry_item["identifier"],
                 notes=entry_item["notes"],
                 ordered_time=entry_item["ordered_time"],
                 room=self.room,
                 branch=self.branch,
                 table=self.table,
-                table_description=f'{self.room_description} ({self.table_description})',
+                #table_description=self.table_info,
                 has_batch_no=entry_item["has_batch_no"],
                 batch_no=entry_item["batch_no"],
                 has_serial_no=entry_item["has_serial_no"],
                 serial_no=entry_item["serial_no"],
+                sub_items=entry_item["sub_items"],
+                is_customizable=entry_item["is_customizable"],
             ))
-            item.serial_no = None
+            #item.serial_no = None
 
         self.tax = invoice.base_total_taxes_and_charges
         self.discount = invoice.base_discount_amount
@@ -484,18 +544,27 @@ class TableOrder(Document):
         return self.name
 
     def data(self, items=None, last_table=None):
+        short_data = self.short_data(last_table)
+        items = self.items_list() if items is None else items
+
         return dict(
-            order=self.short_data(last_table),
-            items=self.items_list() if items is None else items
+            order=short_data,
+            items=dict(data=short_data, items=items)
         )
 
     def get_delivery_address(self, origin, ref):
-        address = frappe.get_doc("Address", dict(branch=ref) if origin == "Branch" else dict(name=ref))
+        address = frappe.get_doc("Address", dict(
+            branch=ref) if origin == "Branch" else dict(name=ref))
 
         return dict(
             address=address.get_display(),
-            charges=frappe.db.get_value("Delivery Charges", address.posa_delivery_charges, "default_rate")
+            charges=frappe.db.get_value(
+                "Delivery Charges", address.posa_delivery_charges, "default_rate")
         )
+
+    @property
+    def table_info(self):
+        return f'{self.room_description} ({self.table_description})',
 
     def short_data(self, last_table=None):
         return dict(
@@ -507,6 +576,10 @@ class TableOrder(Document):
                 delivery_branch=self.delivery_branch,
                 charge_amount=self.charge_amount,
                 name=self.name,
+                order=self.name,
+                table_description=self.table_description if self.table_description else self.table,
+                room_description=self.room_description if self.room_description else self.room,
+                #table_description=self.table_info,
                 status=self.status,
                 short_name=self.short_name,
                 items_count=self.items_count,
@@ -515,13 +588,23 @@ class TableOrder(Document):
                 tax=self.tax,
                 amount=self.amount,
                 owner=self.owner,
-                dinners=self.dinners
+                dinners=self.dinners,
+                process_status_data=self._table.process_status_data(self),
+                show_in_pos=self.show_in_pos,
+                delivery_address=self.get_delivery_address(
+                    "Address", self.address)["address"] if self.is_delivery else None,
+                notes=self.notes,
+                ordered_time=self.ordered_time or frappe.utils.now_datetime(),
+                branch=self.branch,
+                #table_info=self.table_info,
             )
         )
 
     def items_list(self, from_item=None):
         table = self._table
         items = []
+        short_name = self.short_name
+
         for item in self.entry_items:
             if item.qty > 0 and (from_item is None or from_item == item.identifier):
                 _item = item.as_dict()
@@ -542,7 +625,7 @@ class TableOrder(Document):
                     "room",
                     "branch",
                     "table",
-                    "table_description",
+                    #"table_description",
                     "status",
                     "notes",
                     "ordered_time",
@@ -550,12 +633,18 @@ class TableOrder(Document):
                     "batch_no",
                     "has_serial_no",
                     "serial_no",
+                    "sub_items",
+                    "is_customizable"
                 ]}
 
                 row["order_name"] = item.parent
                 row["entry_name"] = item.name
-                row["short_name"] = table.order_short_name(item.parent)
+                row["short_name"] = short_name
                 row["process_status_data"] = table.process_status_data(item)
+                row["name"] = item.identifier
+                row["order"] = short_name
+                row["table_description"] = self.table_info
+                #row["table_info"] = self.table_info
 
                 items.append(row)
         return items
@@ -582,14 +671,11 @@ class TableOrder(Document):
         return self.data()
 
     def set_item_note(self, item, notes):
-        frappe.db.set_value("Order Entry Item", {"identifier": item}, "notes", notes)
+        frappe.db.set_value("Order Entry Item", {
+                            "identifier": item}, "notes", notes)
         self.reload()
         item = self.items_list(item)
         self.synchronize(dict(items=item))
-
-    def before_save(self):
-        self.synchronize(dict(items=self.items_list()))
-        self._table.synchronize()
 
     @property
     def get_items(self):

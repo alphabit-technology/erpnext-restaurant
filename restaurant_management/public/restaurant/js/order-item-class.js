@@ -75,8 +75,6 @@ class OrderItem {
             content: this.template
         });
 
-        console.log(["order container", this.order.container])
-
         this.order.container.append(this.row.html());
     }
 
