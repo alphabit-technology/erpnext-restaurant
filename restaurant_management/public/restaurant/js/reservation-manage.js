@@ -86,11 +86,29 @@ class CheckIn extends DeskForm{
             }
         }).on("click", () => {
             if (this.reservation_form) {
-                this.reservation_form.save({
-                    success: (data) => {
-                        this.reservation_form && this.reservation_form.execute();
-                    }
-                });
+                const current_time = moment().format("YYYY-MM-DD HH:mm:ss");
+                const reservation_time = moment(this.reservation_form.get_value("reservation_time")).format("YYYY-MM-DD HH:mm:ss");
+                const reservation_end_time = moment(this.reservation_form.get_value("reservation_end_time")).format("YYYY-MM-DD HH:mm:ss");
+
+                const save = () => {
+                    this.reservation_form.set_value("status", "Waitlisted");
+                    this.reservation_form.save({
+                        success: (data) => {
+                            this.reservation_form.execute();
+                        }
+                    });
+                }
+
+                if (current_time >= reservation_time && current_time <= reservation_end_time) {
+                    save();
+                } else {
+                    frappe.confirm(
+                        'Reservation time is not in range. Do you want to continue?',
+                        () => {
+                            save();
+                        },
+                    );
+                }
             }
         });
 
@@ -201,7 +219,7 @@ class Reservation extends DeskForm {
 
         this.make_events();
 
-        //this.hide_field(["table", "room", "table_description"]);
+        this.hide_field(["table", "room", "table_description"]);
 
         setTimeout(() => {
             this.show();

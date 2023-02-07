@@ -29,12 +29,16 @@ RestaurantObject = class RestaurantObject {
                         const last_group_by = this.data.group_items_by_order; 
                         this.reset_data(data.data);
 
-                        if (this.edit_form != null) {
+                        if (this.edit_form) {
                             this.edit_form.background_reload();
                         }
 
-                        if (this.process_manage != null) {
+                        if (this.process_manage) {
                             this.process_manage.reload(last_group_by !== this.data.group_items_by_order);
+                        }
+
+                        if (this.order_manage) {
+                            this.order_manage.customer_editor.reload(null, true);
                         }
                     } else if (data.action === DELETE) {
                         this.remove();

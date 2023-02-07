@@ -109,9 +109,6 @@ class OrderManageMob extends ObjectManage {
         }
 
         this.make_reservation();
-
-        this.customer_editor && this.customer_editor.reload(null, true);
-
     }
 
     close() {

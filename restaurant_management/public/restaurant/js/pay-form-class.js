@@ -156,8 +156,6 @@ class PayForm extends DeskForm {
 
         this.hide_support_elements();
 
-        
-
         set_address_query();
 
         this.make_actions();
