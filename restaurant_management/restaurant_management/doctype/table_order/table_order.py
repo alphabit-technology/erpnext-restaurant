@@ -247,8 +247,11 @@ class TableOrder(Document):
             is_customizable = True if "is_customizable" in item and item["is_customizable"] == 1 else False
 
             if item["qty"] > 0:
-                rate = 0 if item["rate"] is None else item["rate"]
-                price_list_rate = 0 if item["price_list_rate"] is None else item["price_list_rate"]
+                try: rate = float(item["rate"])
+                except ValueError: rate = 0
+                
+                try: price_list_rate = float(item["price_list_rate"])
+                except ValueError: price_list_rate = 0
 
                 margin_rate_or_amount = (rate - price_list_rate)
                 invoice.append('items', dict(
