@@ -15,9 +15,14 @@ status_attending = "Attending"
 
 
 class TableOrder(Document):
+    synchronize_data = None
     def before_save(self):
-        self.synchronize(dict(status=self.status))
-        self._table.synchronize()
+        if self.synchronize_data:
+            self.synchronize(self.synchronize_data)
+        else:
+            self.synchronize(dict(status=self.status))
+
+        self.notify_status()
 
         if self.link_invoice:
             return
@@ -27,6 +32,16 @@ class TableOrder(Document):
         if len(entry_items) > 0:
             self.calculate_order(entry_items)
 
+    def notify_status(self):
+        last_status = frappe.db.get_value("Table Order", self.name, "status")
+        if self.status == "Sent" and last_status != "Sent":
+            frappe.msgprint(_('Order {0} has been sent to kitchen').format(self.name),
+                            indicator='green', alert=True)
+
+        if self.status == "Cancelled" and last_status != "Cancelled":
+            frappe.msgprint(_('Order {0} has been cancelled').format(self.name),
+                            indicator='red', alert=True)
+
     def validate(self):
         if self.status is None:
            self.status = "Opened"
@@ -35,7 +50,10 @@ class TableOrder(Document):
         if self.status == "Cancelled":
             self.show_in_pos = 0
 
-        if self.status == "Sent":
+        if self.status == "Sent" and len(self.entry_items) == 0:
+            if self.status != frappe.db.get_value("Table Order", self.name, "status"):
+                frappe.throw(_("You can't send an empty order"))
+
             self.show_in_pos = 0
             self.ordered_time = frappe.utils.now_datetime()
 
@@ -190,8 +208,9 @@ class TableOrder(Document):
         frappe.db.set_value("Table Order", self.name, "docstatus", 1)
 
         frappe.msgprint(_('Invoice Created'), indicator='green', alert=True)
+        self.synchronize_data = dict(action="Invoiced", status=["Invoiced"])
 
-        self.synchronize(dict(action="Invoiced", status=["Invoiced"]))
+        #self.synchronize(dict(action="Invoiced", status=["Invoiced"]))
 
         return dict(
             status=True,
@@ -217,8 +236,9 @@ class TableOrder(Document):
         #                        table_description)
 
         self.reload()
-        self.synchronize(
-            dict(action="Transfer", client=client, last_table=last_table_name))
+        self.synchronize_data = dict(action="Transfer", client=client, last_table=last_table_name)
+        #self.synchronize(
+        #    dict(action="Transfer", client=client, last_table=last_table_name))
 
         last_table.synchronize()
         return True
@@ -276,7 +296,7 @@ class TableOrder(Document):
                     conversion_factor=1,
                 ))
 
-                frappe.publish_realtime("debug", dict(data=item))
+                #frappe.publish_realtime("debug", dict(data=item))
 
                 if is_customizable:
                     sub_items = json.loads(item["sub_items"])
@@ -337,7 +357,7 @@ class TableOrder(Document):
                     "included_in_print_rate": included_in_print_rate or tax.included_in_print_rate
                 })
 
-        if self.is_delivery == 1 and self.delivery_branch != 1:
+        if self.is_delivery == 1 and self.delivery_branch != 1 and self.address:
             address = frappe.db.get_value(
                 "Address", self.address, "posa_delivery_charges")
             shipping_data = frappe.db.get_value("Delivery Charges", address, [
@@ -377,7 +397,9 @@ class TableOrder(Document):
             "You cannot modify an order from another User"
         )
         self.calculate_order(all_items, True)
-        self.synchronize(dict(action="queue"))
+        self.synchronize_data = dict(action="queue")
+        #self.action = "queue"
+        #self.synchronize(dict(action="queue"))
 
     def set_is_delivery(self, is_delivery):
         self.is_delivery = is_delivery
@@ -409,7 +431,8 @@ class TableOrder(Document):
         else:
             self.aggregate()
 
-        self.synchronize(dict(item=item["identifier"]))
+        self.synchronize_data = dict(item=item["identifier"])
+        #self.synchronize(dict(item=item["identifier"]))
 
     def delete_item(self, item, unrestricted=False, synchronize=True):
         if not unrestricted:
@@ -426,8 +449,9 @@ class TableOrder(Document):
         self.db_commit()
 
         if synchronize and frappe.db.count("Order Entry Item", {"identifier": item}) == 0:
-            self.synchronize(
-                dict(action='queue', item_removed=item, status=[status]))
+            self.synchronize_data = dict(action='queue', item_removed=item, status=[status])
+            #self.synchronize(
+            #    dict(action='queue', item_removed=item, status=[status]))
 
     def db_commit(self):
         frappe.db.commit()
@@ -481,7 +505,7 @@ class TableOrder(Document):
                 is_customizable=entry["is_customizable"],
             )
 
-            frappe.publish_realtime("debug", dict(debug_item=data))
+            #frappe.publish_realtime("debug", dict(debug_item=data))
 
             self.validate()
 
@@ -555,14 +579,22 @@ class TableOrder(Document):
             items=dict(data=short_data, items=items)
         )
 
-    def get_delivery_address(self, origin, ref):
-        address = frappe.get_doc("Address", dict(
-            branch=ref) if origin == "Branch" else dict(name=ref))
+    def get_delivery_address(self, address=None):
+        if not address:
+            return {
+                "address": "",
+                "charges": 0
+            }
+
+        _address = frappe.get_doc("Address", address)
+
+        charges = 0 if self.delivery_branch == 1 else frappe.db.get_value(
+            "Delivery Charges", _address.posa_delivery_charges, "default_rate"
+        )
 
         return dict(
-            address=address.get_display(),
-            charges=frappe.db.get_value(
-                "Delivery Charges", address.posa_delivery_charges, "default_rate")
+            address=_address.get_display(),
+            charges=charges
         )
 
     @property
@@ -594,8 +626,7 @@ class TableOrder(Document):
                 dinners=self.dinners,
                 process_status_data=self._table.process_status_data(self),
                 show_in_pos=self.show_in_pos,
-                delivery_address=self.get_delivery_address(
-                    "Address", self.address)["address"] if self.is_delivery else None,
+                delivery_address=self.get_delivery_address(self.address)["address"],
                 notes=self.notes,
                 ordered_time=self.ordered_time or frappe.utils.now_datetime(),
                 branch=self.branch,
@@ -669,6 +700,7 @@ class TableOrder(Document):
                 data_to_send.append(table.get_command_data(item))
 
         self.reload()
+        #self.synchronize_data = dict(status=["Sent"])
         self.synchronize(dict(status=["Sent"]))
 
         return self.data()

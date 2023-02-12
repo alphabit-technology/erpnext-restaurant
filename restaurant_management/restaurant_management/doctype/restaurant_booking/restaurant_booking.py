@@ -18,7 +18,8 @@ class RestaurantBooking(Document):
 		self.set_reservation_end_time()
 
 		reservation_time = self.reservation_time or today()
-		day_dif = date_diff(reservation_time, today())
+		day_dif = date_diff(
+			reservation_time, get_datetime(today()) - timedelta(minutes=15))
 
 		if self.status not in ["Canceled", "No Show"]:
 			if day_dif < 0:

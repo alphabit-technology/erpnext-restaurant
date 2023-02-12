@@ -13,14 +13,8 @@ class CheckIn extends DeskForm{
     async make(){
         await super.make();
 
-        Object.entries({fontSize: "18px"}).forEach(([key, value]) => {
-            this.get_field("save").input.style[key] = value;
-            this.get_field("attend").input.style[key] = value;
-            this.get_field("cancel").input.style[key] = value;
-        });
-
         this.make_reservation_form();
-        this.make_buttons();
+        this.make_actions();
 
         const set_reservation_form_doc_name = (doc_name) => {
             if (this.reservation_form) {
@@ -55,98 +49,51 @@ class CheckIn extends DeskForm{
         });
 
         setTimeout(() => {
-            ["save", "attend", "cancel"].forEach((field_name) => {
-                this.super_container_field(field_name).style.padding = "5px";
-            });
-
-            this.attend.remove_class("btn-default btn-xs").add_class("btn-primary btn-lg btn-block");
-            this.save.remove_class("btn-default btn-xs").add_class("btn-warning btn-lg btn-block");
-            this.cancel.remove_class("btn-default btn-xs").add_class("btn-danger btn-lg btn-block");
-            
             $(this.get_field("add_reservation_wrapper").wrapper[0]).show();
         }, 0);
     }
 
     make_reservation_form() {
-        if(!this.reservation_form) {
-            this.reservation_form = new Reservation({
-                reservation_manage: this,
-                location: $(this.get_field("add_reservation_wrapper").wrapper[0])
-            });
-        }
+        this.reservation_form ??= new Reservation({
+            reservation_manage: this,
+            location: $(this.get_field("add_reservation_wrapper").wrapper[0])
+        });
     }
 
-    make_buttons() {
-        this.attend = frappe.jshtml({
-            from_html: this.get_field("attend").input,
-            properties: {
-                type: "button",
-                class: `btn btn-warning btn-lg btn-flat`,
-                style: "width: 100%; height: 60px;"
-            }
-        }).on("click", () => {
-            if (this.reservation_form) {
-                const current_time = moment().format("YYYY-MM-DD HH:mm:ss");
-                const reservation_time = moment(this.reservation_form.get_value("reservation_time")).format("YYYY-MM-DD HH:mm:ss");
-                const reservation_end_time = moment(this.reservation_form.get_value("reservation_end_time")).format("YYYY-MM-DD HH:mm:ss");
-
-                const save = (opt=true) => {
-                    this.reservation_form.save({
-                        success: (data) => {
-                            this.reservation_form.execute(opt);
-                        }
-                    });
-                }
-
-                if (current_time >= reservation_time && current_time <= reservation_end_time) {
-                    save();
-                } else {
-                    const table = this.reservation_form.get_value("table");
-                    if (table && table.length > 0) {
-                        this.reservation_form.set_value("status", "Waitlisted");
-                        frappe.confirm(
-                            'Reservation time is not in range. Do you want to continue?',
-                            () => {
-                                save(false);
-                            },
-                        );
-                    }else{
-                        save();
-                    }
-                }
-            }
+    make_actions() {
+        [
+            { name: "edit_table", icon: "fa fa-refresh", label: "Table", type:"primary"},
+            { name: "check_in", label: "Check In", type:"success", icon: "fa fa-check-square-o"},
+            { name: "cancel", label: "Cancel", type: "danger", confirm: true, icon: "fa fa-times"},
+            { name: "finish", label: "Finish", type: "warning", confirm: true, icon: "fa fa-check"},
+        ].map(action => {
+            return this.add_action(action, () => {
+                this.reservation_form && this.reservation_form[action.name]();
+            });
         });
+    }
 
-        this.save = frappe.jshtml({
-            from_html: this.get_field("save").input,
-            properties: {
-                type: "button",
-                class: `btn btn-primary btn-lg btn-flat`,
-                style: "width: 100%; height: 60px;"
-            }
-        }).on("click", () => {
-            this.reservation_form.execute(true);
-        });
+    set_button_status(table, doc_name) {
+        if (table && table.length > 0) {
+            this.actions.check_in.val(`Check In <strong style="padding-left:5px;"> ${table}</strong>`);
+        } else {
+            this.actions.check_in.val("Check Table");
+        }
 
-        this.cancel = frappe.jshtml({
-            from_html: this.get_field("cancel").input,
-            properties: {
-                type: "button",
-                class: `btn btn-primary btn-lg btn-flat`,
-                style: "width: 100%; height: 60px;"
-            },
-            content: "{{text}}",
-            text: "Cancel"
-        }).on("click", () => {
-            if (this.reservation_form) {
-                this.reservation_form.set_value("status", "Cancelled");
-                this.reservation_form.save({
-                    success: (data) => {
-                        this.reservation_form.execute(true);
-                    }
-                });
+        if(!doc_name){
+            this.actions.cancel.disable();
+            this.actions.finish.disable();
+            this.actions.edit_table.disable();
+        }else{
+            this.actions.cancel.enable();
+            this.actions.finish.enable();
+
+            if (table && table.length > 0 && this.reservation_form.get_value("status") === "Open"){
+                this.actions.edit_table.enable();
+            }else{
+                this.actions.edit_table.disable();
             }
-        }, DOUBLE_CLICK_DELAY);
+        }
     }
 
 }
@@ -163,37 +110,73 @@ class Reservation extends DeskForm {
         super.initialize();
     }
 
-    set_button_status() {
-        const table = this.get_value("table_description");
-
-        if (table && table.length > 0) {
-            this.reservation_manage.get_field("attend").input.innerHTML = "Check In " + table;
-            this.reservation_manage.save.enable();
-        } else {
-            this.reservation_manage.save.disable();
-            this.reservation_manage.get_field("attend").input.innerHTML = "Check Table";
-        }
-
-        if(this.doc_name){
-            this.reservation_manage.cancel.enable();
-        }else{
-            this.reservation_manage.cancel.disable();
-        }
+    cancel(){
+        this.set_value("status", "Cancelled");
+        this.save({
+            success: () => {
+                this.reservation_manage.reload(null, true);
+            }
+        });
     }
 
-    execute(change_table=false){
-        const table = this.get_value("table");
-        const room = this.get_value("room");
+    hide() {
+        this.reservation_manage.hide();
+    }
 
-        if(table.length > 0 && change_table === false){
-            RM.navigate_room = room;
-            RM.navigate_table = table;
-            frappe.set_route(`restaurant-manage?restaurant_room=${room}`);
-        }else{
-            RM.reservation = this;
-            RM.working("Checking for available table...");
-            this.reservation_manage.hide();
+    show() {
+        this.reservation_manage.show();
+    }
+
+    close() {
+        this.set_value("status", "Closed");
+        this.save({
+            success: () => {
+                this.reservation_manage.reload(null, true);
+            }
+        });
+    }
+
+    check_in(){
+        const [current_time, reservation_time, reservation_end_time] = [
+            , ...this.get_value(["reservation_time", "reservation_end_time"])
+        ].map(time => moment(time).format("YYYY-MM-DD HH:mm:ss"));
+
+        const [room, table, reservation_status] = this.get_value(["room", "table", "status"]);
+
+        const check_in = () => {
+            this.save({
+                success: () => {
+                    if(table && table.length){
+                        RM.navigate_room = room;
+                        RM.navigate_table = table;
+                        frappe.set_route(`restaurant-manage?restaurant_room=${room}`);
+                    }else{
+                        this.edit_table();
+                    }
+                }
+            });
         }
+
+        if (!((current_time >= reservation_time && current_time <= reservation_end_time) || reservation_status === "Waitlisted")) {
+            if (table && table.length > 0) {
+                frappe.confirm(
+                    'Reservation time is not in range. Do you want to continue?',
+                    () => {
+                        this.set_value("status", "Waitlisted");
+                        check_in();
+                    },
+                );
+                return;
+            }
+        }
+
+        check_in();
+    }
+
+    edit_table(){
+        RM.reservation = this;
+        RM.working("Checking for available table...");
+        this.reservation_manage.hide();
     }
 
     clear_inputs() {
@@ -202,12 +185,12 @@ class Reservation extends DeskForm {
     }
 
     on_reload() {
-        this.trigger("table_description", "change");
+        this.trigger("table", "change");
     }
 
     make_events() {
         this.on("table_description", "change", (field) => {
-            this.set_button_status();
+            this.reservation_manage && this.reservation_manage.set_button_status(this.get_value("table_description"), this.doc_name);
         });
 
         this.on("customer", "change", (field) => {
@@ -216,6 +199,16 @@ class Reservation extends DeskForm {
                     this.set_value("contact_number", data.message.mobile_no);
                 }
             });
+        });
+
+        this.on("reservation_time", "change", (field) => {
+            const [start_date, end_time] = this.get_value(["reservation_time", "reservation_end_time"]);
+
+            if (!start_date || start_date.length === 0) return;
+
+            if (!end_time || end_time.length === 0 || moment(end_time).isBefore(start_date)) {
+                this.set_value("reservation_end_time", moment(start_date).add(2, "hours").format("YYYY-MM-DD HH:mm:ss"));
+            }
         });
     }
 
@@ -299,17 +292,12 @@ class Reservation extends DeskForm {
                                 }
 
                                 if (field.fieldname == "reservation_time") {
-                                    const end = moment(booking.reservation_end_time);
-                                    const start = moment();
+                                    const [start, end] = [moment(), moment(booking.reservation_end_time)];
                                     const diff = end.diff(start, "days");
                                     const join = " <strong style='color:orange;'>-></strong> ";
 
                                     if (datesAreOnSameDay(new Date(booking.reservation_time), new Date(booking.reservation_end_time))) {
-                                        if (diff < 7) {
-                                            value = moment(value).calendar();
-                                        } else {
-                                            value = moment(value).format("LLLL");
-                                        }
+                                        value = diff < 7 ? moment(value).calendar() : moment(value).format("LLLL");
                                         value += join + moment(booking.reservation_end_time).format("h:mm a");
                                     } else {
                                         value = moment(value).calendar() + join + moment(booking.reservation_end_time).calendar();

@@ -375,25 +375,23 @@ ProcessManage = class ProcessManage {
     }
 
     check_items(items) {
-        //setTimeout(() => {
-            if (Array.isArray(items.items)) {
-                if (this.group_items_by_order) {
-                    this.render_group_container({ items: items.data || items });
+        if (Array.isArray(items.items)) {
+            if (this.group_items_by_order) {
+                this.render_group_container({ items: items.data || items });
+            }
+
+            items.items.forEach(item => {
+                if (!this.group_items_by_order) {
+                    this.render_group_container({ items: item });
                 }
 
-                items.items.forEach(item => {
-                    if (!this.group_items_by_order) {
-                        this.render_group_container({ items: item });
-                    }
-
-                    this.check_item(item, items.data);
-                });
-            } else {
-                Object.values(items.items).forEach(item => {
-                    this.check_items(item);
-                });
-            }
-        //}, 100);
+                this.check_item(item, items.data);
+            });
+        } else {
+            Object.values(items.items).forEach(item => {
+                this.check_items(item);
+            });
+        }
     }
 
     check_available_item(item, order) {

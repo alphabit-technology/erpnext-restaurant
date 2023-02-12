@@ -134,7 +134,7 @@
   {
    "allow_read_on_all_link_options": 0,
    "collapsible": 0,
-   "extra_field": 1,
+   "extra_field": 0,
    "fetch_from": "table.description",
    "fetch_if_empty": 0,
    "fieldname": "table_description",
@@ -171,7 +171,7 @@
  "is_standard": 1,
  "login_required": 1,
  "max_attachment_size": 0,
- "modified": "2023-02-06 19:08:29.850975",
+ "modified": "2023-02-12 08:13:14.291579",
  "modified_by": "Administrator",
  "module": "Restaurant Management",
  "name": "check-in",

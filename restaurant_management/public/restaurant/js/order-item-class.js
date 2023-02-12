@@ -146,7 +146,6 @@ class OrderItem {
     }
 
     calculate_form(input, value){
-        //console.log("calculate_form", input)
         /**TODO: merge with general order management function */
         const set_data = (qty, discount, rate) => {
             this.data.qty = qty;

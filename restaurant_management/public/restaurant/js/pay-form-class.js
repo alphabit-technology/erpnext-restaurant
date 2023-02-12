@@ -57,12 +57,14 @@ class PayForm extends DeskForm {
         }
 
         this.on("charge_amount", "change", (field) => {
-            this.order.data.is_delivery = this.get_value("is_delivery");
-            this.order.data.delivery_branch = this.get_value("delivery_branch");
-            this.order.data.charge_amount = field.get_value();
-            this.order.aggregate(true);
+            if(this.order.data.charge_amount !== field.get_value()) {
+                this.order.data.is_delivery = this.get_value("is_delivery");
+                this.order.data.delivery_branch = this.get_value("delivery_branch");
+                this.order.data.charge_amount = field.get_value();
+                this.order.aggregate(true);
 
-            this.save({}, true);
+                super.save({}, true);
+            }
         });
 
         this.on("related_branch", "change", (field) => {
@@ -70,7 +72,7 @@ class PayForm extends DeskForm {
         });
 
         this.on(["delivery_branch", "address"], "change", () => {
-            const set_reqd_status = (delivery_branch) => {
+            const set_reqd_status = delivery_branch => {
                 if (this.is_delivery) {
                     if (delivery_branch) {
                         this.set_field_property(["delivery_date", "pick_time", "branch"], "reqd", 1);
@@ -170,93 +172,48 @@ class PayForm extends DeskForm {
     }
 
     make_actions() {
-        this.get_field("actions").$wrapper.append(`
-            <div class='widget-group'>
-                <div class="widget-group-body grid-col-2"></div>
-            </div>
-        `)
-
-        this.add_action({
-            name: "save", label: "Save", action: () => {
-                this.save({
-                    success: () => {
-                        this.order.select(true, false);
-                        RM.ready("Order Placed");
-                    }
-                });
-            }, opts: { classes: "btn btn-success" }
+        [
+            { name: "save", label: "Save", type: "success" },
+            { name: "send_order", label: "Order", type: "success", icon: "fa fa-cutlery" },
+            { name: "cancel", label: "Cancel", type: "danger", icon: "fa fa-times" },
+            { name: "pay", label: "Pay", type: "primary", icon: "fa fa-money", confirm: !RM.restrictions.to_pay ? DOUBLE_CLICK : null },
+        ].forEach(action => {
+            this.add_action(action, () => {
+                this[action.name]();
+            });
         });
-
-        this.add_action({ name: "complete", label: "Complete", opts: { classes: "btn btn-info" } });
-        this.add_action({ name: "cancel", label: "Cancel", opts: { classes: "btn btn-danger" } });
-        this.add_action({ name: "pay", label: "Pay", opts: { classes: "btn btn-primary" } });
-
-        this.make_payment_button();
-        this.make_order_button();
-        this.make_cancel_button();
+        
+        this.actions.pay.prop("disabled", !RM.can_pay);
     }
 
-    add_action({ name, label, action, opts } = {}) {
-        const classes = opts && opts.classes ? opts.classes : "";
-        const style = opts && opts.style ? opts.style : "";
-
-        const element = this.get_field("actions").$wrapper.find(".widget-group-body").append(`
-            <button class="widget widget-shadow shortcut-widget-box ${classes}"
-                style="align-items:center;${style}"
-                data-widget-name="${name}"
-            >
-                ${this.action_content(label)}
-            </button>
-            `);
-
-        action && element.find(`[data-widget-name="${name}"]`).on("click", action);
-
-        return element;
+    /**Actions **/
+    save(){
+        super.save({
+            success: () => {
+                this.order.select(true, false);
+                RM.ready("Order Placed");
+            }
+        });
     }
 
-    action_content(value, template = "") {
-        return `
-        <div class="widget-head">
-            <div>
-                <div class="widget-title ellipsis" style="font-size: 1.5em;">${template} ${value}</div>
-                    <div class="widget-subtitle"></div>
-                </div>
-                <div class="widget-control"></div>
-            </div>
-        </div>`
-    }
-
-    make_payment_button() {
-        this.payment_button = frappe.jshtml({
-            from_html: this.get_field("actions").$wrapper.find(`[data-widget-name="pay"]`).get(0),
-            content: this.action_content(this.order.total_money, "{{text}}"),
-            text: `${__("Pay")}`
-        }).on("click", () => {
-            if (!RM.can_pay) return;
-            this.payment_button.disable().val(__("Paying"));
-            this.send_payment();
-        }, !RM.restrictions.to_pay ? DOUBLE_CLICK : null).prop("disabled", !RM.can_pay);
-    }
-
-    make_order_button() {
-        this.order_button = frappe.jshtml({
-            from_html: this.get_field("actions").$wrapper.find(`[data-widget-name="complete"]`).get(0),
-            content: this.action_content("", "{{text}}"),
-            text: `${__("Complete")}`
-        }).on("click", () => {
+    send_order() {
+        frappe.confirm(__("This action sent all order to Production Center,<br><strong>Do you want to continue?</strong>"), () => {
             frappe.db.set_value("Table Order", this.order.data.name, "status", "Sent");
-        }, DOUBLE_CLICK);
+        });
     }
 
-    make_cancel_button() {
-        this.order_button = frappe.jshtml({
-            from_html: this.get_field("actions").$wrapper.find(`[data-widget-name="cancel"]`).get(0),
-            content: this.action_content("", "{{text}}"),
-            text: `${__("Cancel")}`
-        }).on("click", () => {
+    cancel() {
+        frappe.confirm(__("Do you want to cancel Order?</strong>"), () => {
             frappe.db.set_value("Table Order", this.order.data.name, "status", "Cancelled");
-        }, DOUBLE_CLICK);
+        });
     }
+
+    pay(){
+        if (!RM.can_pay) return;
+        this.actions.pay.disable().val(__("Paying"));
+        this.send_payment();
+    }
+    /**Actions */
 
     disable_input(input, value = true) {
         const field = this.get_field(input);
@@ -274,34 +231,18 @@ class PayForm extends DeskForm {
         });
     }
 
-    get_delivery_address() {
-        const type_delivery = this.get_value("delivery_branch") === 1 ? "Branch" : "Address";
-        const address = this.get_value("address");
+    async get_delivery_address() {
+        this.order.data.address = this.get_value("address");
 
-        if (type_delivery === "Address" && address.length === 0) {
+        if (this.get_value("delivery_branch") === 1) {
             this.set_value("delivery_address", "");
             this.set_value("charge_amount", 0);
-            return
-        };
+        }else{
+            const address = await this.order.get_delivery_address();
 
-        if (type_delivery === "Branch") {
-            this.set_value("delivery_address", "");
-            this.set_value("charge_amount", 0);
-            return
+            this.set_value("delivery_address", address.address || "");
+            this.set_value("charge_amount", address.charges || 0);
         };
-
-        frappeHelper.api.call({
-            model: "Table Order",
-            name: this.order.data.name,
-            method: "get_delivery_address",
-            args: { origin: "Address", ref: address },
-            always: (r) => {
-                if (r.message) {
-                    this.set_value("delivery_address", r.message.address);
-                    this.set_value("charge_amount", r.message.charges);
-                }
-            }
-        });
     }
 
     init_synchronize() {
@@ -331,8 +272,6 @@ class PayForm extends DeskForm {
             }).float();
 
             window["mode_of_payment"] = this.payment_methods[mode_of_payment.mode_of_payment]
-
-            console.log(["Mode of Payment", mode_of_payment.mode_of_payment, this.payment_methods[mode_of_payment.mode_of_payment]])
 
             if (mode_of_payment.default === 1) {
                 this.payment_methods[mode_of_payment.mode_of_payment].val(this.order.data.amount);
@@ -388,10 +327,10 @@ class PayForm extends DeskForm {
     reset_payment_button() {
         RM.ready();
         if (!RM.can_pay) {
-            this.payment_button.disable();
+            this.actions.pay.disable();
             return;
         }
-        this.payment_button.enable().val(__("Pay")).remove_class("btn-warning");
+        this.actions.pay.enable().val(__("Pay"));
     }
 
     #send_payment() {
@@ -400,7 +339,7 @@ class PayForm extends DeskForm {
 
         RM.working("Saving Invoice");
 
-        this.save({
+        super.save({
             success: (r) => {
                 RM.working("Paying Invoice");
                 frappeHelper.api.call({
@@ -489,9 +428,9 @@ class PayForm extends DeskForm {
     }
 
     set_total_payment() {
-        if (this.payment_button) {
-            this.payment_button.set_content(`<span style="font-size: 25px; font-weight: 400">{{text}} ${this.order.total_money}</span>`);
-            this.payment_button.val(__("Pay"));
+        if (this.actions.pay) {
+            this.actions.pay.set_content(`<span style="font-size: 25px; font-weight: 400">{{text}} ${this.order.total_money}</span>`);
+            this.actions.pay.val(__("Pay"));
         }
     }
 }

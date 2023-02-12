@@ -474,8 +474,10 @@ RestaurantObject = class RestaurantObject {
                 RM.reservation.save({
                     success: r => {
                         if (r.message) {
+                            RM.reservation.show();
                             RM.reservation = null;
-                            _open();
+
+                            RM.notification("green", __("Table {0} has been reserved", [this.data.description]));
                         }
                     },
                     error: r => {

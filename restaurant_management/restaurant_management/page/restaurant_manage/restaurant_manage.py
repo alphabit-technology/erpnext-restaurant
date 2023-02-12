@@ -207,7 +207,7 @@ def group_items_count():
     return items
 
 @frappe.whitelist()
-def get_items(start, page_length, price_list, item_group, pos_profile, search_value="", force_parent=0):
+def get_items(start, page_length, price_list, item_group, pos_profile, item_type=None, search_value="", force_parent=0):
     data = dict()
     result = []
 
@@ -250,6 +250,7 @@ def get_items(start, page_length, price_list, item_group, pos_profile, search_va
 
     item_group = "='%s'" % item_group if force_parent == '1' else "in (SELECT name FROM `tabItem Group` WHERE lft >= %s AND rgt <= %s)" % (lft, rgt)
 
+    item_type_condition = "AND item_type = '%s'" % item_type if item_type and len(item_type) > 0 else ""
     items_data = frappe.db.sql("""
 		SELECT
 			item.name AS item_code,
@@ -267,6 +268,7 @@ def get_items(start, page_length, price_list, item_group, pos_profile, search_va
 			AND item.is_sales_item = 1
 			AND item.is_fixed_asset = 0
 			AND item.item_group {item_group}
+            {item_type_condition}
 			AND {condition}
 			{bin_join_condition}
 		ORDER BY
@@ -277,6 +279,7 @@ def get_items(start, page_length, price_list, item_group, pos_profile, search_va
         start=start,
         page_length=page_length,
         item_group=item_group,
+        item_type_condition=item_type_condition,
         condition=condition,
         bin_join_selection=bin_join_selection,
         bin_join_condition=bin_join_condition
@@ -319,6 +322,28 @@ def get_items(start, page_length, price_list, item_group, pos_profile, search_va
     return res
 
 
+@frappe.whitelist()
+def search_serial_or_batch_or_barcode_number(search_value):
+	# search barcode no
+	barcode_data = frappe.db.get_value('Item Barcode', {'barcode': search_value}, [
+	                                   'barcode', 'parent as item_code'], as_dict=True)
+	if barcode_data:
+		return barcode_data
+
+	# search serial no
+	serial_no_data = frappe.db.get_value('Serial No', search_value, [
+	                                     'name as serial_no', 'item_code'], as_dict=True)
+	if serial_no_data:
+		return serial_no_data
+
+	# search batch no
+	batch_no_data = frappe.db.get_value(
+	    'Batch', search_value, ['name as batch_no', 'item as item_code'], as_dict=True)
+	if batch_no_data:
+		return batch_no_data
+
+	return {}
+    
 def get_conditions(item_code, serial_no, batch_no, barcode):
 	if serial_no or batch_no or barcode:
 		return "item.name = {0}".format(frappe.db.escape(item_code))

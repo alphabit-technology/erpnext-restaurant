@@ -46,7 +46,11 @@ custom_fields = {
     "Item": dict(
         customizable=dict(label="Customizable", fieldtype="Section Break", insert_after="description", collapsible=1),
         is_customizable=dict(label="Is Customizable", fieldtype="Check", insert_after="customizable", description="If checked, the item will be customizable"),
-        customizable_options=dict(label="Customizable Options", fieldtype="Table", options="Item Customizable", insert_after="is_customizable")
+        customizable_options=dict(label="Customizable Options", fieldtype="Table", options="Item Customizable", insert_after="is_customizable"),
+        section_break_27=dict(fieldtype="Section Break", insert_after="customizable_options", collapsible=1),
+        item_type=dict(label="Item Type", fieldtype="Select", options="Veg\nNon-Veg\nVeg/Non-Veg", insert_after="section_break_27"),
+        column_break_29=dict(fieldtype="Column Break", insert_after="item_type"),
+        cuisine=dict(label="Cuisine", fieldtype="Link", options="Cuisine Type", insert_after="column_break_29"),
     ),
     #"Delivery Charges": dict(
     #    shipping_rule=dict(label="Shipping Rule", fieldtype="Link",

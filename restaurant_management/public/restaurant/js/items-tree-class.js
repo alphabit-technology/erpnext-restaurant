@@ -1,9 +1,11 @@
 class ItemsTree {
-    #items = null;
+    items_manage = null;
 
     constructor({ wrapper, order_manage }) {
         this.wrapper = wrapper;
         this.order_manage = order_manage;
+        this.item_parent_wrapper = order_manage.item_parent_wrapper;
+        this.item_type_wrapper = order_manage.item_type_wrapper;
         this.items = {};
         this.currency = RM.pos_profile.currency;
 
@@ -16,11 +18,51 @@ class ItemsTree {
     render_parent_group(groups) {
         const self = this;
         //groups.push({ name: "Options", parent_item_group: null, icon: "fa fa-cog" });
+        this.item_type_wrapper.append(`
+        <div class="input-group mb-0">
+            <div class="input-group-prepend" style="padding-button:3px;">
+                <button class="btn btn-outline-success item-type" type="button" style="border-radius:0;">${__('Veg')}</button>
+                <button class="btn btn-outline-warning item-type" type="button">${__('Non-Veg')}</button>
+            </div>
+            <input type="text" class="form-control" placeholder="Search Items" aria-label="Search Items">
+        </div>
+`
+        );
+
+        this.search_input = {
+            $input: $(this.item_type_wrapper.find("input"))
+        };
+
+        this.item_type_wrapper.find(".item-type").click(function (e) {
+            $(this).toggleClass('active').siblings().removeClass('active');
+
+            if($(this).hasClass('active')) {
+                self.item_type_filter = $(this).text();
+            } else {
+                self.item_type_filter = null;
+            }
+
+            setTimeout(() => {
+                self.current_item_manage && self.current_item_manage.load_items_data()
+            }, 0);
+        });
+
+        this.search_input.$input.on('input', (e) => {
+            const search_term = e.target.value;
+            clearTimeout(this.last_search);
+            this.last_search = setTimeout(() => {
+                self.current_item_manage && self.current_item_manage.search({ search_term });
+            }, 300);
+        });
+
+        frappe.ui.keys.on('ctrl+i', () => {
+            this.search_input.$input.focus();
+        });
 
         groups.forEach(group => {
             const icon_class = group.name === "All Item Groups" ? "fa fa-list" : group.icon || "fa fa-chevron-right";
             const style = group.name === "Options" ? "float: right; position:absolute; right:0;" : "";
-            this.order_manage.item_parent_wrapper.append(`
+            this.item_parent_wrapper.append(`
                 <button class="btn btn-default btn-flat item-group-action" data-group="${group.name}" style="${style}">
                     <span class="${icon_class}" icon-group="icon-group"></span>
                     ${group.name === "All Item Groups" ? __("All") : group.name}
@@ -28,7 +70,7 @@ class ItemsTree {
             `)
         });
 
-        this.order_manage.item_parent_wrapper.find(".item-group-action").click(function (e) {
+        this.item_parent_wrapper.find(".item-group-action").click(function (e) {
             $(this).addClass('active').removeClass("text-muted").siblings().removeClass('active').addClass("text-muted");
             const item_group = $(this).attr('data-group');
 
@@ -39,7 +81,7 @@ class ItemsTree {
             });
         });
 
-        this.order_manage.item_parent_wrapper.find(".item-group-action:first").click();
+        this.item_parent_wrapper.find(".item-group-action:first").click();
     }
 
     make_dom() {
@@ -50,14 +92,20 @@ class ItemsTree {
                     
                     </div>
                 </div>
-            </div>
-		`);
+            </div>		`);
+    }
+
+    update_items(items=[]){
+        this.current_item_manage && this.current_item_manage.update_items(items);
     }
 
     render_tree(data, wrapper = null, opened = false) {      
         wrapper.empty();
     
         data.forEach(item => {
+            this.groups ??= {};
+            this.groups[item.name] = item;
+
             const icon = frappe.jshtml({
                 tag: "use",
                 properties: {
@@ -115,12 +163,20 @@ class ItemsTree {
 
                 items_container.empty().toggle();
 
-                this.#items = new ProductItem({
-                    wrapper: items_container,
-                    order_manage: this.order_manage,
-                    have_search: false,
-                    item_group: item.name
-                });
+                if(!this.groups[item.name].items_manage) {
+                    this.groups[item.name].items_manage ??= new ProductItem({
+                        wrapper: items_container,
+                        order_manage: this.order_manage,
+                        item_tree: this,
+                        item_group: item.name,
+                        search_term: this.search_input.$input.val(),
+                        search_field: this.search_input
+                    });
+                }else{
+                    this.groups[item.name].search();
+                }
+
+                this.current_item_manage = this.groups[item.name].items_manage;
                 
                 this.update_items_count();
             }

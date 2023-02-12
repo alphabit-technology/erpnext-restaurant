@@ -2,31 +2,20 @@ class ProductItem {
     have_search = true;
     items = {};
     currency = RM.pos_profile.currency;
+    search_term = '';
+    item_type = '';
     constructor(opts) {
         Object.assign(this, opts);
 
-        //frappe.db.get_value("Item Group", { item_group: this.item_group }, "name", async (r) => {
-            this.parent_item_group = this.item_group;
-            this.make_dom();
-            this.have_search && this.make_fields();
-            this.init_clusterize();
-            this.load_items_data();
-        //});
+        this.parent_item_group = this.item_group;
+        this.make_dom();
+        this.init_clusterize();
+        this.load_items_data();
     }
 
-    make_dom() {
-        const search_field_wrapper = this.have_search ? $(`
-            <div class="fields row" style="padding-top:10px">
-                <div class="search-field col-md-7">
-                </div>
-                <div class="item-group-field col-md-5">
-                </div>
-            </div>
-        `) : '';
-                        
+    make_dom() {                        
         this.wrapper.html(`
 			<div class="layout-table" style="height:unset !important;">
-				${search_field_wrapper}
 				<div class="items-wrapper" style="height: 100%"></div>
 			</div>
 		`);
@@ -39,98 +28,6 @@ class ProductItem {
                 </div>
 			</div>
 		`);
-    }
-
-    make_fields() {
-        const self = this;
-        this.search_field = frappe.ui.form.make_control({
-            df: {
-                fieldtype: 'Data',
-                label: __('Search Item (Ctrl + i)'),
-                placeholder: __('Search by item code, serial number, batch no or barcode'),
-            },
-            parent: this.wrapper.find('.search-field'),
-            render_input: true,
-        });
-
-        frappe.ui.keys.on('ctrl+i', () => {
-            this.search_field.set_focus();
-        });
-
-        this.search_field.$input.on('input', (e) => {
-            clearTimeout(this.last_search);
-            this.last_search = setTimeout(() => {
-                const search_term = e.target.value;
-                const item_group = this.item_group_field ? this.item_group_field.get_value() : '';
-                
-                this.filter_items({ search_term: search_term, item_group: item_group });
-            }, 300);
-        });
-
-        this.item_group_field = frappe.ui.form.make_control({
-            df: {
-                fieldtype: 'Link',
-                label: 'Item Group',
-                options: 'Item Group',
-                default: self.parent_item_group,
-                onchange: () => {
-                    const item_group = this.item_group_field.get_value();
-                    if (item_group) {
-                        this.filter_items({ item_group: item_group });
-                    }
-                },
-                get_query: () => {
-                    return {
-                        query: 'erpnext.selling.page.point_of_sale.point_of_sale.item_group_query',
-                        filters: {
-                            pos_profile: RM.pos_profile.name
-                        }
-                    };
-                }
-            },
-            parent: this.wrapper.find('.item-group-field'),
-            render_input: true
-        });
-
-        const table_fields = [
-            {
-                fieldname: "customer", label: "Customer", fieldtype: "Link",
-                options: "Customer", in_list_view: 1, read_only: 1
-            },
-            {
-                fieldname: "reservation_time", label: "From", fieldtype: "Date",
-                in_list_view: 1, read_only: 1
-            },
-            {
-                fieldname: "reservation_end_time", label: "To", fieldtype: "Date",
-                in_list_view: 1, read_only: 1
-            }
-        ];
-
-        const fet_reservations = () => {
-            const data = this.order_manage.table.data;
-            const wrapper = this.wrapper.find('.reservation-field').append(`
-                <table class="layout-table" style="height:unset !important;">
-                    <tbody class="rows"></tbody>
-                </table>
-            `);
-
-            frappe.db.get_list("Restaurant Booking", {fields: ["*"], filters: {table: data.name}}).then(bookings => {
-                 wrapper.find('.rows').append(
-                    bookings.map(booking => {
-                        const row = $(`<tr></tr>`);
-                        row.append(
-                            table_fields.map(field => {
-                                return $(`<td>${booking[field.fieldname]}</td>`);
-                            })
-                        );
-                        return row; 
-                    })
-                );
-            });
-        }
-
-        fet_reservations();
     }
 
     init_clusterize() {
@@ -148,16 +45,17 @@ class ProductItem {
         this.render_items();
     }
 
-    get_items({ start = 0, page_length = 40, search_value = '', item_group = this.parent_item_group } = {}) {
+    get_items({ start = 0, page_length = 40, search_value = this.search_term, item_group = this.parent_item_group} = {}) {
         const price_list = RM.pos_profile.selling_price_list;
         const pos_profile = RM.pos_profile.name;
         const force_parent = 0;
+        const item_type = this.item_tree.item_type_filter;
 
         return new Promise(res => {
             frappe.call({
                 method: RM.url_manage + 'get_items',
                 freeze: true,
-                args: { start, page_length, price_list, item_group, search_value, pos_profile, force_parent }
+                args: { start, page_length, price_list, item_group, item_type, search_value, pos_profile, force_parent }
             }).then(r => {
                 res(r.message);
             });
@@ -208,12 +106,27 @@ class ProductItem {
                 self.add_item_in_order(self.get(item_code), qty);
             });
         });
-        /*this.wrapper.find('[data-item-code]').on('click', (e) => {
-            const item_code = $(e.currentTarget).attr('data-item-code');
-            //console.log(item_code, this.items);
-            this.add_item_in_order(this.get(item_code));
-            //this.add_to_cart(item_code);
-        });*/
+
+        setTimeout(() => {
+            const current_order = this.item_tree.order_manage.current_order;
+            this.update_items(current_order ? current_order.items : {});
+        }, 100);
+    }
+
+    update_items(items = []) {
+        this.wrapper.find('.item-code').each(function () {
+            const item = Object.values(items).find(item => item.data.item_code === $(this).attr('item-code'));
+            const item_in_cart = $(this).find('.items-in-cart');
+            const item_in_cart_qty = item_in_cart.find('.qty-in-cart');
+
+            if (item) {
+                item_in_cart.show();
+                item_in_cart_qty.html(item.data.qty);
+            }else{
+                item_in_cart.hide();
+                item_in_cart_qty.html(0);
+            }
+        });
     }
 
     async show_customization_modal(item_code, qty){
@@ -315,7 +228,12 @@ class ProductItem {
         this.load_items_data();
     }
 
-    filter_items({ search_term = '', item_group = this.parent_item_group } = {}) {
+    search(opts={}) {
+        Object.assign(this, opts);
+        this.filter_items();
+    }
+
+    filter_items({ search_term = this.search_term, item_group = this.parent_item_group } = {}) {
         const result_arr = [];
         if (search_term) {
             search_term = search_term.toLowerCase();
@@ -339,11 +257,10 @@ class ProductItem {
             }
         } else if (item_group === this.parent_item_group) {
             this.items = this.all_items;
-            S
             return this.render_items(this.all_items);
         }
 
-        this.get_items({ search_value: search_term, page_length: 9999, item_group })
+        this.get_items({ search_value: search_term, page_length: 9999, item_group})
             .then(({ items, serial_no, batch_no, barcode }) => {
                 items.forEach(item => {
                     if (`${item.item_code}`.toLowerCase().includes(search_term)) {
@@ -409,53 +326,25 @@ class ProductItem {
             tag: "div",
             properties: { 
                 class: "widget widget-shadow shortcut-widget-box",
-                style: "padding: 0; margin: 0;"
+                style: "padding: 0; margin: 0; border-radius: 20px;"
             },
             content: template()
-        }).html()/*.on("click", () => {
-            this.add_item_in_order(item);
-        }).html();*/
-
-        /*const template = $(item_html);
-
-        const item_plus = $(template).find(".fa-plus");
-        const item_minus = $(template).find(".fa-minus");
-        const item_add_value = $(template).find(".item-add-value");
-        const add_item = $(template).find(".btn-add-item");
-
-        item_plus.on("click", () => {
-            console.log("plus")
-            item_add_value.text(parseInt($(template).find(".item-add-value").text()) + 1);
-        });
-
-        item_minus.on("click", () => {
-            if (parseInt($(template).find(".item-add-value").text()) > 1) {
-                item_add_value.text(parseInt(item_add_value.text()) - 1);
-            }
-            //this.add_item_in_order(item);
-        });
-
-        add_item.on("click", () => {
-            console.log("add")
-            this.add_item_in_order(item_add_value.text(), item);
-        });
-
-        return item_html;*/
+        }).html()
 
         function template() {
             return `
-            <div class="small-box item item-code" item-code="${item_code}" is-customizable=${is_customizable}>
+            <div class="small-box item item-code" item-code="${item_code}" is-customizable=${is_customizable} style="border-radius:20px; color:var(--light); background-color:var(--dark);">
                 <div class="inner" style="position: inherit; z-index: 100">
                     <h4 class="title">${item_title}</h4>
-                    <p>${description}</p>
+                    <p> ${description}</p>
                 </div>
                 <div class="icon">
                     ${item_image ? `<img src="${item_image}" alt="${item_title}"></img>` : 
-                            `<span class="no-image placeholder-text" style="font-size: 72px; color: #d1d8dd;"> ${frappe.get_abbr(item_title)}</span>`}
+                            `<span class="no-image placeholder-text" style="font-size: 72px;"> ${frappe.get_abbr(item_title)}</span>`}
                 </div>
                 <div class="small-box-footer" style="padding:3px; background-color: transparent;">
                     <div class="form-group" style="position: absolute;">
-                        <div class="input-group bg-danger" style="border-radius: 5px; opacity: 0.9; background-color: #e24c4c47!important; color: black;">
+                        <div class="input-group bg-warning" style="border-radius: 5px; opacity: 0.9; color: black; border-radius:50px;">
                             <div class="input-group-prepend minus-btn" data-target="${item_name}-amount" data-value="-1">
                                 <span class="input-group-text fa fa-minus" style="background-color: transparent; border: none; color:orangered;"></span>
                             </div>
@@ -465,11 +354,16 @@ class ProductItem {
                             <div class="input-group-append add-btn" data-target="${item_name}-amount" data-value="1">
                                 <span class="input-group-text fa fa-plus" style="background-color: transparent; border: none; color:orangered;"></span>
                             </div>
+                            <div class="input-group-append items-in-cart" style="display:none; background-color:green; border-radius:50px;">
+                                <span class="input-group-text fa fa-shopping-cart" style="background-color: transparent; border: none; color:white;">
+                                    <span class="qty-in-cart" style="padding-left:5px;">0</span>
+                                </span>
+                            </div>
                         </div>
                     </div>
-                    <a class="btn btn-danger bg-danger add-item" data-action="add" style="float:right;">
-                        <span class="sr-only">Add</span>
-                        Add ${price_list_rate}
+                    <a class="btn btn-default bg-default add-item" data-action="add" style="float:right; border-radius:50px;">
+                        <span class="sr-only">${__('Add')}</span>
+                        ${__('Add')} ${price_list_rate}
                     </a>
                 </div>
             </div>`;

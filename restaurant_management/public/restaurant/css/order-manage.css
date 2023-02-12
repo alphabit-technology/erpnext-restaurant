@@ -6,9 +6,9 @@
     overflow-y: hidden;
 }
 
-/*.order-manage.desk .order-entry-container {
+.order-manage .order-entry-container {
     display: none;
-}*/
+}
 /*.order-manage.desk .order-entry-container {
     display: none;
 }*/
@@ -48,6 +48,7 @@
 .order-manage .order-entry-container.active {
     display: block;
 }
+
 /********/
 
 /*.order-manage .table {

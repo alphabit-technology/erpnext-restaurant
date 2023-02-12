@@ -223,15 +223,23 @@ class OrderManageMob extends ObjectManage {
             properties: {
                 id: this.item_container_name,
                 class: 'product-list',
-                style: "position: relative; height: calc(100% - 35px); overflow: auto;"
+                style: "position: relative; height: calc(100% - 80px); overflow: auto;"
                 //style: "height: calc(100% - 30px); overflow-y: auto;"
+            },
+        });
+
+        this.item_type_wrapper = frappe.jshtml({
+            tag: 'div',
+            properties: {
+                class: "item-type-wrapper",
+                /*style: "overflow-y: auto; display: flex;"*/
             },
         });
 
         this.item_parent_wrapper = frappe.jshtml({
             tag: 'div',
             properties: {
-                style: "overflow-y: auto; display: flex;"
+                style: "overflow-y: auto; display: flex; padding: 2px;"
             },
         });
 
@@ -301,6 +309,11 @@ class OrderManageMob extends ObjectManage {
                 width: 90px;
                 padding: 5px;
             }
+
+            .item-type-wrapper {
+                padding: 2px;
+                /*background: var(--dark);*/
+            }
         </style>
 		<div class="order-manage desk" id="${this.identifier}">
             <div class="content-container" style="height:calc(100% - 40px);">
@@ -322,11 +335,12 @@ class OrderManageMob extends ObjectManage {
                     </div>
                 </div>
                 <div class="tab items">
+                    ${this.item_type_wrapper.html()}
                     ${this.item_parent_wrapper.html()}
                     ${this.items_wrapper.html()}
                 </div>
                 <div class="tab items-cart">
-                    <div class="panel-order-items" style="height: calc(100% - 336px); position: relative; width: 100%;overflow:auto;")>
+                    <div class="panel-order-items" style="height: calc(100% - 400px); position: relative; width: 100%;overflow:auto;")>
                         <ul class="products-list" id="${this.order_entry_container_name}">
                             
                         </ul>
@@ -1083,16 +1097,18 @@ class OrderManageMob extends ObjectManage {
     order_status_message() {
         const container = $("#" + this.identifier);
         
-        if (this.current_order == null) {
-            container.removeClass("has-order");
-            container.removeClass("has-items");
-        } else {
+        if (this.current_order) {
             container.addClass("has-order");
             if (this.current_order.items_count === 0) {
                 container.removeClass("has-items");
             } else {
                 container.addClass("has-items");
             }
+        } else {
+            container.removeClass("has-order");
+            container.removeClass("has-items");
         }
+
+        this.#items.update_items(this.current_order && this.current_order.items || []);
     }
 }

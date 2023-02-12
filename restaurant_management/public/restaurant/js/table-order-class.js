@@ -686,6 +686,28 @@ class TableOrder {
             delete this.items[identifier];
         }
     }
+
+    get_delivery_address() {
+        const address = this.data.address
+
+        return new Promise(resolve => {
+            if (address.length === 0) {
+                resolve({});
+            }
+
+            frappeHelper.api.call({
+                model: "Table Order",
+                name: this.data.name,
+                method: "get_delivery_address",
+                args: { address },
+                always: (r) => {
+                    if (r.message) {
+                        resolve(r.message)
+                    }
+                }
+            });
+        });
+    }
 }
 
 class CustomerEditor extends DeskForm {
@@ -743,24 +765,10 @@ class CustomerEditor extends DeskForm {
         }, 0);
     }
 
-    get_delivery_address() {
-        const address = this.get_value("address");
+    async get_delivery_address() {
+        this.order.data.address = this.get_value("address");
+        const address = await this.order.get_delivery_address();
 
-        if (address.length === 0) {
-            this.set_value("delivery_address", "");
-            return;
-        }
-
-        frappeHelper.api.call({
-            model: "Table Order",
-            name: this.order.data.name,
-            method: "get_delivery_address",
-            args: { origin: "Address", ref: address },
-            always: (r) => {
-                if (r.message) {
-                    this.set_value("delivery_address", r.message.address);
-                }
-            }
-        });
+        this.set_value("delivery_address", address.address || "");
     }
 }
