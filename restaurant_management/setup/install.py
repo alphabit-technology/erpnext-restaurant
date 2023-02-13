@@ -50,7 +50,7 @@ custom_fields = {
         section_break_27=dict(fieldtype="Section Break", insert_after="customizable_options", collapsible=1),
         item_type=dict(label="Item Type", fieldtype="Select", options="Veg\nNon-Veg\nVeg/Non-Veg", insert_after="section_break_27"),
         column_break_29=dict(fieldtype="Column Break", insert_after="item_type"),
-        cuisine=dict(label="Cuisine", fieldtype="Link", options="Cuisine Type", insert_after="column_break_29"),
+        cuisine=dict(label="Cuisine", fieldtype="Select", options="Indian\nChinese\nContinental\nItalian\nTandoor\nGoan\nDesert", insert_after="column_break_29"),
     ),
     #"Delivery Charges": dict(
     #    shipping_rule=dict(label="Shipping Rule", fieldtype="Link",
