@@ -361,7 +361,7 @@ class ProductItem {
                             </div>
                         </div>
                     </div>
-                    <a class="btn btn-default bg-default add-item" data-action="add" style="float:right; border-radius:50px;">
+                    <a class="btn btn-danger add-item" data-action="add" style="float:right; border-radius:50px;">
                         <span class="sr-only">${__('Add')}</span>
                         ${__('Add')} ${price_list_rate}
                     </a>
