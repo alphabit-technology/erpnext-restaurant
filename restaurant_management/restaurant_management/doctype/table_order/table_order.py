@@ -203,12 +203,13 @@ class TableOrder(Document):
         self.status = "Invoiced"
         self.show_in_pos = 0
         self.link_invoice = invoice.name
+
+        self.synchronize_data = dict(action="Invoiced", status=["Invoiced"])
         self.save()
 
         frappe.db.set_value("Table Order", self.name, "docstatus", 1)
 
         frappe.msgprint(_('Invoice Created'), indicator='green', alert=True)
-        self.synchronize_data = dict(action="Invoiced", status=["Invoiced"])
 
         #self.synchronize(dict(action="Invoiced", status=["Invoiced"]))
 
@@ -227,6 +228,8 @@ class TableOrder(Document):
 
         self.table = table
 
+        self.synchronize_data = dict(
+            action="Transfer", client=client, last_table=last_table_name)
         self.save()
 
         #table_description = self.table_info
@@ -236,7 +239,7 @@ class TableOrder(Document):
         #                        table_description)
 
         self.reload()
-        self.synchronize_data = dict(action="Transfer", client=client, last_table=last_table_name)
+        
         #self.synchronize(
         #    dict(action="Transfer", client=client, last_table=last_table_name))
 
@@ -396,8 +399,11 @@ class TableOrder(Document):
                  action="write", data=self),
             "You cannot modify an order from another User"
         )
-        self.calculate_order(all_items, True)
+
         self.synchronize_data = dict(action="queue")
+
+        self.calculate_order(all_items, True)
+        
         #self.action = "queue"
         #self.synchronize(dict(action="queue"))
 
@@ -426,12 +432,14 @@ class TableOrder(Document):
 
         action = self.update_item(item)
 
+
+        self.synchronize_data = dict(item=item["identifier"])
         if action == "db_commit":
             self.db_commit()
         else:
             self.aggregate()
 
-        self.synchronize_data = dict(item=item["identifier"])
+        
         #self.synchronize(dict(item=item["identifier"]))
 
     def delete_item(self, item, unrestricted=False, synchronize=True):
@@ -449,9 +457,9 @@ class TableOrder(Document):
         self.db_commit()
 
         if synchronize and frappe.db.count("Order Entry Item", {"identifier": item}) == 0:
-            self.synchronize_data = dict(action='queue', item_removed=item, status=[status])
-            #self.synchronize(
-            #    dict(action='queue', item_removed=item, status=[status]))
+            #self.synchronize_data = dict(action='queue', item_removed=item, status=[status])
+            self.synchronize(
+                dict(action='queue', item_removed=item, status=[status]))
 
     def db_commit(self):
         frappe.db.commit()

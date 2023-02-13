@@ -24,9 +24,9 @@ class ItemsTree {
                 <button class="btn btn-outline-success item-type" type="button" style="border-radius:0;">${__('Veg')}</button>
                 <button class="btn btn-outline-warning item-type" type="button">${__('Non-Veg')}</button>
             </div>
-            <input type="text" class="form-control" placeholder="Search Items" aria-label="Search Items">
+            <input type="text" class="form-control" placeholder="${__('Search Items')}" aria-label="Search Items">
         </div>
-`
+        `
         );
 
         this.search_input = {
@@ -41,6 +41,7 @@ class ItemsTree {
             } else {
                 self.item_type_filter = null;
             }
+
 
             setTimeout(() => {
                 self.current_item_manage && self.current_item_manage.load_items_data()

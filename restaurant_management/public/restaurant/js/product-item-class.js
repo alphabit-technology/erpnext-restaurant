@@ -119,7 +119,7 @@ class ProductItem {
             const item_in_cart = $(this).find('.items-in-cart');
             const item_in_cart_qty = item_in_cart.find('.qty-in-cart');
 
-            if (item) {
+            if (item && item.data.qty > 0) {
                 item_in_cart.show();
                 item_in_cart_qty.html(item.data.qty);
             }else{
