@@ -314,6 +314,16 @@ class OrderManageMob extends ObjectManage {
                 padding: 2px;
                 /*background: var(--dark);*/
             }
+
+            .item-type:hover {
+                background: var(--dark);
+                color: var(--light);
+            }
+
+            .item-type:focus {
+                border: none !important;
+                box-shadow: none !important;
+            }
         </style>
 		<div class="order-manage desk" id="${this.identifier}">
             <div class="content-container" style="height:calc(100% - 40px);">

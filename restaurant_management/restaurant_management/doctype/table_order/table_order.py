@@ -228,8 +228,8 @@ class TableOrder(Document):
 
         self.table = table
 
-        self.synchronize_data = dict(
-            action="Transfer", client=client, last_table=last_table_name)
+        #self.synchronize_data = dict(
+        #    action="Transfer", client=client, last_table=last_table_name)
         self.save()
 
         #table_description = self.table_info
@@ -240,8 +240,8 @@ class TableOrder(Document):
 
         self.reload()
         
-        #self.synchronize(
-        #    dict(action="Transfer", client=client, last_table=last_table_name))
+        self.synchronize(
+            dict(action="Transfer", client=client, last_table=last_table_name))
 
         last_table.synchronize()
         return True

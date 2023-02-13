@@ -88,7 +88,7 @@ div {
 
 
 .small-box.item {
-    background: #fff;
+    /*background: #fff;*/
     border: var(--default_line);
     border-radius: 3px;
     border-bottom-width: 2px;
@@ -164,7 +164,7 @@ div {
     margin: 0;
     padding: 0;
     line-height: 1.1;
-    color: var(--light) !important;
+    /*color: var(--light) !important;*/
     /*color: #fff;*/
     text-shadow: 0 1px 1px rgba(0,0,0,.2);
     position: relative;

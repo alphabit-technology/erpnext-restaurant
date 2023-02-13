@@ -381,7 +381,7 @@ RestaurantObject = class RestaurantObject {
 
             const _open = () => {
                 if (this.order_manage == null) {
-                    this.order_manage = new OrderManageMob({
+                    this.order_manage = new OrderManage({
                         table: this,
                         identifier: RM.OMName(this.data.name)
                     });

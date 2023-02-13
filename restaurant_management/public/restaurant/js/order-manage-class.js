@@ -65,6 +65,10 @@ class OrderManage extends ObjectManage {
         );
     }
 
+    set_title() {
+        this.title = `${this.table.room.data.description} (${this.table.data.description}) ${this.table.data.customer || ""}`;
+    }
+
     is_enabled_to_open() {
         if (!RM.can_open_order_manage(this.table)) {
             this.close();
@@ -86,7 +90,7 @@ class OrderManage extends ObjectManage {
     show() {
         if (!this.is_enabled_to_open()) return;
 
-        if(RM.crm_customer) {
+        if (RM.crm_customer) {
             this.get_orders();
             this.modal.show();
         } else {
@@ -113,17 +117,20 @@ class OrderManage extends ObjectManage {
 
     make() {
         this.make_dom();
-        this.get_orders();
-        this.make_items();
-        this.make_edit_input();
-        this.make_pad();
 
-        if (this.transferring_order && this.current_order != null) {
-            this.current_order.edit_form = null;
-            this.current_order.divide_account_modal = null;
-            this.current_order.pay_form = null;
-            this.transferring_order = null;
-        }
+        setTimeout(() => {
+            this.get_orders();
+            this.make_items();
+            this.make_edit_input();
+            this.make_pad();
+
+            if (this.transferring_order && this.current_order != null) {
+                this.current_order.edit_form = null;
+                this.current_order.divide_account_modal = null;
+                this.current_order.pay_form = null;
+                this.transferring_order = null;
+            }
+        }, 100);
     }
 
     is_open() {
@@ -163,21 +170,51 @@ class OrderManage extends ObjectManage {
 		`);
 
         this.make_reservation();
+
+        RM.onResize(() => this.resize());
+
+        setTimeout(() => {
+            this.empty_carts.show();
+
+            if (this.customer_editor) {
+                this.customer_editor.reload();
+            } else {
+                this.customer_editor = new DeskForm({
+                    form_name: `Table Customer`,
+                    doc_name: this.table.data.name,
+                    location: this.customer_wrapper.JQ(),
+                    on_save: () => {
+                        this.table.data.customer = this.customer_editor.doc.customer;
+                        this.set_title();
+                        this.modal.title_container.empty().append(
+                            RMHelper.return_main_button(this.title, () => this.modal.hide()).html()
+                        );
+                    },
+                    primary_action_label: "Save",
+                    after_load: () => {
+                        this.customer_editor.on("customer", "change", () => {
+                            this.customer_editor.save();
+                        });
+                    }
+                });
+            }
+        }, 0);
     }
 
-    make_reservation(){
+    make_reservation() {
         setTimeout(() => {
             Reservation.render(this.table.data.name, this.reservation_wrapper.JQ());
         }, 0);
     }
 
     template() {
+        const self = this;
         this.invoice_wrapper = frappe.jshtml({
             tag: 'div',
             properties: {
                 id: this.invoice_container_name,
                 class: 'product-list',
-                style: "height: 100%; padding: 20px;"
+                style: "height: 100%; overflow-y: auto;"
             },
         });
 
@@ -186,7 +223,23 @@ class OrderManage extends ObjectManage {
             properties: {
                 id: this.item_container_name,
                 class: 'product-list',
-                style: "height: 100%;"
+                style: "position: relative; height: calc(100% - 80px); overflow: auto;"
+                //style: "height: calc(100% - 30px); overflow-y: auto;"
+            },
+        });
+
+        this.item_type_wrapper = frappe.jshtml({
+            tag: 'div',
+            properties: {
+                class: "item-type-wrapper",
+                /*style: "overflow-y: auto; display: flex;"*/
+            },
+        });
+
+        this.item_parent_wrapper = frappe.jshtml({
+            tag: 'div',
+            properties: {
+                style: "overflow-y: auto; display: flex; padding: 2px;"
             },
         });
 
@@ -194,45 +247,207 @@ class OrderManage extends ObjectManage {
             tag: 'div'
         });
 
-        return `
-		<div class="order-manage" id="${this.identifier}">
-			<table class="layout-table">
-				<tr class="content-row">
-					<td>
-						<div class="order-container" id="${this.order_container_name}"></div>
-					</td>
-					<td class="erp-items" style="width: 100%">
-						<div class="content-container">
-                            ${this.reservation_wrapper.html()}
+        this.customer_wrapper = frappe.jshtml({
+            tag: 'div',
+            properties: {
+                class: 'col-md-12'
+            }
+        });
 
-							${this.items_wrapper.html()}
-                            <div style="overflow-y:auto;position:absolute;height:100%;width:calc(100% - 545px)">
-                                ${this.invoice_wrapper.html()}
+        const template = $(`
+        <style>
+            .order-manage.mob .tab {
+                flex-direction: column;
+                height: 100%;
+                display: none !important;
+                position: relative;
+            }
+
+            .order-manage.desk .tab {
+                flex-direction: column;
+                height: 100%;
+                position: relative;
+            }
+
+            .order-manage.mob .tab.active {
+                display: block !important;
+            }
+
+            .order-manage .table {
+                margin: 0;
+            }
+
+            .order-manage.desk .tab {
+                display: block !important;
+            }
+
+            .order-manage.desk .tab.options {
+                display: none !important;
+            }
+
+            .order-manage.desk .tab.items-cart {
+                height: 100%;
+                right: 0;
+                width: 400px;
+                position: absolute;
+            }
+
+            .order-manage.desk .tab.items {
+                right: 400px;
+                width: calc(100% - 490px);
+                position: absolute;
+                border-left: var(--default-line);
+                border-right: var(--default-line);
+            }
+
+            .order-manage.desk .footer-container {
+                display: none;
+            }
+
+            .order-manage.desk .tab.orders {
+                position: absolute;
+                width: 90px;
+                padding: 5px;
+            }
+
+            .item-type-wrapper {
+                padding: 2px;
+                /*background: var(--dark);*/
+            }
+
+            .item-type:hover {
+                background: var(--dark);
+                color: var(--light);
+            }
+
+            .item-type:focus {
+                border: none !important;
+                box-shadow: none !important;
+            }
+        </style>
+		<div class="order-manage desk" id="${this.identifier}">
+            <div class="content-container" style="height:calc(100% - 40px);">
+                <div class="tab orders order-container" id="${this.order_container_name}">
+
+                </div>
+                <div class="tab options">
+                    <div class="options-container">
+                        <div class="customer-container">
+                            <div class="customer-wrapper">
                             </div>
-						</div>
-					</td>
-					<td class="container-order-items erp-items">
-						<div class="panel-order-items">
-							<ul class="products-list" id="${this.order_entry_container_name}">
-								
-							</ul>
-							${this.empty_carts.html()}
-							${this.not_selected_order.html()}
-						</div>
-						<table class="table no-border table-condensed panel-order-edit" id ="${this.editor_container_name}">
+                        </div>
+                         <div class="customer-container">
+                            ${this.customer_wrapper.html()}
+                        </div>
+                        <div class="reservation-container">
+                            ${this.reservation_wrapper.html()}
+                        </div>
+                    </div>
+                </div>
+                <div class="tab items">
+                    ${this.item_type_wrapper.html()}
+                    ${this.item_parent_wrapper.html()}
+                    ${this.items_wrapper.html()}
+                </div>
+                <div class="tab items-cart">
+                    <div class="panel-order-items" style="height: calc(100% - 400px); position: relative; width: 100%;overflow:auto;")>
+                        <ul class="products-list" id="${this.order_entry_container_name}">
+                            
+                        </ul>
+                        ${this.empty_carts.html()}
+                        ${this.not_selected_order.html()}
+                    </div>
+                    <table class="table no-border table-condensed panel-order-edit" style="position: absolute; bottom: 265px" id ="${this.editor_container_name}">
 						
-						</table>
-						<table class="table no-border order-manage-control-buttons pad-container" id="${this.pad_container_name}">
-						
-						</table>
-					</td>
-				</tr>
-			</table>
-		</div>`
+                    </table>
+                    <table class="table no-border order-manage-control-buttons pad-container" style="position: absolute; bottom: 0" id="${this.pad_container_name}">
+                    
+                    </table>
+                </div>
+            </div>
+            <footer class="footer-container" style="padding:5px; position: absolute;">
+                <div class="footer-buttons">
+                    <button class="btn btn-default btn-flat options-action item-action" data-tab="options">
+                        <span class="fa fa-cog"></span> ${__("Options")}
+                    </button>
+                    <button class="btn btn-default btn-flat items-action item-action" data-tab="items">
+                        <span class="fa fa-cubes"></span> ${__("Items")}
+                    </button>
+                    <button class="btn btn-default btn-flat items-cart-action item-action" data-tab="items-cart">
+                        <span class="fa fa-shopping-cart"></span> ${__("Cart")}
+                        <span class="badge badge-pill badge-primary cart-count">0</span>
+                    </button>
+                </div>
+            </footer>  
+		</div>`)
+
+        this.item_cart = template.find('.item-cart');
+        this.cart_count = template.find('.cart-count');
+
+        template.find('.item-action').each(function () {
+            const tab = $(this).data('tab');
+            self["tab-button" + tab] = $(this);
+            self["tab-container" + tab] = template.find(`.tab.${tab}`);
+        });
+
+        template.find('.item-action').click(function () {
+            const tab = $(this).data('tab');
+
+            self.current_tab = tab;
+
+            const select_tab = (tab) => {
+                self["tab-button" + tab].addClass('active').siblings().removeClass('active');
+                self["tab-container" + tab].show().addClass('active').siblings().hide().removeClass('active');
+                self.current_tab = tab;
+            }
+
+            if (RM.is_mobile && !self.current_tab) {
+                select_tab("items");
+                return;
+            }
+
+            select_tab(tab);
+        });
+
+        RM.is_mobile && template.find('.item-action').click();
+
+        return template;
     }
 
-    toggle_main_section(option){
-        this.current_layout = option || (this.current_layout === "items" ? "invoice" : "items");
+    resize() {
+        const set_width = () => {
+            if (RM.is_mobile) {
+                this.modal.container.find(".order-manage").addClass("mob").removeClass("desk");
+
+                if (!this.current_tab) {
+                    this["tab-buttonitems"] && this["tab-buttonitems"].addClass('active').siblings().removeClass('active');
+                    this["tab-containeritems"] && this["tab-containeritems"].show().addClass('active').siblings().hide().removeClass('active');
+                    this.current_tab = "items";
+
+                    this.select_last_order();
+                }
+            } else {
+                this.modal.container.find(".order-manage").addClass("desk").removeClass("mob");
+            }
+        }
+
+        set_width();
+    }
+
+    get last_order() {
+        return this.last_child;
+    }
+
+    select_last_order() {
+        if (this.last_order) {
+            this.last_order.select();
+        } else {
+            this.add_order();
+        }
+    }
+
+    toggle_main_section(option) {
+        /*this.current_layout = option || (this.current_layout === "items" ? "invoice" : "items");
         if (this.current_layout === "items"){
             this.items_wrapper.show();
             this.invoice_wrapper.hide();
@@ -240,7 +455,7 @@ class OrderManage extends ObjectManage {
         }else{
             this.items_wrapper.hide();
             this.invoice_wrapper.show();
-        }
+        }*/
     }
 
     in_objects(f) {
@@ -265,8 +480,8 @@ class OrderManage extends ObjectManage {
                 name: "Minus",
                 tag: 'button',
                 properties: {
-                    name: 'minus', 
-                    class: `btn btn-default edit-button ${default_class}` 
+                    name: 'minus',
+                    class: `btn btn-default edit-button ${default_class}`
                 },
                 content: '<span class="fa fa-minus">',
                 on: {
@@ -280,7 +495,7 @@ class OrderManage extends ObjectManage {
             {
                 name: "Qty",
                 tag: 'button', label: 'Qty',
-                properties: { 
+                properties: {
                     name: 'qty', type: 'text', input_type: "number",
                     class: default_class
                 },
@@ -293,7 +508,7 @@ class OrderManage extends ObjectManage {
             {
                 name: "Discount",
                 tag: 'button', label: 'Discount',
-                properties: { 
+                properties: {
                     name: 'discount', type: 'text', input_type: "number",
                     class: default_class,
                 },
@@ -306,7 +521,7 @@ class OrderManage extends ObjectManage {
             {
                 name: "Rate",
                 tag: 'button', label: 'Rate',
-                properties: { 
+                properties: {
                     name: 'rate', type: 'text', input_type: "number",
                     class: default_class
                 },
@@ -336,7 +551,7 @@ class OrderManage extends ObjectManage {
                 name: "Trash",
                 tag: 'button',
                 properties: {
-                    name: 'trash', 
+                    name: 'trash',
                     class: `btn btn-default edit-button ${default_class}`
                 },
                 content: '<span class="fa fa-trash">',
@@ -381,7 +596,7 @@ class OrderManage extends ObjectManage {
 
             base_html += this.objects[element.name].html();
         });
-        
+
         $(container).empty().append(base_html + "</tr></tbody>");
 
         this.#objects.Qty.int();
@@ -601,18 +816,18 @@ class OrderManage extends ObjectManage {
     check_buttons_status() {
         if (this.current_order == null) {
             this.disable_components();
-            if (typeof this.#components.new_order_button != "undefined"){
+            if (typeof this.#components.new_order_button != "undefined") {
                 this.#components.new_order_button.enable().show();
             }
-                
+
             return;
         } else {
             if (RM.check_permissions("order", null, "create")) {
-                if (typeof this.#components.new_order_button != "undefined"){
+                if (typeof this.#components.new_order_button != "undefined") {
                     this.#components.new_order_button.enable().show();
                 }
             } else {
-                if (typeof this.#components.new_order_button != "undefined"){
+                if (typeof this.#components.new_order_button != "undefined") {
                     this.#components.new_order_button.disable().hide();
                 }
             }
@@ -675,7 +890,7 @@ class OrderManage extends ObjectManage {
             });
             return;
         }
-        
+
         const pos_profile = RM.pos_profile
         const data = item.data;
         const item_is_enabled_to_edit = item.is_enabled_to_edit;
@@ -700,7 +915,7 @@ class OrderManage extends ObjectManage {
     }
 
     make_items() {
-        this.#items = new ProductItem({
+        this.#items = new ItemsTree({
             wrapper: $(`#${this.item_container_name}`),
             order_manage: this,
         });
@@ -721,6 +936,7 @@ class OrderManage extends ObjectManage {
                 RM.ready();
                 if (typeof r.message != "undefined") {
                     RM.sound_submit();
+                    //RM.is_mobile && this.select_last_order();
                 }
             },
         });
@@ -732,10 +948,10 @@ class OrderManage extends ObjectManage {
             model: "Restaurant Object",
             name: this.table.data.name,
             method: "orders_list",
-            args: RM.crm_customer ? {customer: RM.crm_customer} : {},
+            args: RM.crm_customer ? { customer: RM.crm_customer } : {},
             always: (r) => {
                 RM.ready();
-                if(r.message){
+                if (r.message) {
                     current = r.message.order || current;
                     this.make_orders(r.message.orders, current);
                 }
@@ -768,13 +984,16 @@ class OrderManage extends ObjectManage {
         return super.append_child({
             child: _data,
             exist: o => {
-                if ([UPDATE, QUEUE, SPLIT].includes(data.action)) {
+                if (!o) return;
+                if ([UPDATE, QUEUE, SPLIT].includes(data.action) && _data.show_in_pos === 1) {
                     o.reset_data(data.data, data.action);
-                } else if ([DELETE, INVOICED, TRANSFER].includes(data.action)) {
+                } else if ([DELETE, INVOICED, TRANSFER].includes(data.action) || _data.show_in_pos !== 1) {
                     this.delete_order(o.data.name);
                 }
             },
             not_exist: () => {
+                if (_data.show_in_pos !== 1) return;
+
                 const new_order = new TableOrder({
                     order_manage: this,
                     data: Object.assign({}, _data)
@@ -799,13 +1018,13 @@ class OrderManage extends ObjectManage {
         orders.forEach(order => {
             this.append_order(order, current);
         });
-        
-        if (this.#components.new_order_button){
+
+        if (this.#components.new_order_button) {
             this.#components.new_order_button.remove();
         }
 
         const new_order_button = frappe.jshtml({
-            test_field:true,
+            test_field: true,
             tag: "button",
             properties: {
                 class: "btn btn-app btn-lg btn-order",
@@ -817,10 +1036,12 @@ class OrderManage extends ObjectManage {
         }, !RM.restrictions.to_new_order ? DOUBLE_CLICK : null);
 
         this.#components.new_order_button = new_order_button;
-        
+
         if (this.#components.new_order_button) {
             $(this.order_container).prepend(new_order_button.html());
         }
+
+        RM.is_mobile && this.select_last_order();
     }
 
     append_order(order, current = null) {
@@ -868,6 +1089,8 @@ class OrderManage extends ObjectManage {
         const order = this.get_order(order_name);
         if (order != null) {
             order.delete_items();
+            order.pay_form && order.pay_form.remove();
+            order.pay_form = null;
             if (this.is_same_order(order)) {
                 this.current_order = null;
                 this.clear_current_order();
@@ -883,17 +1106,19 @@ class OrderManage extends ObjectManage {
 
     order_status_message() {
         const container = $("#" + this.identifier);
-        
-        if (this.current_order == null) {
-            container.removeClass("has-order");
-            container.removeClass("has-items");
-        } else {
+
+        if (this.current_order) {
             container.addClass("has-order");
             if (this.current_order.items_count === 0) {
                 container.removeClass("has-items");
             } else {
                 container.addClass("has-items");
             }
+        } else {
+            container.removeClass("has-order");
+            container.removeClass("has-items");
         }
+
+        this.#items.update_items(this.current_order && this.current_order.items || []);
     }
 }

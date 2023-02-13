@@ -333,14 +333,14 @@ class ProductItem {
 
         function template() {
             return `
-            <div class="small-box item item-code" item-code="${item_code}" is-customizable=${is_customizable} style="border-radius:20px; color:var(--light); background-color:var(--dark);">
+            <div class="small-box item item-code" item-code="${item_code}" is-customizable=${is_customizable} style="border-radius:25px;">
                 <div class="inner" style="position: inherit; z-index: 100">
                     <h4 class="title">${item_title}</h4>
                     <p> ${description}</p>
                 </div>
-                <div class="icon">
+                <div class="icon" style="background-color: var(--dt-text-light); border-radius: 20px;">
                     ${item_image ? `<img src="${item_image}" alt="${item_title}"></img>` : 
-                            `<span class="no-image placeholder-text" style="font-size: 72px;"> ${frappe.get_abbr(item_title)}</span>`}
+                            `<span class="no-image placeholder-text" style="font-size: 40px; color:var(--gray);"> ${frappe.get_abbr(item_title)}</span>`}
                 </div>
                 <div class="small-box-footer" style="padding:3px; background-color: transparent;">
                     <div class="form-group" style="position: absolute;">

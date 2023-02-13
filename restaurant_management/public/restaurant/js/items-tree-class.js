@@ -87,13 +87,15 @@ class ItemsTree {
 
     make_dom() {
         this.wrapper.html(`
-			<div class="items-wrapper col-md-12 ayout-main-section-wrapper" style="padding: 0; min-width: 330px;">
-                <div class="layout-main-section frappe-card" style="background-color:unset !important;">
+			<div class="items-wrapper col-md-12 layout-main-section-wrapper" style="padding: 0; min-width: 330px;">
+                <div class="layout-main-section frappe-card" style="background-color:unset !important; box-shadow:none;">
                     <div class="tree with-skeleton opened" style="padding:0;">
                     
                     </div>
                 </div>
-            </div>		`);
+            </div>		
+            `
+        );
     }
 
     update_items(items=[]){
@@ -126,18 +128,18 @@ class ItemsTree {
                 tag: "li",
                 properties: {
                     class: "tree-node",
-                    style: `padding-top: 5px; ${item.name === "All Item Groups" ? "display: none;" : ";"}`
+                    style: `padding:5px; border-radius:20px; color:var(--dark); border: 1px solid var(--gray-dark); margin: 5px; background-color: var(--light); ${item.name === "All Item Groups" ? "display: none;" : ";"}`
                 },
                 content: `
                     <span class="tree-item">
-                        <span class="tree-label" data-children="${item.name}"></span>
-                        <svg class="icon icon-md" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
-                            ${icon.html()}
-                        </svg>
                         </span">
                             <a class="tree-label"> ${item.name}</a>
                             ${this[`${item.name}_count`].html()}
                         </span>
+                        <span class="tree-label" data-children="${item.name}"></span>
+                        <svg style="float:right;" class="icon icon-md" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                            ${icon.html()}
+                        </svg>
                     </span>
                 `
             });
@@ -146,7 +148,7 @@ class ItemsTree {
                 <li class="tree-node">
                     ${action.html()}
                     <ul class="tree-children" area-children="${item.name}" style="display:none;"></ul>
-                    <div class="col md-12" area-items="${item.name}" style="display:none; top: 5px;">
+                    <div class="col md-12" area-items="${item.name}" style="display:none; padding:5px;">
 
                     </div>
                 </li>
@@ -162,7 +164,7 @@ class ItemsTree {
                 children_wrapper.toggle();
                 icon.obj.setAttribute("href", `#icon-${children_wrapper.is(":visible") ? 'down' : 'right'}`);
 
-                items_container.empty().toggle();
+                items_container.toggle();
 
                 if(!this.groups[item.name].items_manage) {
                     this.groups[item.name].items_manage ??= new ProductItem({
@@ -174,7 +176,7 @@ class ItemsTree {
                         search_field: this.search_input
                     });
                 }else{
-                    this.groups[item.name].search();
+                    this.groups[item.name].items_manage.search();
                 }
 
                 this.current_item_manage = this.groups[item.name].items_manage;
