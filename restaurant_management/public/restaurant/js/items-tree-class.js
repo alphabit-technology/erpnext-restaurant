@@ -42,7 +42,6 @@ class ItemsTree {
                 self.item_type_filter = null;
             }
 
-
             setTimeout(() => {
                 self.current_item_manage && self.current_item_manage.load_items_data()
             }, 0);

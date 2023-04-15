@@ -367,6 +367,9 @@ class OrderManageMob extends ObjectManage {
             </div>
             <footer class="footer-container" style="padding:5px; position: absolute;">
                 <div class="footer-buttons">
+                    <button class="btn btn-default btn-flat orders-action item-action" data-tab="orders">
+                        <span class="fa fa-cutlery"></span> ${__("Orders")}
+                    </button>
                     <button class="btn btn-default btn-flat options-action item-action" data-tab="options">
                         <span class="fa fa-cog"></span> ${__("Options")}
                     </button>

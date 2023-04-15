@@ -105,6 +105,7 @@ RestaurantManage = class RestaurantManage {
 		});
 
 		this.onResize(() => {
+			this.is_mini = window.innerWidth < 400;
 			this.is_mobile = window.innerWidth < 768;
 			this.is_tablet = window.innerWidth < 992;
 			this.is_desktop = window.innerWidth >= 992;

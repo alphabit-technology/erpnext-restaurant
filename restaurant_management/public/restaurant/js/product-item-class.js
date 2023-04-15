@@ -34,7 +34,7 @@ class ProductItem {
         this.clusterize = new Clusterize({
             scrollElem: this.wrapper.find('.panel')[0],
             contentElem: this.wrapper.find('.widget-group-body')[0],
-            rows_in_block: 6
+            rows_in_block: 40,
         });
     }
 
@@ -45,7 +45,7 @@ class ProductItem {
         this.render_items();
     }
 
-    get_items({ start = 0, page_length = 40, search_value = this.search_term, item_group = this.parent_item_group} = {}) {
+    get_items({ start = 0, page_length = 400, search_value = this.search_term, item_group = this.parent_item_group} = {}) {
         const price_list = RM.pos_profile.selling_price_list;
         const pos_profile = RM.pos_profile.name;
         const force_parent = 0;
@@ -260,28 +260,27 @@ class ProductItem {
             return this.render_items(this.all_items);
         }
 
-        this.get_items({ search_value: search_term, page_length: 9999, item_group})
-            .then(({ items, serial_no, batch_no, barcode }) => {
-                items.forEach(item => {
-                    if (`${item.item_code}`.toLowerCase().includes(search_term)) {
-                        result_arr.push(item)
-                    } else if (`${item.item_name}`.toLowerCase().includes(search_term)) {
-                        result_arr.push(item);
-                    }
-                });
-
-                if (result_arr.length > 0) {
-                    items = result_arr;
+        this.get_items({ search_value: search_term, page_length: 9999, item_group}).then(({ items, serial_no, batch_no, barcode }) => {
+            items.forEach(item => {
+                if (`${item.item_code}`.toLowerCase().includes(search_term)) {
+                    result_arr.push(item)
+                } else if (`${item.item_name}`.toLowerCase().includes(search_term)) {
+                    result_arr.push(item);
                 }
-
-                if (search_term && !barcode) {
-                    this.search_index[search_term] = items;
-                }
-
-                this.items = items;
-                this.render_items(items);
-                this.set_item_in_the_cart(items, serial_no, batch_no, barcode);
             });
+
+            if (result_arr.length > 0) {
+                items = result_arr;
+            }
+
+            if (search_term && !barcode) {
+                this.search_index[search_term] = items;
+            }
+
+            this.items = items;
+            this.render_items(items);
+            this.set_item_in_the_cart(items, serial_no, batch_no, barcode);
+        });
     }
 
     set_item_in_the_cart(items, serial_no, batch_no, barcode) {
@@ -320,6 +319,7 @@ class ProductItem {
         const price_list_rate = format_currency(item.price_list_rate, this.currency);
         const { item_code, item_name, item_image, description, is_customizable } = item;
         const item_title = item_name || item_code;
+        const veg = item.item_type === 'Veg';
         //const template = _template();
 
         return frappe.jshtml({
@@ -333,9 +333,12 @@ class ProductItem {
 
         function template() {
             return `
-            <div class="small-box item item-code" item-code="${item_code}" is-customizable=${is_customizable} style="border-radius:25px;">
+            <div class="small-box item item-code" item-code="${item_code}" is-customizable=${is_customizable} style="border-radius: 5px 25px 25px;">
                 <div class="inner" style="position: inherit; z-index: 100">
-                    <h4 class="title">${item_title}</h4>
+                    <h4 class="title">
+                        <i class="fa fa-circle" style="color: var(--${veg ? 'success' : 'danger'})"></i>
+                        ${item_title}
+                    </h4>
                     <p> ${description}</p>
                 </div>
                 <div class="icon" style="background-color: var(--dt-text-light); border-radius: 20px;">
@@ -344,7 +347,7 @@ class ProductItem {
                 </div>
                 <div class="small-box-footer" style="padding:3px; background-color: transparent;">
                     <div class="form-group" style="position: absolute;">
-                        <div class="input-group bg-warning" style="border-radius: 5px; opacity: 0.9; color: black; border-radius:50px;">
+                        <div class="input-group bg-warning" style="border-radius: 5px; opacity: 0.8; color: black; border-radius:50px;">
                             <div class="input-group-prepend minus-btn" data-target="${item_name}-amount" data-value="-1">
                                 <span class="input-group-text fa fa-minus" style="background-color: transparent; border: none; color:orangered;"></span>
                             </div>

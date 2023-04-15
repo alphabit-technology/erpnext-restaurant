@@ -215,14 +215,14 @@ class RestaurantObject(Document):
             return frappe.db.count("Order Entry Item", filters)
 
     def orders_list(self, name=None, customer=None):
-        if customer is not None and frappe.db.count("Table Order", {
+        """if customer is not None and frappe.db.count("Table Order", {
             "table": self.name,
             "customer": customer,
             "show_in_pos": 1,
             "status": ("not in", ["Cancelled", "Invoiced"])
         }) == 0:
             self.add_order(None, customer)
-            self.reload()
+            self.reload()"""
 
         orders = frappe.get_list("Table Order", fields=["name", "customer"], filters={
             "table" if name is None else "name": name if name is not None else self.name,

@@ -513,19 +513,18 @@ class TableOrder(Document):
                 is_customizable=entry["is_customizable"],
             )
 
-            #frappe.publish_realtime("debug", dict(debug_item=data))
-
             self.validate()
 
             if frappe.db.count("Order Entry Item", {"identifier": entry["identifier"]}) == 0:
                 self.append('entry_items', data)
                 return "aggregate"
             else:
-                _data = ','.join('='.join((f"`{key}`", f"'{'' if val is None else val}'")) for (
-                    key, val) in data.items())
-                frappe.db.sql("""UPDATE `tabOrder Entry Item` set {data} WHERE `identifier` = '{identifier}'""".format(
-                    identifier=entry["identifier"], data=_data)
-                )
+                values = ','.join('='.join((f"`{key}`", """{value}""".format(value=frappe.db.escape(val)))) for (key, val) in data.items())
+                base_sql = f"UPDATE `tabOrder Entry Item` set {values}"
+
+                sql="""{base_sql} WHERE `identifier`='{identifier}'""".format(base_sql = base_sql, identifier=entry["identifier"])
+                frappe.db.sql(sql)
+                
                 return "db_commit"
 
     def calculate_order(self, items, save=False):

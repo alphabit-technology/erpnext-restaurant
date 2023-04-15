@@ -259,7 +259,8 @@ def get_items(start, page_length, price_list, item_group, pos_profile, item_type
 			item.stock_uom,
 			item.image AS item_image,
 			item.is_stock_item,
-            item.is_customizable
+            item.is_customizable,
+            item.item_type
 		FROM
 			`tabItem` item {bin_join_selection}
 		WHERE

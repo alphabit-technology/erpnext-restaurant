@@ -256,11 +256,19 @@ class OrderManage extends ObjectManage {
 
         const template = $(`
         <style>
+            .item-action .tab-label {
+                display: unset;
+            }
+
             .order-manage.mob .tab {
                 flex-direction: column;
                 height: 100%;
                 display: none !important;
                 position: relative;
+            }
+
+            .order-manage.mob.sm .item-action .tab-label {
+                display: none !important;
             }
 
             .order-manage.desk .tab {
@@ -368,13 +376,16 @@ class OrderManage extends ObjectManage {
             <footer class="footer-container" style="padding:5px; position: absolute;">
                 <div class="footer-buttons">
                     <button class="btn btn-default btn-flat options-action item-action" data-tab="options">
-                        <span class="fa fa-cog"></span> ${__("Options")}
+                        <span class="fa fa-cog"></span> <span class="tab-label">${__("Options")}</span>
+                    </button>
+                    <button class="btn btn-default btn-flat orders-action item-action" data-tab="orders">
+                        <span class="fa fa-cutlery"></span> <span class="tab-label">${__("Orders")}</span>
                     </button>
                     <button class="btn btn-default btn-flat items-action item-action" data-tab="items">
-                        <span class="fa fa-cubes"></span> ${__("Items")}
+                        <span class="fa fa-cubes"></span> <span class="tab-label">${__("Items")}</span>
                     </button>
                     <button class="btn btn-default btn-flat items-cart-action item-action" data-tab="items-cart">
-                        <span class="fa fa-shopping-cart"></span> ${__("Cart")}
+                        <span class="fa fa-shopping-cart"></span> <span class="tab-label">${__("Cart")}</span>
                         <span class="badge badge-pill badge-primary cart-count">0</span>
                     </button>
                 </div>
@@ -416,8 +427,8 @@ class OrderManage extends ObjectManage {
 
     resize() {
         const set_width = () => {
-            if (RM.is_mobile) {
-                this.modal.container.find(".order-manage").addClass("mob").removeClass("desk");
+            if(RM.is_mini || RM.is_mobile){
+                this.modal.container.find(".order-manage").addClass(`mob`).removeClass("desk");
 
                 if (!this.current_tab) {
                     this["tab-buttonitems"] && this["tab-buttonitems"].addClass('active').siblings().removeClass('active');
@@ -426,8 +437,14 @@ class OrderManage extends ObjectManage {
 
                     this.select_last_order();
                 }
+
+                if(RM.is_mini){
+                    this.modal.container.find(".order-manage").addClass("sm");
+                }else{
+                    this.modal.container.find(".order-manage").removeClass("sm");
+                }
             } else {
-                this.modal.container.find(".order-manage").addClass("desk").removeClass("mob");
+                this.modal.container.find(".order-manage").addClass("desk").removeClass("mob sm");
             }
         }
 
@@ -442,7 +459,7 @@ class OrderManage extends ObjectManage {
         if (this.last_order) {
             this.last_order.select();
         } else {
-            this.add_order();
+            //this.add_order();
         }
     }
 
