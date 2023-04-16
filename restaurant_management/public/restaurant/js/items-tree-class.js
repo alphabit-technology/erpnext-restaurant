@@ -17,7 +17,6 @@ class ItemsTree {
 
     render_parent_group(groups) {
         const self = this;
-        //groups.push({ name: "Options", parent_item_group: null, icon: "fa fa-cog" });
         this.item_type_wrapper.append(`
         <div class="input-group mb-0">
             <div class="input-group-prepend" style="padding-button:3px;">
