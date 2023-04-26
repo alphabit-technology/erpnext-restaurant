@@ -1,24 +1,21 @@
 {
- "category": "Modules",
  "charts": [],
- "creation": "2022-11-29 14:33:45.038200",
- "developer_mode_only": 0,
- "disable_user_customization": 0,
+ "content": "[{\"id\":\"s5pXpGLdkx\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Restaurant Management</span>\",\"col\":12}},{\"id\":\"hRP5CGZTdn\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"POS Restaurant\",\"col\":3}},{\"id\":\"XeZ7JpnXpW\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"SGeM1vjaSO\",\"type\":\"card\",\"data\":{\"card_name\":\"Profile\",\"col\":4}},{\"id\":\"TakfKRxIpo\",\"type\":\"card\",\"data\":{\"card_name\":\"Shift\",\"col\":4}},{\"id\":\"f9pyLDHT6e\",\"type\":\"card\",\"data\":{\"card_name\":\"Settings\",\"col\":4}}]",
+ "creation": "2023-04-26 17:15:35.609631",
  "docstatus": 0,
  "doctype": "Workspace",
- "extends_another_page": 0,
  "for_user": "",
  "hide_custom": 0,
  "icon": "sell",
  "idx": 0,
- "is_default": 0,
- "is_standard": 1,
+ "is_hidden": 0,
  "label": "Restaurant Management",
  "links": [
   {
    "hidden": 0,
    "is_query_report": 0,
    "label": "POS Restaurant",
+   "link_count": 0,
    "link_to": "restaurant-manage",
    "link_type": "Page",
    "onboard": 0,
@@ -27,14 +24,8 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Profile",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
    "label": "POS Profile",
+   "link_count": 0,
    "link_to": "POS Profile",
    "link_type": "DocType",
    "onboard": 0,
@@ -43,14 +34,8 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Shift",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
    "label": "Opening Entry",
+   "link_count": 0,
    "link_to": "POS Opening Entry",
    "link_type": "DocType",
    "onboard": 0,
@@ -60,6 +45,53 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Settings",
+   "link_count": 0,
+   "link_to": "Restaurant Settings",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Profile",
+   "link_count": 1,
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "POS Profile",
+   "link_count": 0,
+   "link_to": "POS Profile",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Shift",
+   "link_count": 1,
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Opening Entry",
+   "link_count": 0,
+   "link_to": "POS Opening Entry",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Settings",
+   "link_count": 1,
    "onboard": 0,
    "type": "Card Break"
   },
@@ -67,19 +99,24 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Settings",
+   "link_count": 0,
    "link_to": "Restaurant Settings",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
   }
  ],
- "modified": "2023-01-05 21:51:17.030615",
+ "modified": "2023-04-26 17:26:17.825621",
  "modified_by": "Administrator",
  "module": "Restaurant Management",
  "name": "Restaurant Management",
+ "number_cards": [],
  "owner": "Administrator",
- "pin_to_bottom": 0,
- "pin_to_top": 0,
+ "parent_page": "",
+ "public": 1,
+ "quick_lists": [],
+ "roles": [],
+ "sequence_id": 31.0,
  "shortcuts": [
   {
    "color": "Grey",
@@ -89,6 +126,5 @@
    "type": "Page"
   }
  ],
- "title": "Restaurant Management",
- "public": 1
+ "title": "Restaurant Management"
 }
