@@ -142,11 +142,10 @@ class TableOrder(Document):
             frappe.db.commit()
             self.reload()
 
-        if customer is None or len(customer) == 0 or dinners == 0:
+        if customer is None or len(customer) == 0:
             none_customer = _("Please set a Customer") + "<br>" if customer is None or len(customer) == 0 else ""
-            none_dinners = _("Please set a Dinners") if dinners == 0 else ""
-
-            frappe.throw(none_customer + none_dinners)
+            
+            frappe.throw(none_customer)
 
         entry_items = {
             item.identifier: item.as_dict() for item in self.entry_items
