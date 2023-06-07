@@ -16,7 +16,7 @@ def check_exceptions(model, error_message):
             exceptions = frappe.get_single("Restaurant Settings")
             profile = frappe.db.get_value("User", frappe.session.user, "role_profile_name")
 
-            permissions = frappe.db.get_list("Restaurant Exceptions", fields=(
+            permissions = frappe.db.get_all("Restaurant Exceptions", fields=(
                 "order_write", "order_delete", "order_manage"
             ), filters={
                 "role_profile": profile

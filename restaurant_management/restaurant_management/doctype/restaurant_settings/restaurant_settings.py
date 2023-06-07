@@ -59,7 +59,7 @@ class RestaurantSettings(Document):
                 fieldname="name"
             )
 
-            restaurant_permissions = frappe.db.get_list("Restaurant Permission", fields=("room"),
+            restaurant_permissions = frappe.db.get_all("Restaurant Permission", fields=("room"),
                                                         filters={
                     "parenttype": "Restaurant Permission Manage",
                     "parent": permission_parent,

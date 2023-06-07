@@ -132,7 +132,7 @@ class RestaurantObject(Document):
         return 0
 
     def orders_list(self, name=None):
-        orders = frappe.get_list("Table Order", fields="name", filters={
+        orders = frappe.get_all("Table Order", fields="name", filters={
             "table" if name is None else "name": name if name is not None else self.name,
             "status": "Attending"
         })
@@ -322,7 +322,7 @@ class RestaurantObject(Document):
         for group in self.production_center_group:
             lft, rgt = frappe.db.get_value('Item Group', group.item_group, ['lft', 'rgt'])
 
-            for item in frappe.get_list("Item Group", "name", filters={
+            for item in frappe.get_all("Item Group", "name", filters={
                 "lft": (">=", lft),
                 "rgt": ("<=", rgt)
             }):
