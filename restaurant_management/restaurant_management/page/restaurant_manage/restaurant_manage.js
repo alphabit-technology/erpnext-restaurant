@@ -275,7 +275,7 @@ RestaurantManage = class RestaurantManage {
 
 			frappe.set_route('Form', 'POS Closing Entry', voucher.name);
 		});
-		
+
 	}
 
 	make_rooms() {
@@ -290,14 +290,14 @@ RestaurantManage = class RestaurantManage {
 				this.rooms = r.message;
 				this.render_rooms();
 				this.ready();
-				
+
 				$("body").show();
 				res();
 			});
 		});
 	}
 
-	clear_rooms(currents_rooms = []) {	
+	clear_rooms(currents_rooms = []) {
 		Object.values(this.rooms || {}).forEach(room => {
 			if (!currents_rooms.includes(room.name) || !this.has_access_to_room(room.name)) {
 				this.object(room.name) ? this.object(room.name).remove() : null;
@@ -595,7 +595,6 @@ RestaurantManage = class RestaurantManage {
 
 	delete_current_room() {
 		this.current_room = null;
-		frappe.set_route(`/restaurant-manage?restaurant_room=?`);
 		this.test_components();
 	}
 
