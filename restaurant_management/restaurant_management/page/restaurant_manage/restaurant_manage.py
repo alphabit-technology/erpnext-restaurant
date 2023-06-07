@@ -6,7 +6,7 @@ from erpnext.accounts.doctype.pos_invoice.pos_invoice import get_stock_availabil
 class RestaurantManage:
     @staticmethod
     def production_center_notify(status):
-        object_in_status = frappe.get_list("Status Managed Production Center", "parent", filters={
+        object_in_status = frappe.get_all("Status Managed Production Center", "parent", filters={
             "parentType": "Restaurant Object",
             "status_managed": ("in", status)
         })
@@ -21,14 +21,14 @@ class RestaurantManage:
             frappe.new_doc("Restaurant Object"))
 
         if frappe.session.user == "Administrator" or user_perm.get("write") or user_perm.get("create"):
-            rooms = frappe.get_list("Restaurant Object", "name, description", {
+            rooms = frappe.get_all("Restaurant Object", "name, description", {
                 "type": "Room",
             })
         else:
             restaurant_settings = frappe.get_single("Restaurant Settings")
             rooms_enabled = restaurant_settings.rooms_access()
 
-            rooms = frappe.get_list("Restaurant Object", "name, description", {
+            rooms = frappe.get_all("Restaurant Object", "name, description", {
                 "type": "Room",
                 "name": ("in", rooms_enabled)
             })
@@ -121,7 +121,7 @@ def add_room(client=None):
 
 @frappe.whitelist(allow_guest=True)
 def get_work_station():
-    work_stations = frappe.get_list("Work Station")
+    work_stations = frappe.get_all("Work Station")
     work_station = frappe.get_doc("Work Station", work_stations[0].name)
     return {
         "work_station": work_station,
