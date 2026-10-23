@@ -10,7 +10,7 @@ app_description = "Restaurant"
 app_icon = "octicon octicon-file-directory"
 app_color = "grey"
 app_email = "qubitcore.io@gmail.com"
-app_license = "MIT"
+app_license = "GNU General Public License (v3)"
 source_link = "https://github.com/alphabit-technology/erpnext-restaurant"
 
 doc_events = {
