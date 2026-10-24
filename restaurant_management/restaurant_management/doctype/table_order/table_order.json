@@ -81,6 +81,7 @@
    "options": "Customer"
   },
   {
+   "default": "0",
    "fieldname": "dinners",
    "fieldtype": "Int",
    "label": "Dinners"
@@ -281,7 +282,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-04-15 18:11:35.668706",
+ "modified": "2024-12-15 11:30:16.179882",
  "modified_by": "Administrator",
  "module": "Restaurant Management",
  "name": "Table Order",

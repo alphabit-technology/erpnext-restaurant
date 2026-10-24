@@ -1,3 +1,4 @@
+//LAST MODIFIED: 08-06-2025
 class OrderManage extends ObjectManage {
   #objects = {};
   #components = {};
@@ -139,14 +140,16 @@ class OrderManage extends ObjectManage {
   }
 
   make_dom() {
+    
     this.empty_carts = frappe.jshtml({
       tag: 'div',
       content: RMHelper.no_data('No added items'),
       properties: {
         class: 'empty-carts',
-        /*style: 'display: none'*/
+        /*style: 'display: none' */
       }
     });
+    
 
     this.not_selected_order = frappe.jshtml({
       tag: 'div',
@@ -358,7 +361,7 @@ class OrderManage extends ObjectManage {
               ${this.items_wrapper.html()}
           </div>
           <div class="tab items-cart">
-            <div class="panel-order-items" style="height: calc(100% - 400px); position: relative; width: 100%;overflow:auto;")>
+            <div class="panel-order-items" style="height: calc(100% - 350px); position: relative; width: 100%;overflow:auto;")>
               <ul class="products-list" id="${this.order_entry_container_name}">
                   
               </ul>
@@ -490,6 +493,7 @@ class OrderManage extends ObjectManage {
   }
 
   make_edit_input() {
+    console.log('Order Manager - Make EDIT INPUT')
     const default_class = `input entry-order-editor input-with-feedback center`;
 
     const objs = [
@@ -625,7 +629,13 @@ class OrderManage extends ObjectManage {
     if (RM.busy) return;
 
     const set_data = (item, qty, discount, rate) => {
-      item.data.qty = qty;
+      //FIX 04-06-2025;Check if GRAM
+      if (item.data.stock_uom && item.data.stock_uom.toUpperCase() == "GRAM") {
+        item.data.qty = qty / 1000;
+      } else {
+        item.data.qty = qty;
+      }
+      
       item.data.discount_percentage = discount;
       item.data.rate = rate;
       item.data.status = "Pending";
@@ -665,8 +675,9 @@ class OrderManage extends ObjectManage {
       }
     }
   }
-
   make_pad() {
+    //FIX 03-06-2025; Help of DeepSeek
+    console.log('make PADDDDDDDD')
     const default_class = `pad-col ${this.table_name}`;
     this.orders_count_badge = frappe.jshtml({
       tag: 'span',
@@ -787,6 +798,19 @@ class OrderManage extends ObjectManage {
           if (this.num_pad.input && !this.num_pad.input.is_disabled) {
             this.update_detail(this.num_pad.input);
           }
+        },
+        get_custom_numbers: () => {
+          // Check if current item is food and uses KG or GRAM
+          if (this.current_order && this.current_order.current_item) {
+            const item = this.current_order.current_item.data;
+            if (item.item_group === "Comidas" && ["KG", "GRAM"].includes(item.stock_uom.toUpperCase())) {
+              //return [100, 150, 200, 250, 300, 350, 400, 450, 500];
+              console.log('Numero GRAM')
+
+              //this.num_pad.wrapper.innerHtml = '<table class="pad-container"><tbody><tr class="pad-row"><td class="sm pad-btn pad-col button btn-default-7">400 </td><td class="sm pad-btn pad-col button btn-default-8">450 </td><td class="sm pad-btn pad-col button btn-default-9">500 </td><td class="md pad-btn pad-col button btn-default-Del">Del <span class="fa fa-arrow-left pull-left" style="font-size: 16px; padding-top: 3px"></span></td></tr><tr class="pad-row"><td class="sm pad-btn pad-col button btn-default-4">250 </td><td class="sm pad-btn pad-col button btn-default-5">300 </td><td class="sm pad-btn pad-col button btn-default-6">350 </td><td class="md pad-btn pad-col button btn-default-Enter" rowspan="3">Enter <br><br><span class="fa fa-level-down" style="font-size: 25px; transform: rotate(90deg);"></span></td></tr><tr class="pad-row"><td class="sm pad-btn pad-col button btn-default-1">100 </td><td class="sm pad-btn pad-col button btn-default-2">150 </td><td class="sm pad-btn pad-col button btn-default-3">200 </td></tr><tr class="pad-row"><td class="sm pad-btn pad-col button btn-default-0" colspan="2">0 </td><td class="sm pad-btn pad-col button btn-default-.">. </td></tr></tbody></table>';
+            }
+          }
+          return null; // Return null to use default numbers
         }
       });
       setTimeout(() => {
@@ -831,6 +855,9 @@ class OrderManage extends ObjectManage {
   }
 
   check_buttons_status() {
+    //FIX 24-12-2024
+    console.log('ORDER MANAGE - Check buttons status');
+
     if (this.current_order == null) {
       this.disable_components();
       if (typeof this.#components.new_order_button != "undefined") {
@@ -927,7 +954,15 @@ class OrderManage extends ObjectManage {
     objects.Minus.prop("disabled", !item_is_enabled_to_edit);
     objects.Plus.prop("disabled", !item_is_enabled_to_edit);
     objects.Trash.prop("disabled", !item.is_enabled_to_delete);
-
+    
+    console.log('check item editor status.... get item Stock UOM')
+    console.log(data.stock_uom)
+    //FIX 04-06-2025; Check if GRAM and change KEYBOARD
+    if (data.stock_uom && data.stock_uom.toUpperCase() == "GRAM") { // || data.stock_uom.toUpperCase() == "KG") {
+      this.num_pad.grams = true; 
+    } else {
+      this.num_pad.grams = false; 
+    }
     item.check_status();
   }
 
@@ -954,6 +989,32 @@ class OrderManage extends ObjectManage {
         RM.ready();
         if (typeof r.message != "undefined") {
           RM.sound_submit();
+          //FIX 24-12-2024;
+          //this.reload();
+          //this.modal.load_data();
+          
+          //08-06-2025; TO TEST
+          console.log (' TESTOMG ', this.table.order_manage['tab-containerorders'].length);
+          console.log ('CHILDS ', this.table.order_manage['tab-containerorders'][0].childNodes.length)
+          if (this.table.order_manage['tab-containerorders'][0].childNodes.length >= 3) {
+            console.log ('TESTI ', this.table.order_manage['tab-containerorders'][0].childNodes.item(2).innerText);
+            console.log (this.table.order_manage['tab-containerorders'][0].childNodes.item(2).checkVisibility());
+            if (this.table.order_manage['tab-containerorders'][0].childNodes.length > 4) {
+              setTimeout(() => {
+                this.modal.render();
+              }, 5);
+            }
+            
+          } else {
+            setTimeout(() => {
+              this.modal.render();
+            }, 5);
+  
+          }
+
+          //this.modal.render();
+          //RM.current_room.render();
+
           //RM.is_mobile && this.select_last_order();
         }
       },
@@ -1050,6 +1111,8 @@ class OrderManage extends ObjectManage {
       },
       content: `<span class="fa fa-plus"></span>`
     }).on("click", () => {
+      //FIX 24-12-2024
+      console.log('ORDER CLICK!!!!!');
       this.add_order();
     }, !RM.restrictions.to_new_order ? DOUBLE_CLICK : null);
 

@@ -17,7 +17,31 @@ class ItemsTree {
     }
 
     if(this.in_menu) {
-      filters.item_group_name = ["in", RM.menu.items_groups];
+      //FIX 15-08-2026; If more than 10 groups get Iem Groups from Profile
+      console.log('aqui menu');
+      if(RM.menu.items_groups.length > 20){
+        // Using Set (preserves insertion order in modern JS)
+        //const uniqueGroups = [...new Set(RM.menu.items_groups)];
+
+        // Remove empty strings
+        const uniqueGroups = [...new Set(RM.menu.items_groups.filter(g => g))];
+
+        console.log(`Original: ${RM.menu.items_groups.length}, Unique: ${uniqueGroups.length}`);
+        //FIX 02-09-2026; Trying this
+        if (uniqueGroups.length >5){
+          //filters.item_group_name = ["in", RM.menu.items_groups];  
+          //filters.item_group_name = ["in", RM.pos.settings.item_groups.map(item => item.item_group)];
+          filters.item_group_name = ["in", RM.pos_profile.item_groups.map(item => item.item_group)];
+        } else {
+          filters.item_group_name = ["in", uniqueGroups];
+        }
+        
+
+        //filters.item_group_name = ["in", RM.pos.settings.item_groups.map(item => item.item_group)];
+      } else {
+        filters.item_group_name = ["in", RM.menu.items_groups];
+      }
+      
     }
 
     frappe.db.get_list("Item Group", { fields: ["*"], filters, order_by: "lft" }).then(groups => {
@@ -70,12 +94,12 @@ class ItemsTree {
     });
 
     groups.forEach(group => {
-      const icon_class = group.name === "All Item Groups" ? "fa fa-list" : group.icon || "fa fa-chevron-right";
+      const icon_class = group.name === __("All Item Groups") ? "fa fa-list" : group.icon || "fa fa-chevron-right";
       const style = group.name === "Options" ? "float: right; position:absolute; right:0;" : "";
       this.item_parent_wrapper.append(`
         <button class="btn btn-default btn-flat item-group-action" data-group="${group.name}" style="${style}">
           <span class="${icon_class}" icon-group="icon-group"></span>
-          ${group.name === "All Item Groups" ? __("All") : group.name}
+          ${group.name === __("All Item Groups") ? __("All") : group.name}
         </button>
       `)
     });
@@ -84,7 +108,7 @@ class ItemsTree {
       $(this).addClass('active').removeClass("text-muted").siblings().removeClass('active').addClass("text-muted");
       const item_group = $(this).attr('data-group');
 
-      const filter = item_group === "All Item Groups" ? { name: item_group } : { 
+      const filter = item_group === __("All Item Groups") ? { name: item_group } : { 
         parent_item_group: item_group
       };
 
@@ -152,7 +176,7 @@ class ItemsTree {
               ${this[`${item.name}_count`].html()}
             </span>
             <span class="tree-label" data-children="${item.name}"></span>
-            <svg style="float:right;" class="icon icon-md" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+            <svg style="float:right;" class="icon icon-md" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false">
               ${icon.html()}
             </svg>
           </span>
@@ -201,7 +225,7 @@ class ItemsTree {
 
       this.update_items_count();
       setTimeout(() => {
-        item.name === "All Item Groups" && open_children();
+        item.name === __("All Item Groups") && open_children();
         //opened && open_children();
       }, 0);
 
@@ -212,6 +236,7 @@ class ItemsTree {
   }
 
   update_items_count() {
+    console.log('update times count.... ', RM.url_manage)
     frappe.call({
       method: RM.url_manage + 'group_items_count',
       freeze: true

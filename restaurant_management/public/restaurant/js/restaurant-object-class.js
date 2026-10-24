@@ -20,6 +20,8 @@ RestaurantObject = class RestaurantObject {
 
   init_synchronize() {
     frappe.realtime.on(this.data.name, (data) => {
+      //FIX 28-12-2024
+      console.log('Restaurant Object - INIT SYNCHRONIZE');
       if (data.action === "Notifications") {
         this.update_notifications(data);
       } else {
@@ -212,7 +214,7 @@ RestaurantObject = class RestaurantObject {
     });
 
     this.room.tables_container.append(this.obj.html());
-
+    console.log('RENDERE restaurant OBJECT')
     setTimeout(() => {
       this.draggable();
     }, 0);

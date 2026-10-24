@@ -13,6 +13,7 @@ import string
 from frappe.utils import get_datetime
 from datetime import timedelta
 
+#Last Modified 31-12-2024
 
 class RestaurantObject(Document):
     @property
@@ -261,6 +262,7 @@ class RestaurantObject(Document):
             data["restricted_rooms"] = self.restricted_rooms
             data["restricted_tables"] = self.restricted_tables
             data["restricted_branches"] = self.restricted_branches
+            data["printer_name"] = self.printer_name    #FIX 21-10-2024
         else:
             data["status"] = self.status
 
@@ -453,6 +455,7 @@ class RestaurantObject(Document):
 
     def get_command_data(self, entry, las_status=None, key_name="identifier"):
         short_name = self.order_short_name(entry.parent)
+        #FIX 30-12-2024; On table_description to get description from Restaurant Object
         return dict(
             identifier=entry.identifier,
             item_group=entry.item_group,
@@ -463,7 +466,7 @@ class RestaurantObject(Document):
             room=entry.room,
             branch=entry.branch,
             table=entry.table,
-            table_description=entry.table_description if entry.table_description is not None else entry.table,
+            table_description=entry.table_description if entry.table_description is not None else frappe.get_value('Restaurant Object',entry.table,'description'),
             room_description=entry.room_description if entry.room_description is not None else entry.room,
             short_name=short_name,
             qty=entry.qty,
@@ -474,6 +477,9 @@ class RestaurantObject(Document):
             status=entry.status,
             last_status=las_status,
             notes=entry.notes,
+            was_printed=entry.was_printed,   #FIX 13-10-2024
+            #printer_name=entry.printer_name,    #FIX 21-10-2024
+
             # frappe.format_value(entry.creation, {"fieldtype": "Datetime"}),
             ordered_time=entry.ordered_time or frappe.utils.now_datetime(),
             process_status_data=self.process_status_data(entry)
@@ -590,6 +596,12 @@ class RestaurantObject(Document):
     @ property
     def status(self):
         return "Available" if self.is_enabled_to_reservation() else "Reserved"
+
+    def get_item_wasprinted(self,shortcode=None,itemcode=None):
+        #FIX 31-12-2024; TO get Was Printed status... and avoid duplicate printting...
+        itemprinted = frappe.model.frappe.get_all('Order Entry Item',filters={'parent':['like', '%' + shortcode],'item_code':itemcode},fields=['*'])
+        if itemprinted != []:
+            return itemprinted
 
 def load_json(data):
     import json

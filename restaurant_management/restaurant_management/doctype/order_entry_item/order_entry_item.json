@@ -13,6 +13,7 @@
   "item_invoice",
   "qty",
   "rate",
+  "stock_uom",
   "valuation_rate",
   "amount",
   "price_list_rate",
@@ -34,7 +35,12 @@
   "room_description",
   "sub_items",
   "from_customize",
-  "is_customizable"
+  "is_customizable",
+  "was_printed",
+  "ponto_carne",
+  "dish_side_selected",
+  "dish_side_selected1",
+  "which_printer"
  ],
  "fields": [
   {
@@ -215,12 +221,47 @@
    "fieldname": "is_customizable",
    "fieldtype": "Check",
    "label": "Is Customizable"
+  },
+  {
+   "default": "0",
+   "fieldname": "was_printed",
+   "fieldtype": "Check",
+   "label": "Was Printed"
+  },
+  {
+   "fieldname": "ponto_carne",
+   "fieldtype": "Select",
+   "label": "Ponto Carne",
+   "options": "\nBem\nMedio\nMal\nMedio Bem\nMedio Mal"
+  },
+  {
+   "fetch_from": "item_code.stock_uom",
+   "fieldname": "stock_uom",
+   "fieldtype": "Data",
+   "label": "Stock UOM",
+   "read_only": 1
+  },
+  {
+   "fieldname": "dish_side_selected",
+   "fieldtype": "Data",
+   "label": "Dish Side Selected"
+  },
+  {
+   "fieldname": "which_printer",
+   "fieldtype": "Select",
+   "label": "Which Printer",
+   "options": "\nPRT-BAR01\nPRT-BAR02"
+  },
+  {
+   "fieldname": "dish_side_selected1",
+   "fieldtype": "Data",
+   "label": "Dish Side Selected 2"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2023-02-05 20:23:19.528835",
+ "modified": "2025-08-04 19:35:18.693191",
  "modified_by": "Administrator",
  "module": "Restaurant Management",
  "name": "Order Entry Item",
@@ -229,5 +270,6 @@
  "quick_entry": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
+ "states": [],
  "track_changes": 1
 }

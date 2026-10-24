@@ -45,6 +45,8 @@ app_include_js = [
     '/assets/restaurant_management/js/drag.js',
     '/assets/restaurant_management/js/RM.helper.js',
     '/assets/restaurant_management/js/object-manage.js',
+    '/assets/restaurant_management/js/jsrsasign-all-min.js',
+    '/assets/restaurant_management/js/qz-tray.min.js',
 
     "/assets/restaurant_management/helper/js/jshtml-class.js",
     "/assets/restaurant_management/helper/js/num-pad-class.js",
@@ -53,6 +55,17 @@ app_include_js = [
     "/assets/restaurant_management/helper/js/frappe-form-class.js",
     "/assets/restaurant_management/helper/js/desk-form-class.js"
 ]
+
+
+override_doctype_class = {
+	'Pricing Rule': 'restaurant_management.overrides.custompricing_rule.CustomPricingRule'
+}
+
+
+override_whitelisted_methods = {
+	"erpnext.accounts.doctype.pricing_rule.pricing_rule.apply_pricing_rule": "restaurant_management.overrides.custompricing_rule.apply_pricing_rule",
+    "erpnext.stock.get_item_details.get_item_details": "restaurant_management.overrides.customget_item_details.get_item_details",
+}
 
 # include js, css files in header of web template
 # web_include_css = "/assets/{app_name}/css/{app_name}.css"

@@ -9,7 +9,6 @@
  "hide_custom": 0,
  "icon": "website",
  "idx": 0,
- "indicator_color": "",
  "is_hidden": 0,
  "label": "Restaurant",
  "links": [
@@ -114,7 +113,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "CRM",
-   "link_count": 3,
+   "link_count": 4,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -151,9 +150,19 @@
    "link_type": "DocType",
    "onboard": 1,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Customer",
+   "link_count": 0,
+   "link_to": "Customer",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2024-04-18 16:02:01.385953",
+ "modified": "2025-05-21 05:54:05.472002",
  "modified_by": "Administrator",
  "module": "Restaurant Management",
  "name": "Restaurant",

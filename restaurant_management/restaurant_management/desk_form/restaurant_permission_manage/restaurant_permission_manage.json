@@ -6,7 +6,7 @@
  "allow_multiple": 0,
  "allow_print": 0,
  "button_label": "Save",
- "creation": "2022-08-23 16:06:44.929919",
+ "creation": "2026-08-11 15:28:41.667329",
  "desk_form_fields": [
   {
    "allow_read_on_all_link_options": 1,
@@ -100,7 +100,7 @@
  "is_standard": 1,
  "login_required": 1,
  "max_attachment_size": 0,
- "modified": "2024-04-19 16:50:49.199207",
+ "modified": "2026-10-20 20:05:17.175956",
  "modified_by": "Administrator",
  "module": "Restaurant Management",
  "name": "restaurant-permission-manage",

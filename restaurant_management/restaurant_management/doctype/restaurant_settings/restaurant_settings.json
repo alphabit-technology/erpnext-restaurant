@@ -28,7 +28,8 @@
   "to_change_status_order",
   "section_break_11",
   "restaurant_permissions_info",
-  "restaurant_exceptions"
+  "restaurant_exceptions",
+  "ngrok_or_pinggy_address"
  ],
  "fields": [
   {
@@ -144,12 +145,17 @@
   {
    "fieldname": "column_break_bbeg",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "ngrok_or_pinggy_address",
+   "fieldtype": "Data",
+   "label": "Ngrok or Pinggy Address"
   }
  ],
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2024-04-19 17:04:12.169553",
+ "modified": "2025-06-02 12:53:13.514656",
  "modified_by": "Administrator",
  "module": "Restaurant Management",
  "name": "Restaurant Settings",
@@ -172,6 +178,15 @@
    "print": 1,
    "read": 1,
    "role": "Restaurant Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "Restaurant User",
    "share": 1,
    "write": 1
   }

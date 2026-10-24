@@ -40,7 +40,8 @@
   "customer",
   "group_items_by_order",
   "file",
-  "image"
+  "image",
+  "printer_name"
  ],
  "fields": [
   {
@@ -230,10 +231,15 @@
    "fieldname": "image",
    "fieldtype": "Attach Image",
    "label": "Image"
+  },
+  {
+   "fieldname": "printer_name",
+   "fieldtype": "Data",
+   "label": "Printer Name"
   }
  ],
  "links": [],
- "modified": "2024-04-16 17:23:33.662750",
+ "modified": "2024-10-21 17:35:25.074442",
  "modified_by": "Administrator",
  "module": "Restaurant Management",
  "name": "Restaurant Object",

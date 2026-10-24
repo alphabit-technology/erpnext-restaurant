@@ -69,6 +69,7 @@ class OrderItem {
   }
 
   render() {
+    console.log('FAZ OU CALL RENDER');
     this.row = frappe.jshtml({
       tag: "li",
       properties: { class: "media event" },
@@ -76,15 +77,96 @@ class OrderItem {
     });
 
     this.order.container.append(this.row.html());
+    //FIX 31-05-2025
+    //this.select(false);
+    //const teste = new TableOrder();
+    //teste.select();
   }
 
   async select(scroller = false) {
     this.order.current_item = this;
     this.order.order_manage.check_item_editor_status(this);
     this.row.toggle_common('media.event', 'selected');
+
     //this.order.order_manage.toggle_main_section("items");
 
     if (scroller) this.order.scroller();
+    console.log('ACHOOOO ASYNC SELECT');
+    console.log('ORDER ITEM ', this.order.current_item);
+
+  
+    //FIX 30-05-2025
+    //this.form_editor.field_properties.ponto_carne.hidden = this.data.item_group != "Comidas"
+    if (this.data.item_group == "Comidas") {
+      if (this.form_editor) {
+        this.form_editor.set_field_property('ponto_carne', 'hidden', false);
+      }
+    } else if (this.form_editor) {
+      this.form_editor.set_field_property('ponto_carne', 'hidden', true);
+    }
+
+    if (this.data.item_group == "Comidas") {
+      if (this.form_editor) {
+        this.form_editor.set_field_property('dish_side_selected', 'hidden', false);
+        this.form_editor.set_field_property('dish_side_selected1', 'hidden', false);
+        
+        // Refresh options
+        if (this.form_editor.fields_dict.dish_side_selected.df.options.length === 0) {
+          const listadishes = [];          
+          if (this.order.current_item.data.dish_sides?.length > 0) {
+
+            for (const ds of this.order.current_item.data.dish_sides) {
+              listadishes.push(ds.item_name);
+            }
+          }
+          var options = listadishes;
+        } else {
+          var options = this.form_editor.fields_dict.dish_side_selected.df.options;
+        }
+
+        if (this.form_editor.fields_dict.dish_side_selected1.df.options.length === 0) {
+          const listadishes1 = [];          
+          if (this.order.current_item.data.dish_sides?.length > 0) {
+
+            for (const ds of this.order.current_item.data.dish_sides) {
+              listadishes1.push(ds.item_name);
+            }
+          }
+          var options1 = listadishes1;
+        } else {
+          var options1 = this.form_editor.fields_dict.dish_side_selected1.df.options;
+        }
+
+        this.form_editor.set_df_property('dish_side_selected', 'options', options);
+        this.form_editor.set_df_property('dish_side_selected1', 'options', options1);
+        
+        // Set value if needed
+        if (this.data.dish_side_selected) {
+          this.form_editor.set_value('dish_side_selected', this.data.dish_side_selected);
+        }
+
+        // Set value if needed
+        if (this.data.dish_side_selected1) {
+          this.form_editor.set_value('dish_side_selected1', this.data.dish_side_selected1);
+        }        
+      }
+    } else if (this.form_editor) {
+      this.form_editor.set_field_property('dish_side_selected', 'hidden', true);
+      this.form_editor.set_field_property('dish_side_selected1', 'hidden', true);
+    }
+
+    //FIX 06-06-2025; For Drinks only
+    if (this.data.item_group == "Bebidas") {
+      if (this.form_editor) {
+        this.form_editor.set_field_property('which_printer','hidden', false);
+      }
+    } else {
+      if (this.form_editor) {
+        this.form_editor.set_field_property('which_printer','hidden', true);
+      }
+
+    }
+
   }
 
   active_editor() {
@@ -124,12 +206,41 @@ class OrderItem {
       args: { item: this.data.qty > 0 ? this.data : this.data.identifier },
       always: (r) => {
         if (r.exc) {
+          console.log('Check items!!!!!!!')
           this.order.check_items({ items: [...Object.values(this.order.items).map(item => item.data), this.data] });
         }
         this.order.aggregate(true);
 
         window.saving = false;
         RM.ready();
+        //FIX 22-05-2025; Click on ORder to update...
+        console.log('update Order by clicking...');
+        //this.order.order_manage.reload();
+        //this.order.order_manage.modal.render();
+        //this.order.order_manage.render();
+        //this.modal.render();
+        //this.calculate();
+        //this.check_buttons_status();
+        //this.order.order_manage.objects
+        this.order.order_manage.check_permissions_status();
+        //document.querySelector("#order-container-gelhv7ljkn > button.btn.btn-app.btn-lg.btn-order.selected").click;
+        this.order.current_item.order.button.$[0].click();
+
+        //this.order.order_manage.check_permissions_status();
+
+        /*
+        frappeHelper.api.call({
+          model: "Table Order",
+          name: this.order.data.name,
+          method: "get_items",
+          always: (r) => {
+            console.log('RECARRRRRRRR');
+            this.order.order_manage.reload();
+            //this.order.order_manage.in_modal.reload();
+          }
+        });
+        */
+
       }
     });
   }
@@ -159,11 +270,21 @@ class OrderItem {
         return;
       }
 
-      const qty_field = this.form_editor.get_field("qty");
+
+      //FIX 03-06-2025
+      if (input == "qty" && typeof value === "number" && this.data.stock_uom && this.data.stock_uom.toUpperCase() == "GRAM") {
+        var qty_field = (value / 1000);
+        var qty = flt(qty_field);
+      } else {
+        var qty_field = this.form_editor.get_field("qty");
+        var qty = flt(qty_field.get_value());
+  
+      }
+      //const qty_field = this.form_editor.get_field("qty");
       const rate_field = this.form_editor.get_field("rate");
       const discount_field = this.form_editor.get_field("discount_percentage");
 
-      const qty = flt(qty_field.get_value());
+      //const qty = flt(qty_field.get_value());
       let discount = flt(discount_field.get_value());
       let rate = flt(rate_field.get_value());
       const base_rate = flt(this.data.price_list_rate);
@@ -194,12 +315,19 @@ class OrderItem {
 
   tax_calculate(base_amount) {
     const tax_inclusive = RM.pos_profile.posa_tax_inclusive;
+    //FIX 19-12-2024; CHECK IF two TAXES.... 
+    console.log('TAXXES ', this.data.item_tax_rate);
+    console.log(Object.values(RMHelper.JSONparse(this.data.item_tax_rate) || {}));
 
     const tax_amount = Object.values(RMHelper.JSONparse(this.data.item_tax_rate) || {}).reduce((acc, cur) => {
       if (tax_inclusive) {
         const base_without_tax = base_amount / (1 + (cur / 100));
         return acc + (base_without_tax * (cur / 100));
       } else {
+        //FIX 19-12-2024; Has two TAXES Accounts; Avoid Duplicated Calcs
+        if (this.data.item_tax_rate.split(',').length >= 2 && acc > 0) {
+          acc = 0;
+        }
         return acc + (base_amount * cur / 100);
       }
     }, 0);
@@ -286,11 +414,75 @@ class OrderItem {
   }
 
   async make_form_editor() {
+    console.log('ASYN make form editor')
     if (this.form_editor) {
       const selected = this.row.has_class("selected");
+
       await this.form_editor.reload(this.data);
 
       this.form_editor[!selected || this.form_editor.in_modal ? "show" : "toggle"]();
+
+      //FIX 30-05-2025
+      if (this.data.item_group == "Comidas") {
+        if (this.form_editor) {
+          this.form_editor.set_field_property('ponto_carne', 'hidden', false);
+        }
+      } else if (this.form_editor) {
+        this.form_editor.set_field_property('ponto_carne', 'hidden', true);
+      }
+  
+      if (this.data.item_group == "Comidas") {
+        this.form_editor.field_properties.dish_side_selected = {
+          fieldtype: 'Select',
+          options: () => {  // Use arrow function to maintain 'this' context
+            console.log('Generating dish side options XXXXXXXXXXXXXXXXXXXXXXX...');
+            if (this.data.item_group == "Comidas") {
+              const listadishes = [];
+              if (this.order.current_item.data.dish_sides?.length > 0) {
+                for (const ds of this.order.current_item.data.dish_sides) {
+                  listadishes.push(ds.item_name);
+                }
+              }
+              return listadishes;
+            }
+            return [];
+          },
+          label: __('Dish Side Selected'),
+          hidden: this.data.item_group != "Comidas"
+        }
+        this.form_editor.field_properties.dish_side_selected1 = {
+          fieldtype: 'Select',
+          options: () => {  // Use arrow function to maintain 'this' context
+            console.log('Generating dish side options XXXXXXXXXXXXXXXXXXXXXXX...');
+            if (this.data.item_group == "Comidas") {
+              const listadishes1 = [];
+              if (this.order.current_item.data.dish_sides?.length > 0) {
+                for (const ds of this.order.current_item.data.dish_sides) {
+                  listadishes1.push(ds.item_name);
+                }
+              }
+              return listadishes;
+            }
+            return [];
+          },
+          label: __('Dish Side Selected'),
+          hidden: this.data.item_group != "Comidas"
+        }
+      }
+
+      //FIX 06-06-2025; For Drinks only
+      if (this.data.item_group == "Bebidas") {
+        if (this.form_editor) {
+          this.form_editor.set_field_property('which_printer','hidden', false);
+        }
+      } else {
+        if (this.form_editor) {
+          this.form_editor.set_field_property('which_printer','hidden', true);
+        }
+
+      }
+
+      
     } else {
       this.form_editor = new OrderItemEditor({
         order_item: this,
@@ -331,8 +523,78 @@ class OrderItem {
               }
             }
           },
+          //FIX 29-05-2025; Hide
+          item_tax_rate: {
+            hidden: 1,
+          },
+          valuation_rate: {
+            hidden: 1,
+          },
+          price_list_rate: {
+            hidden: 1,
+          },
+          tax_amout: {
+            hidden: 1,
+          },
+          ponto_carne: {
+            hidden: this.data.item_group != "Comidas",
+            "get_query": () => {
+              return {
+                filters: [
+                  ['item_code', '=', this.data.item_code]
+                ]
+              }
+            }
+          },
+
+          // Replace the existing dish_side_selected definition with this:
+          
+          dish_side_selected: {
+            fieldtype: 'Select',
+            options: () => {  // Use arrow function to maintain 'this' context
+              console.log('Generating dish side options...');
+              if (this.data.item_group == "Comidas") {
+                const listadishes = [];
+                if (this.order.current_item.data.dish_sides?.length > 0) {
+                  for (const ds of this.order.current_item.data.dish_sides) {
+                    listadishes.push(ds.item_name);
+                  }
+                }
+                return listadishes;
+              }
+              return [];
+            },
+            label: __('Dish Side Selected'),
+            hidden: this.data.item_group != "Comidas"
+          },
+
+          dish_side_selected1: {
+            fieldtype: 'Select',
+            options: () => {  // Use arrow function to maintain 'this' context
+              console.log('Generating dish side options...');
+              if (this.data.item_group == "Comidas") {
+                const listadishes1 = [];
+                if (this.order.current_item.data.dish_sides?.length > 0) {
+                  for (const ds of this.order.current_item.data.dish_sides) {
+                    listadishes1.push(ds.item_name);
+                  }
+                }
+                return listadishes1;
+              }
+              return [];
+            },
+            label: __('Dish Side Selected'),
+            hidden: this.data.item_group != "Comidas"
+          },          
+          //FIX 06-06-2026
+          which_printer: {
+            hidden: this.data.item_group !="Bebidas"
+          },
+
         }
       });
+
+
     }
   }
 
@@ -351,6 +613,15 @@ class OrderItem {
       this.form_editor.set_field_property("qty", "read_only", !this.is_enabled_to_edit);
       this.form_editor.set_field_property("discount_percentage", "read_only", !this.is_enabled_to_edit || !pos_profile.allow_discount_change);
       this.form_editor.set_field_property("rate", "read_only", !this.is_enabled_to_edit || !pos_profile.allow_rate_change);
+
+      //FIX 30-05-2025
+      this.form_editor.set_field_property("ponto_carne", "read_only", !this.is_enabled_to_edit);
+      this.form_editor.set_field_property("dish_side_selected", "read_only", !this.is_enabled_to_edit);
+      this.form_editor.set_field_property("dish_side_selected1", "read_only", !this.is_enabled_to_edit);
+
+      //FIX 06-06-2025
+      this.form_editor.set_field_property("which_printer", "read_only", !this.is_enabled_to_edit);
+
     }
   }
 
@@ -392,11 +663,35 @@ class OrderItemEditor extends DeskForm {
       this.order_item.update();
     }
 
+    const update_dishsides = (field) => {
+      if (this.order_item.data[field.df.fieldname] === field.get_value()) return;
+      this.order_item.calculate_form(field.df.fieldname, field.get_value());
+      this.order_item.update();
+    }
     this.on(["qty", "rate", "discount_percentage", "batch_no"], "change", (field) => {
       update(field);
     });
 
+    //FIX 29-05-2025
+    
+    this.on(["ponto_carne"], "change", (field) => {
+      update_dishsides(field);
+    });
+    
+    //FIX 03-06-2025; Add to the constructor or make() method
+    //FIX 06-06-2025; added which_printer
+    this.on(["dish_side_selected","which_printer"], "change", (field) => {
+      this.order_item.calculate_form(field.df.fieldname, field.get_value());
+      this.order_item.update();
+    });
+
+    this.on(["dish_side_selected1","which_printer"], "change", (field) => {
+      this.order_item.calculate_form(field.df.fieldname, field.get_value());
+      this.order_item.update();
+    });
+
     this.get_input("notes").css("height", "100px").on("focusout", (e) => {
+      console.log('ORDERITEMEDITOR getINPUT notes');
       update(this.get_field("notes"));
     });
   }

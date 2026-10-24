@@ -9,14 +9,19 @@ from frappe import _
 from frappe.model.document import Document
 import json
 
+import os
+
 from restaurant_management.restaurant_management.page.restaurant_manage.restaurant_manage import RestaurantManage
 
 status_attending = "Attending"
 
+#Last Modified: 04-08-2025
 
 class TableOrder(Document):
     synchronize_data = None
     def before_save(self):
+        print ('BEFORE SAVE')
+        print (self.synchronize_data)
         if self.synchronize_data:
             self.synchronize(self.synchronize_data)
         else:
@@ -30,6 +35,7 @@ class TableOrder(Document):
         entry_items = self.items_list()
 
         if len(entry_items) > 0:
+            print ('call calculate ORDER!!!!!!')
             self.calculate_order(entry_items)
 
     def notify_status(self):
@@ -90,8 +96,28 @@ class TableOrder(Document):
         return frappe.get_doc("Restaurant Object", self.table)
 
     def divide_template(self):
+        #import os
+        # Get the directory of the current file
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        template_path = os.path.join(current_dir, 'divide_template.html')
+        
+        # Read the template file
+        with open(template_path, 'r') as f:
+            template_content = f.read()
+        
+        # Render the template
         return frappe.render_template(
-            "restaurant_management/restaurant_management/doctype/table_order/divide_template.html", {
+            template_content,
+            {
+                "model": self,
+                "items": self.items_list(),
+                "table": self.table
+            }
+        )
+
+    def divide_template_v0(self):
+        return frappe.render_template(
+            "restaurant_management/restaurant_management/restaurant_management/doctype/table_order/divide_template.html", {
                 "model": self,
                 "items": self.items_list(),
                 "table": self.table
@@ -186,8 +212,11 @@ class TableOrder(Document):
 
         if len(entry_items) == 0:
             frappe.throw(_("There is not Item in this Order"))
-
+        print ('call get invoice - make_invoice')
         invoice = self.get_invoice(entry_items, True)
+
+        #FIX 21-08-2026;
+        invoice.update_stock = 1
 
         invoice.payments = []
         for mp in mode_of_payment:
@@ -265,6 +294,10 @@ class TableOrder(Document):
         invoice.taxes = []
         taxes = {}
 
+        print ('GET INVOICE - ENTRY_ITEMS')
+        print (self.name)
+        print (entry_items)
+
         for i in entry_items:
             item = entry_items[i]
             is_customizable = True if "is_customizable" in item and item["is_customizable"] == 1 else False
@@ -275,6 +308,10 @@ class TableOrder(Document):
                 
                 try: price_list_rate = float(item["price_list_rate"])
                 except ValueError: price_list_rate = 0
+
+                print ('GET INVOICE =====================================')
+                if "ponto_carne" in item:
+                    print (item["ponto_carne"])
 
                 margin_rate_or_amount = (rate - price_list_rate)
                 invoice.append('items', dict(
@@ -292,11 +329,17 @@ class TableOrder(Document):
 
                     has_serial_no=item["has_serial_no"],
                     serial_no=item["serial_no"],
-
                     has_batch_no=item["has_batch_no"],
                     batch_no=item["batch_no"],
 
                     conversion_factor=1,
+
+                    ponto_carne = item['ponto_carne'] if "ponto_carne" in item else None,
+
+                    stock_uom=item['stock_uom'] if "stock_uom" in item else None,   #FIX 20-08-2026
+                    dish_side_selected = item['dish_side_selected'] if "dish_side_selected" in item else None,
+                    dish_side_selected1 = item['dish_side_selected1'] if "dish_side_selected1" in item else None,
+                    which_printer = item['which_printer'] if "which_printer" in item else None
                 ))
 
                 #frappe.publish_realtime("debug", dict(data=item))
@@ -338,9 +381,12 @@ class TableOrder(Document):
         tax_template = frappe.db.get_value(
             "Sales Taxes and Charges Template", {"company": self.company})
 
+        print ('in_invoice_taxes')
+        print (in_invoice_taxes)
         for t in set(in_invoice_taxes):
-            tax = frappe.db.get_value("Sales Taxes And Charges", dict(
-                parenttype=tax_template, account_head=t), ["charge_type", "rate", "amount", "included_in_print_rate"], as_dict=True)
+            #FIX 19-12-2024; Sales Taxes And Charges to Sales Taxes and Charges; amount to tax_amount
+            tax = frappe.db.get_value("Sales Taxes and Charges", dict(
+                parenttype=tax_template, account_head=t), ["charge_type", "rate", "tax_amount", "included_in_print_rate"], as_dict=True)
 
             if isinstance(tax, type(None)):
                 invoice.append('taxes', {
@@ -355,7 +401,7 @@ class TableOrder(Document):
                     "charge_type": tax.charge_type,
                     "account_head": t,
                     "rate": tax.rate or 0,
-                    "tax_amount": tax.amount or 0,
+                    "tax_amount": tax.tax_amount or 0,
                     "description": t,
                     "included_in_print_rate": included_in_print_rate or tax.included_in_print_rate
                 })
@@ -401,7 +447,7 @@ class TableOrder(Document):
         )
 
         self.synchronize_data = dict(action="queue")
-
+        print ('SET QUEUE ITEMS call calculate ORDER!!!!!!')
         self.calculate_order(all_items, True)
         
         #self.action = "queue"
@@ -433,6 +479,9 @@ class TableOrder(Document):
         action = self.update_item(item)
 
         self.synchronize_data = dict(item=item["identifier"])
+        print ('AFTTER PUSH SYNc')
+        print (item)
+
         if action == "db_commit":
             self.db_commit()
         else:
@@ -469,11 +518,15 @@ class TableOrder(Document):
         tax = 0
         amount = 0
         for item in self.entry_items:
-            tax += item.tax_amount
+            #FIX 15-10-2024
+            tax += item.tax_amount if item.tax_amount else 0
             amount += item.amount
 
         self.tax = tax
-        self.amount = amount
+        #FIX 29-07-2025; Added Round....
+        #self.amount = amount
+        self.amount = round(amount,2)
+
         self.save()
 
     def update_item(self, entry, unrestricted=False, synchronize_on_delete=True):
@@ -482,13 +535,24 @@ class TableOrder(Document):
                              unrestricted, synchronize_on_delete)
             return "db_commit"
         else:
+            print ('UPDATE ITEM ENTRY ', entry)
             invoice = self.get_invoice({entry["identifier"]: entry})
             item = invoice.items[0]
+            #FIX 31-12-2024            
+            get_wasprinted =  frappe.get_all("Order Entry Item",filters={'identifier':entry["identifier"]},fields=['name','parent','was_printed'])
+            print ('get_wasprinted ', get_wasprinted)
+            if get_wasprinted:
+                print (get_wasprinted[0].was_printed)
+
+            print ('UPDATE ITEM=====================================')
+            print (item.ponto_carne)
+
 
             data = dict(
                 item_code=item.item_code,
                 qty=item.qty,
                 rate=item.rate,
+                stock_uom=item.stock_uom,   #FIX 03-06-2025
                 price_list_rate=item.price_list_rate,
                 item_tax_template=item.item_tax_template,
                 item_tax_rate=item.item_tax_rate,
@@ -509,13 +573,23 @@ class TableOrder(Document):
                 batch_no=entry["batch_no"],
                 has_serial_no=entry["has_serial_no"],
                 serial_no=entry["serial_no"],
-                sub_items=entry["sub_items"],
-                is_customizable=entry["is_customizable"],
+                was_printed=get_wasprinted[0].was_printed if get_wasprinted !=[] else 0,   #FIX 31-12-2024
+
+                #sub_items=entry["sub_items"],  #REMOVED FOR NOW; 14-10-2024
+                #is_customizable=entry["is_customizable"],  #REMOVED FOR NOW; 14-10-2024
+                #FIX 30-05-2025
+                ponto_carne = entry["ponto_carne"] if "ponto_carne" in entry else None,
+
+                dish_side_selected = entry['dish_side_selected'] if "dish_side_selected" in entry else None,
+                dish_side_selected1 = entry['dish_side_selected1'] if "dish_side_selected1" in entry else None,
+                which_printer = entry['which_printer'] if "which_printer" in entry else None
+
             )
 
             self.validate()
 
             if frappe.db.count("Order Entry Item", {"identifier": entry["identifier"]}) == 0:
+                print ('AQQQQQQQ')
                 self.append('entry_items', data)
                 return "aggregate"
             else:
@@ -523,10 +597,15 @@ class TableOrder(Document):
                 base_sql = f"UPDATE `tabOrder Entry Item` set {values}"
  
                 frappe.db.sql("""{base_sql} WHERE `identifier`='{identifier}'""".format(base_sql = base_sql, identifier=entry["identifier"]))
-                
+                print ('XXXXXXXXXXXXXXXXXXX')
+
                 return "db_commit"
 
     def calculate_order(self, items, save=False):
+        print ('call get invoice - calculate order')
+        print ('items ')
+        print (items)
+
         entry_items = {item["identifier"]: item for item in items}
         invoice = self.get_invoice(entry_items)
 
@@ -563,6 +642,17 @@ class TableOrder(Document):
                 serial_no=entry_item["serial_no"],
                 sub_items=entry_item["sub_items"],
                 is_customizable=entry_item["is_customizable"],
+                was_printed=entry_item["was_printed"],    #FIX 31-12-2024
+
+                #FIX 30-05-2025
+                ponto_carne=entry_item["ponto_carne"],
+
+                stock_uom=item.stock_uom,    #FIX 03-06-2025
+
+                dish_side_selected = entry_item['dish_side_selected'],
+                dish_side_selected1 = entry_item['dish_side_selected1'],
+                which_printer = entry_item['which_printer']
+
             ))
             #item.serial_no = None
 
@@ -578,6 +668,10 @@ class TableOrder(Document):
 
     def data(self, items=None, last_table=None):
         short_data = self.short_data(last_table)
+        print ('TABLE ORDER - DATA')
+        print ('items')
+        print (items)
+
         items = self.items_list() if items is None else items
 
         return dict(
@@ -641,6 +735,7 @@ class TableOrder(Document):
         )
 
     def items_list(self, from_item=None):
+        print ('ITEM LIST ++++++++++++++++++++++++++++++++')
         table = self._table
         items = []
         short_name = self.short_name
@@ -655,6 +750,7 @@ class TableOrder(Document):
                     "item_code",
                     "item_name",
                     "qty",
+                    "stock_uom",    #FIX 03-06-2025
                     "rate",
                     "amount",
                     "discount_percentage",
@@ -674,7 +770,12 @@ class TableOrder(Document):
                     "has_serial_no",
                     "serial_no",
                     "sub_items",
-                    "is_customizable"
+                    "is_customizable",
+                    "was_printed",
+                    "ponto_carne",
+                    "dish_side_selected",
+                    "dish_side_selected1",
+                    "which_printer"
                 ]}
 
                 row["order_name"] = item.parent
@@ -685,6 +786,17 @@ class TableOrder(Document):
                 row["order"] = short_name
                 row["table_description"] = self.table_info
                 #row["table_info"] = self.table_info
+                
+                print ('item item_code ', item.item_code)
+                
+                #FIX 02-06-2025
+                pratos = frappe.get_doc('Item',item.item_code)
+                if pratos.dish_sides:
+                    #row['dish_sides'] = frappe.get_doc('Item',item.item_code).dish_sides #FIX 30-05-2025
+                    row['dish_sides'] = pratos.dish_sides #FIX 30-05-2025
+
+                #FIX 31-12-2024
+                #row["was_printed"] = item.was_printed
 
                 items.append(row)
         return items
@@ -701,6 +813,8 @@ class TableOrder(Document):
 
                 item.status = "Sent"
                 item.ordered_time = frappe.utils.now_datetime()
+                #fIX 30-05-2025
+                print ('PONTO CARNE ', i.ponto_carne)
                 item.save()
 
                 data_to_send.append(table.get_command_data(item))
@@ -751,8 +865,20 @@ class TableOrder(Document):
                     batch_no=item.batch_no,
                     has_serial_no=item.has_serial_no,
                     serial_no=item.serial_no,
+                    was_printed=item.was_printed    #FIX 31-12-2024
                 ))
         self.save()
 
     def after_delete(self):
         self.synchronize(dict(action="Delete", status=["Deleted"]))
+
+    def set_printed_status(self, identifier, itemcode):
+        #FIX 19-10-2024
+        print ('identi ', identifier)
+        print ('itemmmm ', itemcode)
+
+        if identifier:
+            print ('SET PRINTED STATUZ DONE....')
+            frappe.db.sql(""" UPDATE `tabOrder Entry Item` set was_printed = 1 where parent = %s and item_code = %s """, (identifier,itemcode), as_dict=False)
+            frappe.db.commit()
+

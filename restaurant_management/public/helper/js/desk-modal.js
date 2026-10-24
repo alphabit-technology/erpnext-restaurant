@@ -148,6 +148,8 @@ class DeskModal {
 	}
 
 	load_data(){
+		//FIX 24-12-2024
+		console.log('desk modal - LOAD DATA');
 		if(this._is_pdf){
 			this.container.empty().append(this.pdf_template);
 		}else{

@@ -6,7 +6,7 @@
  "allow_multiple": 0,
  "allow_print": 0,
  "button_label": "Save",
- "creation": "2022-12-22 12:21:46.533341",
+ "creation": "2026-08-11 15:28:40.782182",
  "desk_form_fields": [
   {
    "allow_read_on_all_link_options": 0,
@@ -171,7 +171,7 @@
  "is_standard": 1,
  "login_required": 1,
  "max_attachment_size": 0,
- "modified": "2024-04-19 16:50:49.160318",
+ "modified": "2026-10-20 20:05:15.567650",
  "modified_by": "Administrator",
  "module": "Restaurant Management",
  "name": "check-in",

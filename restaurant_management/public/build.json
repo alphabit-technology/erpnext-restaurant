@@ -4,5 +4,13 @@
     ],
     "js/restaurant_management.min.js": [
         "restaurant_management/page/restaurant_manage/pos_restaurant_controller.js"
+    ],
+
+	"js/jsrsasign-all-min.js": [
+        "public/js/jsrsasign-all-min.js"
+	],
+    "js/qz-tray.min.js": [
+        "public/js/qz-tray.min.js"
     ]
+
 }

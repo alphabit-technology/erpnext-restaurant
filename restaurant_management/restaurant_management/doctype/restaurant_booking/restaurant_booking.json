@@ -34,7 +34,7 @@
    "fieldname": "no_of_people",
    "fieldtype": "Int",
    "in_list_view": 1,
-   "label": "No of People",
+   "label": "Number of People",
    "reqd": 1
   },
   {
@@ -105,7 +105,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-04-15 15:43:43.387721",
+ "modified": "2025-05-26 21:44:30.638404",
  "modified_by": "Administrator",
  "module": "Restaurant Management",
  "name": "Restaurant Booking",

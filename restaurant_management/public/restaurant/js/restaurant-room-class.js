@@ -11,6 +11,8 @@ class RestaurantRoom extends ObjectManage {
 
   init_synchronize() {
     frappe.realtime.on(this.data.name, (data) => {
+      //FIX 28-12-2024
+      console.log('Restaurant ROOM - INIT_SINCHRONIZE');
       if (data.action === "Notifications") {
         this.data.orders_count = data.orders_count;
         this.reset_html();

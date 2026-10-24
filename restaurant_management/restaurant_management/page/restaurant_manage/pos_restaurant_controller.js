@@ -448,12 +448,14 @@ erpnext.PointOfSale.RestaurantController = class {
 				this.frm = this.get_new_frm(this.frm);
 				this.frm.doc.items = [];
 				this.frm.doc.is_pos = 1
+				this.frm.doc.update_stock = 1;	//FIX 21-08-2026
 				resolve();
 			} else {
 				frappe.model.with_doctype(doctype, () => {
 					this.frm = this.get_new_frm();
 					this.frm.doc.items = [];
 					this.frm.doc.is_pos = 1
+					this.frm.doc.update_stock = 1;	//FIX 21-08-2026
 					resolve();
 				});
 			}

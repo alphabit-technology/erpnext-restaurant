@@ -101,7 +101,6 @@ class RestaurantSettings(Document):
             pos=frappe.get_doc(
                 "POS Profile", pos_profile_name) if pos_profile_name is not None else None
         )
-
     def get_order_item_editor_form(self):
         return frappe.get_doc("Desk Form", "order-item-editor")
 
